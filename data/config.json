@@ -26,7 +26,7 @@
     "maxTokens": 1024,
     "temperature": 0.1
   },
-  "tunnelUrl": "https://ann-classes-preparing-noble.trycloudflare.com",
+  "tunnelUrl": "https://butler-plaza-independence-chubby.trycloudflare.com",
   "feishuNotify": {
     "enabled": true,
     "mode": "webhook",
