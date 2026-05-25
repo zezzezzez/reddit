@@ -1,0 +1,212 @@
+// Reddit API Integration
+// Fetches comments from Reddit posts
+
+import { RedditComment, RedditPost } from './types';
+import { proxyFetch } from './proxy';
+
+// Use public Reddit JSON API (no auth required, but rate limited)
+// For production, use Reddit API with OAuth
+
+const REDDIT_USER_AGENT = 'HisenseRedditMonitor/1.0';
+
+interface RedditPostData {
+  title: string;
+  author: string;
+  score: number;
+  num_comments: number;
+  created_utc: number;
+  subreddit: string;
+  thumbnail: string;
+  permalink: string;
+  selftext: string;
+}
+
+interface RedditCommentData {
+  id: string;
+  author: string;
+  body: string;
+  score: number;
+  created_utc: number;
+  permalink: string;
+  replies?: any;
+}
+
+// Resolve short URLs to full Reddit URLs
+export async function resolveShortUrl(url: string): Promise<string> {
+  if (!url.includes('/s/')) return url;
+
+  try {
+    const response = await proxyFetch(url, {
+      redirect: 'follow',
+      headers: { 'User-Agent': REDDIT_USER_AGENT },
+    });
+    return response.url;
+  } catch {
+    return url;
+  }
+}
+
+// Fetch post data and comments from Reddit
+export async function fetchRedditPost(url: string, ourPostId?: string): Promise<{
+  postData: Partial<RedditPost>;
+  comments: RedditComment[];
+} | null> {
+  try {
+    // Resolve short URLs first
+    const resolvedUrl = await resolveShortUrl(url);
+
+    // Convert to JSON API URL
+    // Clean URL: remove query parameters and trailing slashes, then append .json
+    let cleanUrl = resolvedUrl.split('?')[0].replace(/\/$/, '');
+    const jsonUrl = cleanUrl + '.json';
+    console.log(`[Reddit] Fetching: ${jsonUrl}`);
+
+    const response = await proxyFetch(jsonUrl, {
+      headers: {
+        'User-Agent': REDDIT_USER_AGENT,
+        'Accept': 'application/json',
+      },
+    });
+
+    if (!response.ok) {
+      // If rate limited (429), wait longer and retry up to 3 times
+      if (response.status === 429) {
+        let retries = 0;
+        const maxRetries = 3;
+        while (retries < maxRetries) {
+          const waitTime = (retries + 1) * 15000; // 15s, 30s, 45s
+          console.warn(`[Reddit] Rate limited (429), waiting ${waitTime/1000}s before retry ${retries + 1}/${maxRetries}...`);
+          await new Promise(resolve => setTimeout(resolve, waitTime));
+          const retryResponse = await proxyFetch(jsonUrl, {
+            headers: {
+              'User-Agent': REDDIT_USER_AGENT,
+              'Accept': 'application/json',
+            },
+          });
+          if (retryResponse.ok) {
+            const retryData = await retryResponse.json();
+            if (!Array.isArray(retryData) || retryData.length < 2) return null;
+            const retryPostData = extractPostData(retryData[0]);
+            const retryComments = extractComments(retryData[1], ourPostId || retryPostData.id || '');
+            return { postData: retryPostData, comments: retryComments };
+          }
+          retries++;
+        }
+        console.error(`[Reddit] Rate limited after ${maxRetries} retries for ${url}`);
+        return null;
+      }
+      console.error(`Reddit API returned ${response.status} for ${url}`);
+      return null;
+    }
+
+    const data = await response.json();
+
+    if (!Array.isArray(data) || data.length < 2) {
+      return null;
+    }
+
+    // Extract post data
+    const postListing = data[0];
+    const postData = extractPostData(postListing);
+
+    // Extract comments - use our post ID instead of Reddit's internal ID
+    const commentListing = data[1];
+    const comments = extractComments(commentListing, ourPostId || postData.id || '');
+
+    return { postData, comments };
+  } catch (error) {
+    console.error(`Error fetching Reddit post ${url}:`, error);
+    return null;
+  }
+}
+
+function extractPostData(listing: any): Partial<RedditPost> {
+  try {
+    const child = listing?.data?.children?.[0]?.data;
+    if (!child) return {};
+
+    return {
+      id: child.id,
+      title: child.title || '',
+      author: child.author || '[deleted]',
+      score: child.score || 0,
+      commentCount: child.num_comments || 0,
+      subreddit: child.subreddit || '',
+      thumbnailUrl: child.thumbnail?.startsWith('http') ? child.thumbnail : undefined,
+      createdAt: new Date(child.created_utc * 1000).toISOString(),
+    };
+  } catch {
+    return {};
+  }
+}
+
+function extractComments(listing: any, postId: string, depth = 0): RedditComment[] {
+  const comments: RedditComment[] = [];
+
+  try {
+    const children = listing?.data?.children || [];
+
+    for (const child of children) {
+      if (child.kind !== 't1') continue; // Skip non-comment items
+
+      const data: RedditCommentData = child.data;
+      if (!data || data.body === '[deleted]' || data.body === '[removed]') continue;
+
+      const comment: RedditComment = {
+        id: data.id,
+        postId,
+        author: data.author || '[deleted]',
+        body: data.body,
+        score: data.score || 0,
+        createdAt: new Date(data.created_utc * 1000).toISOString(),
+        sentimentScore: 0,
+        isFlagged: false,
+        flagReasons: [],
+        permalink: `https://www.reddit.com${data.permalink}`,
+      };
+
+      // Recursively extract replies (limit depth)
+      if (data.replies && typeof data.replies === 'object' && depth < 3) {
+        comment.replies = extractComments(data.replies, postId, depth + 1);
+      }
+
+      comments.push(comment);
+    }
+  } catch (error) {
+    console.error('Error extracting comments:', error);
+  }
+
+  return comments;
+}
+
+// Fetch multiple posts in sequence (with rate limiting)
+export async function fetchMultiplePosts(
+  posts: RedditPost[],
+  onProgress?: (current: number, total: number, postId: string) => void
+): Promise<Map<string, { postData: Partial<RedditPost>; comments: RedditComment[] }>> {
+  const results = new Map<string, { postData: Partial<RedditPost>; comments: RedditComment[] }>();
+
+  for (let i = 0; i < posts.length; i++) {
+    const post = posts[i];
+
+    if (onProgress) {
+      onProgress(i + 1, posts.length, post.id);
+    }
+
+    try {
+      const result = await fetchRedditPost(post.redditUrl);
+      if (result) {
+        results.set(post.id, result);
+      }
+    } catch (error) {
+      console.error(`Failed to fetch post ${post.id}:`, error);
+    }
+
+    // Rate limiting: wait 2 seconds between requests
+    if (i < posts.length - 1) {
+      await new Promise(resolve => setTimeout(resolve, 2000));
+    }
+  }
+
+  return results;
+}

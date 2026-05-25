@@ -1,0 +1,47 @@
+{
+  "feishu": {
+    "appId": "",
+    "appSecret": "",
+    "appToken": "",
+    "tableId": "",
+    "urlFieldName": "Reddit URL"
+  },
+  "scanSchedule": "0 9 * * *",
+  "keywords": [],
+  "sentimentThreshold": -0.3,
+  "openaiApiKey": "",
+  "openaiModel": "gpt-4o-mini",
+  "proxy": {
+    "enabled": true,
+    "host": "10.19.193.99",
+    "port": 443,
+    "protocol": "http"
+  },
+  "llm": {
+    "enabled": true,
+    "provider": "openai",
+    "apiKey": "",
+    "model": "gpt-4o-mini",
+    "baseUrl": "https://api.openai.com/v1",
+    "maxTokens": 1024,
+    "temperature": 0.1
+  },
+  "tunnelUrl": "https://ann-classes-preparing-noble.trycloudflare.com",
+  "feishuNotify": {
+    "enabled": true,
+    "mode": "webhook",
+    "webhookUrl": "https://open.feishu.cn/open-apis/bot/v2/hook/75e20267-54b2-4088-a7b3-008ce48b266a",
+    "notifyTime": "09:00",
+    "notifyLevels": [
+      "critical",
+      "high"
+    ]
+  },
+  "detectionRules": {
+    "brand_attack": true,
+    "product_hate": true,
+    "negative_sentiment": true,
+    "call_to_action_negative": true,
+    "competitor_push": true
+  }
+}

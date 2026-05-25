@@ -1,0 +1,82 @@
+import { NextResponse } from 'next/server';
+import { getPosts, getPostById, getComments } from '@/lib/store';
+import { mockPosts, mockComments } from '@/lib/mock-data';
+import { RedditComment } from '@/lib/types';
+
+// Flatten nested comments (with replies) into a single list for accurate counting
+function flattenAllComments(comments: RedditComment[]): RedditComment[] {
+  const result: RedditComment[] = [];
+  for (const c of comments) {
+    result.push(c);
+    if (c.replies && Array.isArray(c.replies)) {
+      result.push(...flattenAllComments(c.replies));
+    }
+  }
+  return result;
+}
+
+export async function GET(
+  request: Request,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  try {
+    const { id } = await params;
+
+    // Try store first, fallback to mock
+    const storePosts = getPosts();
+    const useMock = storePosts.length === 0;
+
+    let post;
+    let comments;
+
+    if (useMock) {
+      post = mockPosts.find(p => p.id === id);
+      comments = mockComments[id] || [];
+    } else {
+      post = getPostById(id);
+      comments = getComments(id);
+    }
+
+    if (!post) {
+      return NextResponse.json({ error: 'Post not found' }, { status: 404 });
+    }
+
+    // Flatten all comments including replies for accurate counts
+    const allComments = flattenAllComments(comments);
+    const flaggedComments = allComments.filter(c => c.isFlagged);
+
+    // Sentiment summary (using ALL comments including replies)
+    const positive = allComments.filter(c => c.sentimentScore > 0.1).length;
+    const neutral = allComments.filter(c => c.sentimentScore >= -0.1 && c.sentimentScore <= 0.1).length;
+    const negative = allComments.filter(c => c.sentimentScore < -0.1).length;
+
+    // Category breakdown
+    const categoryCount: Record<string, number> = {};
+    flaggedComments.forEach(c => {
+      c.flagReasons.forEach(r => {
+        categoryCount[r] = (categoryCount[r] || 0) + 1;
+      });
+    });
+
+    return NextResponse.json({
+      post,
+      comments: comments.sort((a, b) => {
+        if (a.isFlagged !== b.isFlagged) return a.isFlagged ? -1 : 1;
+        return b.score - a.score;
+      }),
+      summary: {
+        total: allComments.length,
+        flagged: flaggedComments.length,
+        positive,
+        neutral,
+        negative,
+        categories: categoryCount,
+        avgSentiment: allComments.length > 0
+          ? (allComments.reduce((sum, c) => sum + c.sentimentScore, 0) / allComments.length).toFixed(2)
+          : '0',
+      },
+    });
+  } catch (error) {
+    return NextResponse.json({ error: 'Failed to fetch post detail' }, { status: 500 });
+  }
+}

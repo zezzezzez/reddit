@@ -1,0 +1,20 @@
+[
+  {
+    "date": "2026-05-25",
+    "totalPosts": 36,
+    "totalComments": 533,
+    "flaggedComments": 17,
+    "criticalAlerts": 2,
+    "highAlerts": 2,
+    "mediumAlerts": 3,
+    "safePosts": 29,
+    "sentimentTrend": [
+      {
+        "date": "2026-05-25",
+        "positive": 45,
+        "neutral": 472,
+        "negative": 16
+      }
+    ]
+  }
+]
