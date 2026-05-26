@@ -6,14 +6,15 @@ import {
   Search, Filter, ExternalLink, MessageSquare, Clock,
   RefreshCw, ChevronDown, AlertTriangle, Shield, CheckCircle,
   Trash2, Eye, Loader2, Radar, CircleDot, Wifi, WifiOff,
+  Calendar, X,
 } from 'lucide-react';
 
 const ALERT_STYLES: Record<string, { bg: string; border: string; text: string; badge: string; label: string }> = {
   critical: { bg: 'bg-red-500/15', border: 'border-red-500/40', text: 'text-red-400', badge: 'bg-red-500', label: '严重' },
-  high: { bg: 'bg-orange-500/15', border: 'border-orange-500/40', text: 'text-orange-400', badge: 'bg-orange-500', label: '高危' },
-  medium: { bg: 'bg-yellow-500/15', border: 'border-yellow-500/40', text: 'text-yellow-400', badge: 'bg-yellow-500', label: '中等' },
-  low: { bg: 'bg-blue-500/15', border: 'border-blue-500/40', text: 'text-blue-400', badge: 'bg-blue-500', label: '低危' },
-  safe: { bg: 'bg-green-500/15', border: 'border-green-500/40', text: 'text-green-400', badge: 'bg-green-500', label: '安全' },
+  high:     { bg: 'bg-red-500/15', border: 'border-red-500/40', text: 'text-red-400', badge: 'bg-red-500', label: '严重' },   // 兼容旧数据
+  medium:   { bg: 'bg-yellow-500/15', border: 'border-yellow-500/40', text: 'text-yellow-400', badge: 'bg-yellow-500', label: '中等' },
+  low:      { bg: 'bg-green-500/15', border: 'border-green-500/40', text: 'text-green-400', badge: 'bg-green-500', label: '安全' },  // 兼容旧数据
+  safe:     { bg: 'bg-green-500/15', border: 'border-green-500/40', text: 'text-green-400', badge: 'bg-green-500', label: '安全' },
 };
 
 const CATEGORY_LABELS: Record<string, string> = {
@@ -27,13 +28,12 @@ const CATEGORY_LABELS: Record<string, string> = {
 const FILTER_OPTIONS = [
   { value: 'all', label: '全部' },
   { value: 'critical', label: '严重' },
-  { value: 'high', label: '高危' },
   { value: 'medium', label: '中等' },
-  { value: 'low', label: '低危' },
   { value: 'safe', label: '安全' },
 ];
 
 const SORT_OPTIONS = [
+  { value: 'influence', label: '按影响力得分' },
   { value: 'alert', label: '按预警等级' },
   { value: 'date', label: '按发布时间' },
   { value: 'comments', label: '按评论数' },
@@ -44,8 +44,10 @@ export default function PostsPage() {
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
   const [filterLevel, setFilterLevel] = useState('all');
-  const [sortBy, setSortBy] = useState('alert');
+  const [sortBy, setSortBy] = useState('influence');
   const [showFilterMenu, setShowFilterMenu] = useState(false);
+  const [dateFrom, setDateFrom] = useState('');
+  const [dateTo, setDateTo] = useState('');
   const [scanning, setScanning] = useState(false);
   const [scanProgress, setScanProgress] = useState('');
   const [scanResult, setScanResult] = useState<{success: boolean; message: string} | null>(null);
@@ -55,7 +57,7 @@ export default function PostsPage() {
   useEffect(() => {
     fetchPosts();
     checkNetwork();
-  }, [filterLevel, sortBy, search]);
+  }, [filterLevel, sortBy, search, dateFrom, dateTo]);
 
   const checkNetwork = async () => {
     setNetworkStatus('checking');
@@ -79,6 +81,8 @@ export default function PostsPage() {
       if (filterLevel !== 'all') params.set('level', filterLevel);
       if (sortBy) params.set('sort', sortBy);
       if (search) params.set('search', search);
+      if (dateFrom) params.set('dateFrom', dateFrom);
+      if (dateTo) params.set('dateTo', dateTo);
 
       const res = await fetch(`/api/posts?${params}`);
       const json = await res.json();
@@ -225,11 +229,11 @@ export default function PostsPage() {
       {/* Filters */}
       <div className="flex items-center gap-3 flex-wrap">
         {/* Search */}
-        <div className="relative flex-1 max-w-sm">
+        <div className="relative w-56">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted" />
           <input
             type="text"
-            placeholder="搜索帖子标题、subreddit..."
+            placeholder="搜索帖子..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             className="w-full pl-9 pr-4 py-2 bg-card border border-border rounded-lg text-sm text-foreground placeholder:text-muted focus:outline-none focus:border-primary"
@@ -263,6 +267,35 @@ export default function PostsPage() {
           )}
         </div>
 
+        {/* Date Range Filter */}
+        <div className="flex items-center gap-1.5 bg-card border border-border rounded-lg px-3 py-1.5">
+          <Calendar className="w-4 h-4 text-muted flex-shrink-0" />
+          <input
+            type="date"
+            value={dateFrom}
+            onChange={(e) => setDateFrom(e.target.value)}
+            className="bg-transparent text-sm text-foreground focus:outline-none w-[130px]"
+            title="开始日期"
+          />
+          <span className="text-muted text-xs">—</span>
+          <input
+            type="date"
+            value={dateTo}
+            onChange={(e) => setDateTo(e.target.value)}
+            className="bg-transparent text-sm text-foreground focus:outline-none w-[130px]"
+            title="结束日期"
+          />
+          {(dateFrom || dateTo) && (
+            <button
+              onClick={() => { setDateFrom(''); setDateTo(''); }}
+              className="text-muted hover:text-foreground ml-1"
+              title="清除日期筛选"
+            >
+              <X className="w-3.5 h-3.5" />
+            </button>
+          )}
+        </div>
+
         {/* Sort */}
         <div className="relative">
           <button
@@ -289,11 +322,10 @@ export default function PostsPage() {
           )}
         </div>
 
-        {/* Quick filter badges */}
+        {/* Quick filter badges - always show all levels */}
         <div className="flex items-center gap-1.5 ml-auto">
           {FILTER_OPTIONS.filter(f => f.value !== 'all').map(option => {
-            const count = posts.filter(p => p.alertLevel === option.value).length;
-            if (count === 0) return null;
+            const count = posts.filter(p => p.alertLevel === option.value || (option.value === 'critical' && p.alertLevel === 'high') || (option.value === 'safe' && p.alertLevel === 'low')).length;
             const style = ALERT_STYLES[option.value];
             return (
               <button

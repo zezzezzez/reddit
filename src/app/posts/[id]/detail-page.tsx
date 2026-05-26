@@ -12,10 +12,10 @@ import {
 
 const ALERT_STYLES: Record<string, { bg: string; border: string; text: string; badge: string; label: string }> = {
   critical: { bg: 'bg-red-500/15', border: 'border-red-500/40', text: 'text-red-400', badge: 'bg-red-500', label: '严重' },
-  high: { bg: 'bg-orange-500/15', border: 'border-orange-500/40', text: 'text-orange-400', badge: 'bg-orange-500', label: '高危' },
-  medium: { bg: 'bg-yellow-500/15', border: 'border-yellow-500/40', text: 'text-yellow-400', badge: 'bg-yellow-500', label: '中等' },
-  low: { bg: 'bg-blue-500/15', border: 'border-blue-500/40', text: 'text-blue-400', badge: 'bg-blue-500', label: '低危' },
-  safe: { bg: 'bg-green-500/15', border: 'border-green-500/40', text: 'text-green-400', badge: 'bg-green-500', label: '安全' },
+  high:     { bg: 'bg-red-500/15', border: 'border-red-500/40', text: 'text-red-400', badge: 'bg-red-500', label: '严重' },   // 兼容旧数据
+  medium:   { bg: 'bg-yellow-500/15', border: 'border-yellow-500/40', text: 'text-yellow-400', badge: 'bg-yellow-500', label: '中等' },
+  low:      { bg: 'bg-green-500/15', border: 'border-green-500/40', text: 'text-green-400', badge: 'bg-green-500', label: '安全' },   // 兼容旧数据
+  safe:     { bg: 'bg-green-500/15', border: 'border-green-500/40', text: 'text-green-400', badge: 'bg-green-500', label: '安全' },
 };
 
 const CATEGORY_LABELS: Record<string, string> = {
@@ -173,20 +173,13 @@ export default function PostDetailPage() {
           <p className="text-2xl font-bold text-red-400">{summary.flagged}</p>
           <p className="text-xs text-muted">恶意评论</p>
         </div>
+        <div className="bg-card rounded-lg p-3 border border-orange-500/30 text-center">
+          <p className="text-2xl font-bold text-orange-400">{summary.totalInfluenceScore ?? 0}</p>
+          <p className="text-xs text-muted">总影响力得分</p>
+        </div>
         <div className="bg-card rounded-lg p-3 border border-border text-center">
           <p className="text-2xl font-bold text-foreground">{summary.avgSentiment}</p>
           <p className="text-xs text-muted">平均情感分数</p>
-        </div>
-        <div className="bg-card rounded-lg p-3 border border-border">
-          <ResponsiveContainer width="100%" height={60}>
-            <PieChart>
-              <Pie data={sentimentPieData} cx="50%" cy="50%" innerRadius={15} outerRadius={25} paddingAngle={3} dataKey="value">
-                {sentimentPieData.map((_, i) => (
-                  <Cell key={i} fill={PIE_COLORS[i]} />
-                ))}
-              </Pie>
-            </PieChart>
-          </ResponsiveContainer>
         </div>
       </div>
 
@@ -285,6 +278,21 @@ export default function PostDetailPage() {
                       {CATEGORY_LABELS[r] || r}
                     </span>
                   ))}
+                  {/* 影响力得分 */}
+                  {comment.isFlagged && comment.influenceScore !== undefined && (
+                    <span
+                      className={`px-2 py-0.5 rounded font-semibold ${
+                        comment.influenceScore >= 20
+                          ? 'bg-red-500/25 text-red-300'
+                          : comment.influenceScore >= 5
+                          ? 'bg-yellow-500/25 text-yellow-300'
+                          : 'bg-gray-500/25 text-gray-300'
+                      }`}
+                      title="影响力得分 = log₁₀(点赞数+1)×5+1 × |情感得分|"
+                    >
+                      ⚡ {comment.influenceScore}
+                    </span>
+                  )}
                 </div>
                 <a
                   href={comment.permalink}

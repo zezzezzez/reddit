@@ -1,27 +1,133 @@
 // Generate Chinese summary for a Reddit post based on title, comments and alert info
 
-// Topic keyword mapping (English -> Chinese)
-const TOPIC_MAP: Record<string, string> = {
-  // TV models
-  'u8n': 'U8N系列', 'u7n': 'U7N系列', 'u6n': 'U6N系列', 'u8': 'U8系列', 'u7': 'U7系列', 'u6': 'U6系列',
-  'oled': 'OLED电视', 'qled': 'QLED电视', 'miniled': 'Mini LED电视', '4k': '4K电视',
-  '85 inch': '85英寸', '75 inch': '75英寸', '65 inch': '65英寸', '55 inch': '55英寸',
-  'hisense': '海信', 'samsung': '三星', 'lg': 'LG', 'tcl': 'TCL', 'sony': '索尼',
-  // Topics
-  'gaming': '游戏体验', 'hdr': 'HDR效果', 'dolby vision': '杜比视界', 'dolby atmos': '杜比全景声',
-  'soundbar': '回音壁/音响', 'sound': '音质', 'picture': '画质', 'motion': '运动补偿',
-  'input lag': '输入延迟', 'refresh rate': '刷新率', '120hz': '120Hz高刷', '144hz': '144Hz高刷',
-  'black friday': '黑五促销', 'deal': '优惠信息', 'price': '价格', 'sale': '促销',
-  'review': '评测', 'comparison': '对比', 'vs': '对比', 'recommend': '推荐',
-  'warranty': '保修', 'return': '退货', 'customer service': '客服',
-  'setup': '安装设置', 'calibration': '校准', 'firmware': '固件更新',
-  'ces': 'CES展会', 'world cup': '世界杯', 'sports': '体育赛事', 'soccer': '足球',
-  'fire tv': 'Fire TV系统', 'roku': 'Roku系统', 'google tv': 'Google TV系统',
-  'costco': 'Costco渠道', 'bestbuy': 'Best Buy渠道', 'walmart': 'Walmart渠道',
-  // Issues
-  'broken': '故障', 'defective': '缺陷', 'issue': '问题', 'problem': '问题',
-  'banding': '色带问题', 'blooming': '光晕问题', 'dse': '屏幕不均匀',
+// ─── 受控词表：每个概念只有一个标准中文标签 ───────────────────────
+// 结构：{ 标准中文标签: [所有同义英文关键词（小写）] }
+// 规则：新增概念只在此处添加，同义表达合并到同一标签，禁止创建近似标签
+export const CONTROLLED_VOCAB: Record<string, string[]> = {
+  // === 机型系列 ===
+  'U8N系列':       ['u8n'],
+  'U7N系列':       ['u7n'],
+  'U6N系列':       ['u6n'],
+  'U8系列':        ['u8 ', ' u8 ', ' u8'],   // 加空格防误匹配 u8n
+  'U7系列':        ['u7 ', ' u7 ', ' u7'],
+  'U6系列':        ['u6 ', ' u6 ', ' u6'],
+  'OLED电视':      ['oled'],
+  'QLED电视':      ['qled'],
+  'Mini LED电视':  ['miniled', 'mini-led', 'mini led'],
+  '4K电视':        ['4k', '4k tv', '4k television'],
+
+  // === 尺寸 ===
+  '85英寸':  ['85 inch', '85inch', '85"', '85-inch'],
+  '75英寸':  ['75 inch', '75inch', '75"', '75-inch'],
+  '65英寸':  ['65 inch', '65inch', '65"', '65-inch'],
+  '55英寸':  ['55 inch', '55inch', '55"', '55-inch'],
+
+  // === 品牌 ===
+  '海信':  ['hisense'],
+  '三星':  ['samsung'],
+  'LG':    ['lg tv', ' lg '],
+  'TCL':   ['tcl tv', ' tcl '],
+  '索尼':  ['sony'],
+
+  // === 使用场景 ===
+  '游戏场景':   ['gaming', 'game', 'gamer', 'gaming setup', 'gaming tv', 'play game', 'playing game', 'game mode', 'gaming mode', 'ps5', 'xbox', 'console gaming'],
+  '家庭影院':   ['home theater', 'home theatre', 'movie room', 'theater setup', 'projector room'],
+  '体育赛事':   ['sports', 'sport', 'world cup', 'soccer', 'football', 'basketball', 'nfl', 'nba', 'mlb'],
+  '日常观影':   ['movie', 'movies', 'film', 'netflix', 'streaming', 'watch tv', 'watching tv'],
+
+  // === 画面质量 ===
+  '画质':        ['picture quality', 'image quality', 'picture', 'image clarity', 'visual quality'],
+  'HDR效果':     ['hdr', 'hdr10', 'hdr10+', 'hdr plus'],
+  '杜比视界':    ['dolby vision', 'dolby vis'],
+  '色彩表现':    ['color accuracy', 'color reproduction', 'color gamut', 'colors', 'colour'],
+  '对比度':      ['contrast', 'contrast ratio', 'black level', 'deep black'],
+  '亮度':        ['brightness', 'nits', 'peak brightness', 'dim', 'bright'],
+  '色带问题':    ['banding', 'color banding'],
+  '光晕问题':    ['blooming', 'halo', 'halos'],
+  '屏幕不均匀':  ['dse', 'dirty screen', 'uniformity'],
+
+  // === 刷新率 ===
+  '高刷新率':    ['120hz', '144hz', 'high refresh', 'refresh rate', 'smooth motion', 'vrr', 'freesync', 'g-sync'],
+  '输入延迟':    ['input lag', 'latency', 'response time', 'lag'],
+  '运动补偿':    ['motion', 'motion blur', 'motion interpolation', 'soap opera effect'],
+
+  // === 音频 ===
+  '音质':        ['sound quality', 'audio quality', 'sound', 'audio'],
+  '回音壁':      ['soundbar', 'sound bar', 'speaker bar'],
+  '杜比全景声':  ['dolby atmos', 'atmos'],
+
+  // === 系统平台 ===
+  'Google TV':   ['google tv', 'googletv'],
+  'Roku系统':    ['roku'],
+  'Fire TV':     ['fire tv', 'firetv', 'fire television'],
+
+  // === 购买渠道 ===
+  'Costco渠道':    ['costco'],
+  'Best Buy渠道':  ['bestbuy', 'best buy'],
+  'Walmart渠道':   ['walmart'],
+  'Amazon渠道':    ['amazon'],
+
+  // === 价格促销 ===
+  '促销优惠':    ['black friday', 'deal', 'sale', 'discount', 'price drop', 'on sale', 'clearance', 'cyber monday'],
+  '价格讨论':    ['price', 'cost', 'expensive', 'cheap', 'budget', 'affordable', 'worth'],
+
+  // === 使用反馈 ===
+  '评测':        ['review', 'unboxing', 'first impression', 'impressions', 'overview'],
+  '产品对比':    ['comparison', 'compare', 'vs ', 'versus', 'difference between'],
+  '购买推荐':    ['recommend', 'recommendation', 'should i buy', 'which to buy', 'advice'],
+  '安装设置':    ['setup', 'install', 'installation', 'mounting', 'set up'],
+  '系统校准':    ['calibration', 'calibrate', 'settings', 'picture settings'],
+  '固件更新':    ['firmware', 'update', 'software update'],
+  '保修服务':    ['warranty', 'extended warranty'],
+  '退货退款':    ['return', 'refund', 'returned', 'sent back', 'exchange'],
+  '客服体验':    ['customer service', 'customer support', 'support', 'tech support'],
+
+  // === 硬件故障 ===
+  '产品故障':    ['broken', 'defective', 'dead pixel', 'dead pixels', 'malfunction', 'not working', 'stopped working'],
+  '硬件问题':    ['issue', 'problem', 'problems', 'issues', 'trouble'],
+  '开箱损坏':    ['broken out of box', 'doa', 'damaged', 'damage'],
 };
+
+// ─── 关键词分类映射（用于筛选器） ───────────────────────
+export const KEYWORD_CATEGORIES: Record<string, { label: string; keywords: string[] }> = {
+  brand: {
+    label: '品牌关键词',
+    keywords: ['海信', '三星', 'LG', 'TCL', '索尼'],
+  },
+  scene: {
+    label: '场景关键词',
+    keywords: ['游戏场景', '家庭影院', '体育赛事', '日常观影'],
+  },
+  model: {
+    label: '型号关键词',
+    keywords: [
+      'U8N系列', 'U7N系列', 'U6N系列', 'U8系列', 'U7系列', 'U6系列',
+      'OLED电视', 'QLED电视', 'Mini LED电视', '4K电视',
+      '85英寸', '75英寸', '65英寸', '55英寸',
+    ],
+  },
+  quality: {
+    label: '质量关键词',
+    keywords: [
+      '画质', 'HDR效果', '杜比视界', '色彩表现', '对比度', '亮度',
+      '色带问题', '光晕问题', '屏幕不均匀',
+      '高刷新率', '输入延迟', '运动补偿',
+      '音质', '回音壁', '杜比全景声',
+      '产品故障', '硬件问题', '开箱损坏',
+    ],
+  },
+};
+
+
+// 构建扁平化查找表（英文关键词 → 标准中文标签），供运行时使用
+const TOPIC_LOOKUP: Array<{ keyword: string; label: string }> = [];
+for (const [label, keywords] of Object.entries(CONTROLLED_VOCAB)) {
+  for (const kw of keywords) {
+    TOPIC_LOOKUP.push({ keyword: kw.toLowerCase(), label });
+  }
+}
+// 按关键词长度降序排列，优先匹配更长的词组防止短词误匹配
+TOPIC_LOOKUP.sort((a, b) => b.keyword.length - a.keyword.length);
 
 const SUBREDDIT_MAP: Record<string, string> = {
   '4ktv': '4K电视', 'hometheater': '家庭影院', 'hisense': '海信专区',
@@ -33,17 +139,19 @@ const SUBREDDIT_MAP: Record<string, string> = {
 
 function extractTopics(text: string): string[] {
   const lower = text.toLowerCase();
-  const topics: string[] = [];
   const seen = new Set<string>();
+  const topics: string[] = [];
 
-  for (const [keyword, label] of Object.entries(TOPIC_MAP)) {
-    if (lower.includes(keyword) && !seen.has(label)) {
+  // 按关键词长度从长到短匹配，确保"home theater"优先于"home"
+  for (const { keyword, label } of TOPIC_LOOKUP) {
+    if (!seen.has(label) && lower.includes(keyword)) {
       topics.push(label);
       seen.add(label);
     }
+    if (topics.length >= 5) break;
   }
 
-  return topics.slice(0, 5);
+  return topics;
 }
 
 function getSubredditLabel(subreddit: string): string {

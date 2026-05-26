@@ -1,9 +1,12 @@
 // Proxy-aware fetch utility for server-side requests
 // Node.js built-in fetch (undici) does NOT respect system proxy settings
 // This module provides a proxyFetch function that routes through configured proxy
+// On Vercel: servers are in the US, can access Reddit directly without proxy
 
 import { getConfig } from './store';
 import { ProxyConfig } from './types';
+
+const isVercel = !!process.env.VERCEL;
 
 // Cache the dispatcher to avoid re-creating on every request
 let cachedDispatcher: any = null;
@@ -75,6 +78,11 @@ export async function initProxy(): Promise<boolean> {
 export async function proxyFetch(url: string, options: RequestInit = {}): Promise<Response> {
   const proxyUrl = getProxyUrl();
 
+  // On Vercel without proxy configured, use direct fetch (Vercel can access Reddit directly)
+  if (!proxyUrl && isVercel) {
+    return fetch(url, options);
+  }
+
   if (proxyUrl) {
     // Ensure proxy dispatcher is set (safe to call repeatedly, uses cache)
     await setupProxy(proxyUrl);
@@ -135,7 +143,9 @@ export async function testProxyConnection(proxyConfig: ProxyConfig): Promise<{
 }
 
 // Auto-detect system proxy from Windows registry
+// Not applicable on Vercel (no Windows registry access)
 export function detectSystemProxy(): ProxyConfig | null {
+  if (isVercel) return null;
   try {
     const { execSync } = require('child_process');
     const result = execSync(

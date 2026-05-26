@@ -6,7 +6,7 @@ export async function GET(request: Request) {
   const status = searchParams.get('status');
 
   const posts = getPosts();
-  const alertPosts = posts.filter(p => p.lastScanned && p.alertLevel !== 'safe' && p.alertLevel !== 'low');
+  const alertPosts = posts.filter(p => p.lastScanned && p.alertLevel === 'critical');
 
   let filtered = alertPosts;
   if (status && status !== 'all') {

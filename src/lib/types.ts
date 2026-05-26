@@ -1,5 +1,8 @@
 // Core types for Reddit Comment Monitor
 
+// 三级告警：严重 / 中等 / 安全
+// critical=严重, medium=中等, safe=安全
+// 兼容旧数据：high 映射为 critical，low 映射为 safe
 export type AlertLevel = 'critical' | 'high' | 'medium' | 'low' | 'safe';
 export type AlertStatus = 'pending' | 'processing' | 'resolved' | 'ignored';
 
@@ -34,6 +37,7 @@ export interface RedditComment {
   isFlagged: boolean;
   flagReasons: string[];
   permalink: string;
+  influenceScore?: number; // 影响力得分：点赞数 × |情感得分| 加权，仅恶意评论有效
   replies?: RedditComment[];
 }
 

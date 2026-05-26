@@ -1,7 +1,11 @@
 // Data store for Reddit Monitor
-// Uses file-based persistence for storing posts, comments, and scan results
+// Local: file-based persistence | Vercel: in-memory + env vars
 
-import { RedditPost, RedditComment, ScanResult, DailyScanReport, MonitorConfig } from './types';
+import { RedditPost, RedditComment, ScanResult, DailyScanReport, MonitorConfig, AlertLevel } from './types';
+
+const isVercel = !!process.env.VERCEL;
+
+// ─── File-based storage (local dev) ─────────────────────────
 import { readFileSync, writeFileSync, existsSync, mkdirSync } from 'fs';
 import { join } from 'path';
 
@@ -13,8 +17,12 @@ const CONFIG_FILE = join(DATA_DIR, 'config.json');
 const REPORTS_FILE = join(DATA_DIR, 'reports.json');
 
 function ensureDataDir() {
-  if (!existsSync(DATA_DIR)) {
-    mkdirSync(DATA_DIR, { recursive: true });
+  try {
+    if (!existsSync(DATA_DIR)) {
+      mkdirSync(DATA_DIR, { recursive: true });
+    }
+  } catch {
+    // Read-only filesystem (Vercel)
   }
 }
 
@@ -31,12 +39,28 @@ function readJsonFile<T>(filePath: string, defaultValue: T): T {
 }
 
 function writeJsonFile<T>(filePath: string, data: T) {
-  ensureDataDir();
-  writeFileSync(filePath, JSON.stringify(data, null, 2), 'utf-8');
+  // On Vercel, never attempt file writes (read-only filesystem)
+  if (isVercel) return;
+  try {
+    ensureDataDir();
+    writeFileSync(filePath, JSON.stringify(data, null, 2), 'utf-8');
+  } catch {
+    // Silently fail on read-only filesystem
+  }
 }
 
-// Posts
+// ─── In-memory storage (Vercel serverless) ───────────────────
+const memoryStore: Record<string, any> = {
+  posts: [],
+  comments: [],
+  scans: [],
+  reports: [],
+  config: null,
+};
+
+// ─── Posts ───────────────────────────────────────────────────
 export function getPosts(): RedditPost[] {
+  if (isVercel) return memoryStore.posts as RedditPost[];
   return readJsonFile<RedditPost[]>(POSTS_FILE, []);
 }
 
@@ -45,6 +69,7 @@ export function getPostById(id: string): RedditPost | undefined {
 }
 
 export function savePosts(posts: RedditPost[]) {
+  if (isVercel) { memoryStore.posts = posts; return; }
   writeJsonFile(POSTS_FILE, posts);
 }
 
@@ -64,9 +89,9 @@ export function deletePost(id: string) {
   savePosts(posts);
 }
 
-// Comments
+// ─── Comments ────────────────────────────────────────────────
 export function getComments(postId?: string): RedditComment[] {
-  const all = readJsonFile<RedditComment[]>(COMMENTS_FILE, []);
+  const all = isVercel ? (memoryStore.comments as RedditComment[]) : readJsonFile<RedditComment[]>(COMMENTS_FILE, []);
   if (postId) return all.filter(c => c.postId === postId);
   return all;
 }
@@ -75,12 +100,13 @@ export function saveComments(postId: string, comments: RedditComment[]) {
   const all = getComments();
   const filtered = all.filter(c => c.postId !== postId);
   filtered.push(...comments);
+  if (isVercel) { memoryStore.comments = filtered; return; }
   writeJsonFile(COMMENTS_FILE, filtered);
 }
 
-// Scan Results
+// ─── Scan Results ────────────────────────────────────────────
 export function getScanResults(postId?: string): ScanResult[] {
-  const all = readJsonFile<ScanResult[]>(SCANS_FILE, []);
+  const all = isVercel ? (memoryStore.scans as ScanResult[]) : readJsonFile<ScanResult[]>(SCANS_FILE, []);
   if (postId) return all.filter(s => s.postId === postId);
   return all;
 }
@@ -88,11 +114,13 @@ export function getScanResults(postId?: string): ScanResult[] {
 export function saveScanResult(result: ScanResult) {
   const all = getScanResults();
   all.push(result);
+  if (isVercel) { memoryStore.scans = all; return; }
   writeJsonFile(SCANS_FILE, all);
 }
 
-// Daily Reports
+// ─── Daily Reports ───────────────────────────────────────────
 export function getDailyReports(): DailyScanReport[] {
+  if (isVercel) return memoryStore.reports as DailyScanReport[];
   return readJsonFile<DailyScanReport[]>(REPORTS_FILE, []);
 }
 
@@ -104,10 +132,11 @@ export function saveDailyReport(report: DailyScanReport) {
   } else {
     reports.push(report);
   }
+  if (isVercel) { memoryStore.reports = reports; return; }
   writeJsonFile(REPORTS_FILE, reports);
 }
 
-// Config
+// ─── Config ──────────────────────────────────────────────────
 const DEFAULT_CONFIG: MonitorConfig = {
   feishu: {
     appId: '',
@@ -116,7 +145,7 @@ const DEFAULT_CONFIG: MonitorConfig = {
     tableId: '',
     urlFieldName: 'Reddit URL',
   },
-  scanSchedule: '0 9 * * *', // Daily at 9am
+  scanSchedule: '0 9 * * *',
   keywords: [],
   sentimentThreshold: -0.3,
   openaiApiKey: '',
@@ -152,10 +181,63 @@ const DEFAULT_CONFIG: MonitorConfig = {
   },
 };
 
+// On Vercel, merge environment variables into config
+function applyEnvOverrides(config: MonitorConfig): MonitorConfig {
+  if (!isVercel) return config;
+
+  // Proxy from env vars
+  if (process.env.PROXY_HOST) {
+    config.proxy = {
+      enabled: process.env.PROXY_ENABLED !== 'false',
+      host: process.env.PROXY_HOST,
+      port: parseInt(process.env.PROXY_PORT || '7890'),
+      protocol: (process.env.PROXY_PROTOCOL || 'http') as 'http' | 'https' | 'socks5',
+    };
+  }
+
+  // Feishu webhook from env var
+  if (process.env.FEISHU_WEBHOOK_URL) {
+    config.feishuNotify = {
+      enabled: true,
+      mode: 'webhook',
+      webhookUrl: process.env.FEISHU_WEBHOOK_URL,
+      notifyTime: process.env.FEISHU_NOTIFY_TIME || '09:00',
+      notifyLevels: (process.env.FEISHU_NOTIFY_LEVELS || 'critical,high').split(',') as AlertLevel[],
+    };
+  }
+
+  // LLM from env vars
+  if (process.env.LLM_API_KEY) {
+    config.llm = {
+      enabled: process.env.LLM_ENABLED !== 'false',
+      provider: (process.env.LLM_PROVIDER || 'openai') as any,
+      apiKey: process.env.LLM_API_KEY,
+      model: process.env.LLM_MODEL || 'gpt-4o-mini',
+      baseUrl: process.env.LLM_BASE_URL || 'https://api.openai.com/v1',
+      maxTokens: parseInt(process.env.LLM_MAX_TOKENS || '1024'),
+      temperature: parseFloat(process.env.LLM_TEMPERATURE || '0.1'),
+    };
+  }
+
+  // Tunnel URL from env var
+  if (process.env.TUNNEL_URL) {
+    (config as any).tunnelUrl = process.env.TUNNEL_URL;
+  }
+
+  return config;
+}
+
 export function getConfig(): MonitorConfig {
+  if (isVercel) {
+    if (!memoryStore.config) {
+      memoryStore.config = applyEnvOverrides({ ...DEFAULT_CONFIG });
+    }
+    return memoryStore.config as MonitorConfig;
+  }
   return readJsonFile<MonitorConfig>(CONFIG_FILE, DEFAULT_CONFIG);
 }
 
 export function saveConfig(config: MonitorConfig) {
+  if (isVercel) { memoryStore.config = config; return; }
   writeJsonFile(CONFIG_FILE, config);
 }

@@ -5,11 +5,9 @@ import { proxyFetch } from './proxy';
 import { getPosts, getComments, getConfig } from './store';
 import { FeishuNotifyConfig, RedditPost, RedditComment, AlertLevel } from './types';
 
-const ALERT_LABELS: Record<AlertLevel, string> = {
+const ALERT_LABELS: Record<string, string> = {
   critical: '🔴 严重',
-  high: '🟠 高危',
   medium: '🟡 中等',
-  low: '🔵 低危',
   safe: '🟢 安全',
 };
 
@@ -29,17 +27,26 @@ function renderBar(percent: number, totalBars = 10): string {
 }
 
 // Calculate overall sentiment health score (0-100)
+// 基于负面评论数，按帖子等级差异化扣分
 function calcHealthScore(
   totalComments: number,
   negative: number,
   criticalPosts: number,
-  highPosts: number,
+  mediumPosts: number,
   flaggedRatio: number
 ): { score: number; label: string; emoji: string } {
   if (totalComments === 0) return { score: 100, label: '暂无数据', emoji: '⚪' };
-  // Negative comments penalty
-  const negativeRatio = negative / totalComments;
-  let score = Math.max(0, Math.round(100 - negativeRatio * 60 - flaggedRatio * 0.8 - criticalPosts * 8 - highPosts * 4));
+  
+  // 严重帖子扣分：每条扣 4 分（封顶 60 分）
+  const criticalPenalty = criticalPosts * 4;
+  
+  // 中等帖子扣分：每条扣 1.5 分（封顶 25 分）
+  const mediumPenalty = mediumPosts * 1.5;
+  
+  // 恶意评论率扣分：每 1% 扣 0.5 分（封顶 15 分）
+  const flaggedPenalty = flaggedRatio * 0.5;
+  
+  let score = Math.max(0, Math.round(100 - Math.min(criticalPenalty, 60) - Math.min(mediumPenalty, 25) - Math.min(flaggedPenalty, 15)));
   score = Math.min(100, Math.max(0, score));
   if (score >= 80) return { score, label: '健康', emoji: '🟢' };
   if (score >= 60) return { score, label: '一般', emoji: '🟡' };
@@ -76,13 +83,13 @@ export function buildAlertMessage(): {
   const posts = getPosts();
   const allComments = getComments();
   const config = getConfig();
-  const notifyLevels = config.feishuNotify?.notifyLevels || ['critical', 'high'];
+  const notifyLevels = config.feishuNotify?.notifyLevels || ['critical'];
 
   const alertPosts = posts.filter(p =>
     notifyLevels.includes(p.alertLevel) && p.lastScanned
   ).sort((a, b) => {
-    const order: Record<AlertLevel, number> = { critical: 0, high: 1, medium: 2, low: 3, safe: 4 };
-    return order[a.alertLevel] - order[b.alertLevel];
+    const order: Record<string, number> = { critical: 0, medium: 1, safe: 2 };
+    return (order[a.alertLevel] ?? 99) - (order[b.alertLevel] ?? 99);
   });
 
   if (alertPosts.length === 0) {
@@ -96,7 +103,6 @@ export function buildAlertMessage(): {
   // === Global dashboard stats ===
   const totalPosts = posts.length;
   const criticalPosts = posts.filter(p => p.alertLevel === 'critical').length;
-  const highPosts = posts.filter(p => p.alertLevel === 'high').length;
   const mediumPosts = posts.filter(p => p.alertLevel === 'medium').length;
   const safePosts = posts.filter(p => p.alertLevel === 'safe' || p.alertLevel === 'low').length;
   const flaggedComments = allComments.filter(c => c.isFlagged);
@@ -116,7 +122,7 @@ export function buildAlertMessage(): {
   const posPct = allComments.length > 0 ? (positive/allComments.length*100) : 0;
   const neuPct = allComments.length > 0 ? (neutral/allComments.length*100) : 0;
   const negPct = allComments.length > 0 ? (negative/allComments.length*100) : 0;
-  const health = calcHealthScore(allComments.length, negative, criticalPosts, highPosts, parseFloat(flaggedRatio));
+  const health = calcHealthScore(allComments.length, negative, criticalPosts, mediumPosts, parseFloat(flaggedRatio));
 
   // Build plain text version - Summary report only
   let text = `📢 Reddit品牌声誉日报 · ${dateStr}\n`;
@@ -129,7 +135,7 @@ export function buildAlertMessage(): {
   // Dashboard overview
   text += `📊 **整体舆情概况**\n`;
   text += `  监控帖子: ${totalPosts} | 总评论: ${allComments.length}\n`;
-  text += `  严重: ${criticalPosts} | 高危: ${highPosts} | 中等: ${mediumPosts} | 安全/低危: ${safePosts}\n`;
+  text += `  严重: ${criticalPosts} | 中等: ${mediumPosts} | 安全: ${safePosts}\n`;
   text += `  情感分布:\n`;
   text += `    🟢 正面 ${renderBar(posPct)} ${posPct.toFixed(1)}% (${positive})\n`;
   text += `    ⚪ 中性 ${renderBar(neuPct)} ${neuPct.toFixed(1)}% (${neutral})\n`;
@@ -143,18 +149,18 @@ export function buildAlertMessage(): {
 
   // Overall sentiment analysis summary
   const dominantSentiment = negative > positive ? '偏负面' : positive > negative ? '偏正面' : '中性';
-  const riskLevel = criticalPosts > 0 ? '高风险' : highPosts > 0 ? '中高风险' : mediumPosts > 0 ? '中风险' : '低风险';
+  const riskLevel = criticalPosts > 0 ? '高风险' : mediumPosts > 0 ? '中风险' : '低风险';
   text += `\n📈 **舆情研判**: 整体情感${dominantSentiment}，当前${riskLevel}。`;
   if (criticalPosts > 0) {
     text += `存在${criticalPosts}个严重风险帖子，需重点关注。`;
-  } else if (highPosts > 0) {
-    text += `存在${highPosts}个高危帖子，建议关注。`;
+  } else if (mediumPosts > 0) {
+    text += `存在${mediumPosts}个中等风险帖子，建议关注。`;
   }
   text += `\n`;
 
   // Alert posts summary (just titles, no details)
   if (alertPosts.length > 0) {
-    text += `\n⚠️ **严重/高危帖子汇总** (${alertPosts.length}个)\n`;
+    text += `\n⚠️ **严重帖子汇总** (${alertPosts.length}个)\n`;
     text += `━━━━━━━━━━━━━━━━━━━━\n`;
     for (let i = 0; i < alertPosts.length; i++) {
       const post = alertPosts[i];
@@ -190,7 +196,6 @@ function buildFeishuCard(
   baseUrl: string
 ): any {
   const criticalCount = alertPosts.filter(p => p.alertLevel === 'critical').length;
-  const highCount = alertPosts.filter(p => p.alertLevel === 'high').length;
 
   // Global stats
   const totalPosts = allPosts.length;
@@ -207,9 +212,10 @@ function buildFeishuCard(
   const posPct = totalComments > 0 ? (positive/totalComments*100) : 0;
   const neuPct = totalComments > 0 ? (neutral/totalComments*100) : 0;
   const negPct = totalComments > 0 ? (negative/totalComments*100) : 0;
-  const health = calcHealthScore(totalComments, negative, criticalCount, highCount, parseFloat(flaggedRatio));
+  const mediumCount = allPosts.filter(p => p.alertLevel === 'medium').length;
+  const health = calcHealthScore(totalComments, negative, criticalCount, mediumCount, parseFloat(flaggedRatio));
   const dominantSentiment = negative > positive ? '偏负面' : positive > negative ? '偏正面' : '中性';
-  const riskLevel = criticalCount > 0 ? '高风险' : highCount > 0 ? '中高风险' : allPosts.filter(p => p.alertLevel === 'medium').length > 0 ? '中风险' : '低风险';
+  const riskLevel = criticalCount > 0 ? '高风险' : mediumCount > 0 ? '中风险' : '低风险';
 
   const elements: any[] = [];
 
@@ -230,7 +236,7 @@ function buildFeishuCard(
       tag: 'lark_md',
       content: `**📊 整体舆情概况**\n`
         + `监控帖子 **${totalPosts}**  |  总评论 **${totalComments}**\n`
-        + `严重 **${criticalCount}**  |  高危 **${highCount}**  |  中等 **${allPosts.filter(p => p.alertLevel === 'medium').length}**  |  安全 **${allPosts.filter(p => p.alertLevel === 'safe' || p.alertLevel === 'low').length}**\n`
+        + `严重 **${criticalCount}**  |  中等 **${allPosts.filter(p => p.alertLevel === 'medium').length}**  |  安全 **${allPosts.filter(p => p.alertLevel === 'safe' || p.alertLevel === 'low').length}**\n`
         + `恶意评论 **${flaggedCount}** (${flaggedRatio}%)`,
     },
   });
@@ -259,7 +265,7 @@ function buildFeishuCard(
     tag: 'div',
     text: {
       tag: 'lark_md',
-      content: `**📈 舆情研判**: 整体情感${dominantSentiment}，当前${riskLevel}。${criticalCount > 0 ? `存在${criticalCount}个严重风险帖子，需重点关注。` : highCount > 0 ? `存在${highCount}个高危帖子，建议关注。` : '整体舆情平稳。'}`,
+      content: `**📈 舆情研判**: 整体情感${dominantSentiment}，当前${riskLevel}。${criticalCount > 0 ? `存在${criticalCount}个严重风险帖子，需重点关注。` : mediumCount > 0 ? `存在${mediumCount}个中等风险帖子，建议关注。` : '整体舆情平稳。'}`,
     },
   });
 
@@ -283,10 +289,10 @@ function buildFeishuCard(
     elements.push({ tag: 'hr' });
 
     // Alert posts summary list (titles only)
-    let alertList = `**⚠️ 严重/高危帖子汇总** (${alertPosts.length}个)\n`;
+    let alertList = `**⚠️ 严重帖子汇总** (${alertPosts.length}个)\n`;
     for (let i = 0; i < Math.min(alertPosts.length, 15); i++) {
       const post = alertPosts[i];
-      const levelEmoji = post.alertLevel === 'critical' ? '🔴' : '🟠';
+      const levelEmoji = post.alertLevel === 'critical' ? '🔴' : '🟡';
       const detailUrl = `${baseUrl}/posts/${post.id}`;
       alertList += `${i + 1}. ${levelEmoji} [${post.title}](${detailUrl})\n`;
     }
@@ -318,7 +324,7 @@ function buildFeishuCard(
           tag: 'plain_text',
           content: '📢 Reddit品牌声誉日报',
         },
-        template: criticalCount > 0 ? 'red' : 'orange',
+        template: criticalCount > 0 ? 'red' : 'blue',
       },
       elements,
     },

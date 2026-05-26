@@ -7,6 +7,8 @@ import { proxyFetch, initProxy } from '@/lib/proxy';
 import { analyzeSentimentWithLLM } from '@/lib/llm';
 import { RedditComment } from '@/lib/types';
 
+const isVercel = !!process.env.VERCEL;
+
 // Global scan progress (in-memory, single-process only)
 let scanProgress = {
   isRunning: false,
@@ -18,21 +20,25 @@ let scanProgress = {
 
 export async function POST(request: Request) {
   try {
-    // Initialize proxy and check Reddit connectivity
-    await initProxy();
-    try {
-      const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 10000);
-      await proxyFetch('https://www.reddit.com/.json?limit=1', {
-        signal: controller.signal,
-        headers: { 'User-Agent': 'HisenseRedditMonitor/1.0' },
-      });
-      clearTimeout(timeoutId);
-    } catch {
-      return NextResponse.json({
-        success: false,
-        message: '无法连接 Reddit，请在设置中配置外网代理后重试',
-      }, { status: 503 });
+    // Connectivity check before scanning
+    // On Vercel: skip pre-check (servers in US can access Reddit directly)
+    // On local dev: verify proxy connectivity before starting scan
+    if (!isVercel) {
+      await initProxy();
+      try {
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 10000);
+        await proxyFetch('https://www.reddit.com/.json?limit=1', {
+          signal: controller.signal,
+          headers: { 'User-Agent': 'HisenseRedditMonitor/1.0' },
+        });
+        clearTimeout(timeoutId);
+      } catch {
+        return NextResponse.json({
+          success: false,
+          message: '无法连接 Reddit，请在设置中配置外网代理后重试',
+        }, { status: 503 });
+      }
     }
 
     const body = await request.json();

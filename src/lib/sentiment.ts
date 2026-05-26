@@ -49,30 +49,78 @@ export const KEYWORD_CATEGORIES = {
 
 // Positive keyword patterns for sentiment scoring
 const POSITIVE_PATTERNS = [
-  // Brand praise
-  { pattern: /love (?:my |this |the )?hisense/i, weight: 0.4 },
-  { pattern: /hisense (?:is|has been) (?:great|amazing|excellent|awesome|fantastic|wonderful|incredible|outstanding)/i, weight: 0.5 },
-  { pattern: /really (?:like|enjoy|love|appreciate) (?:my |this |the )?(?:hisense|this tv)/i, weight: 0.4 },
-  { pattern: /best (?:tv|purchase|buy|value) (?:i|ive|i'v|i'Ve) (?:ever|had)/i, weight: 0.5 },
-  { pattern: /highly (?:recommend|rated)/i, weight: 0.35 },
-  { pattern: /great (?:value|price|quality|picture|tv)/i, weight: 0.3 },
-  { pattern: /good (?:value|price|quality|picture)/i, weight: 0.25 },
-  { pattern: /impressed (?:with|by)/i, weight: 0.3 },
+  // === 品牌直接推荐 ===
+  { pattern: /\bhisense\b/i, weight: 0.15 }, // 提到品牌名本身给基础正面权重（配合其他正面词）
+  { pattern: /love (?:my |this |the )?hisense/i, weight: 0.5 },
+  { pattern: /hisense (?:is|has been|are|were) (?:great|amazing|excellent|awesome|fantastic|wonderful|incredible|outstanding|good|solid|reliable|worth it)/i, weight: 0.5 },
+  { pattern: /really (?:like|enjoy|love|appreciate) (?:my |this |the )?(?:hisense|this tv|the tv)/i, weight: 0.4 },
+  { pattern: /(?:bought|got|purchased|picked up) (?:a |the |my )?hisense/i, weight: 0.3 },
+  { pattern: /hisense (?:tv|television|monitor|fridge|washing machine|appliance)/i, weight: 0.2 },
+  { pattern: /my hisense/i, weight: 0.2 },
+  { pattern: /get (?:a |the )?hisense/i, weight: 0.35 },
+  { pattern: /go (?:with |for )?(?:a |the )?hisense/i, weight: 0.35 },
+  { pattern: /hisense (?:all the way|ftw|for the win)/i, weight: 0.5 },
+  { pattern: /team hisense/i, weight: 0.4 },
+
+  // === 推荐购买 ===
+  { pattern: /(?:highly |definitely |strongly |absolutely )?recommend (?:hisense|this tv|it|them)/i, weight: 0.45 },
+  { pattern: /would (?:definitely |highly |strongly |absolutely )?recommend/i, weight: 0.4 },
+  { pattern: /(?:i )?recommend (?:hisense|the hisense|this)/i, weight: 0.4 },
+  { pattern: /best (?:tv|purchase|buy|value|deal) (?:i|ive|i've) (?:ever|had|made)/i, weight: 0.5 },
+  { pattern: /best (?:bang|value) for (?:the |your )?(?:buck|money|price)/i, weight: 0.45 },
+  { pattern: /great (?:buy|deal|choice|option|pick)/i, weight: 0.4 },
+  { pattern: /good (?:buy|deal|choice|option|pick)/i, weight: 0.35 },
+  { pattern: /solid (?:buy|choice|option|pick|tv|purchase|value)/i, weight: 0.35 },
+  { pattern: /(?:you |u )?(?:should|must|need to|have to|gotta) (?:get|buy|try|check out) (?:a |the |this )?hisense/i, weight: 0.45 },
+  { pattern: /(?:go |look )?(?:check out|look at|try) hisense/i, weight: 0.35 },
+  { pattern: /consider (?:hisense|a hisense|the hisense)/i, weight: 0.3 },
+  { pattern: /hisense (?:is|would be) (?:a )?(?:good|great|solid|excellent|amazing|fantastic) (?:option|choice|pick|buy)/i, weight: 0.45 },
+
+  // === 产品好评 ===
+  { pattern: /great (?:value|price|quality|picture|display|screen|image|color|sound|tv)/i, weight: 0.35 },
+  { pattern: /good (?:value|price|quality|picture|display|screen|image|color|sound)/i, weight: 0.3 },
+  { pattern: /excellent (?:picture|quality|tv|value|display|screen|image|color|sound)/i, weight: 0.4 },
+  { pattern: /amazing (?:picture|quality|tv|value|display|screen|image|color|sound)/i, weight: 0.4 },
+  { pattern: /fantastic (?:picture|quality|tv|display|screen|value)/i, weight: 0.4 },
+  { pattern: /beautiful (?:picture|display|screen|image)/i, weight: 0.35 },
+  { pattern: /stunning (?:picture|display|screen|image)/i, weight: 0.4 },
+  { pattern: /crisp (?:picture|display|screen|image)/i, weight: 0.3 },
+  { pattern: /sharp (?:picture|display|screen|image)/i, weight: 0.3 },
+  { pattern: /vivid (?:colors?|picture|display)/i, weight: 0.3 },
+  { pattern: /looks (?:great|amazing|beautiful|stunning|fantastic|crisp|sharp|good|nice)/i, weight: 0.3 },
+  { pattern: /impressed (?:with|by)/i, weight: 0.35 },
   { pattern: /impressive/i, weight: 0.3 },
-  { pattern: /excellent (?:picture|quality|tv|value)/i, weight: 0.35 },
-  { pattern: /amazing (?:picture|quality|tv|value)/i, weight: 0.35 },
-  { pattern: /solid (?:tv|choice|purchase|value)/i, weight: 0.25 },
-  { pattern: /would (?:definitely |highly )?recommend/i, weight: 0.3 },
-  { pattern: /no (?:regrets|issues|problems|complaints)/i, weight: 0.25 },
-  { pattern: /very (?:happy|pleased|satisfied)/i, weight: 0.35 },
-  { pattern: /worth (?:every |the )?(?:penny|money|price)/i, weight: 0.3 },
-  { pattern: /fantastic (?:picture|quality|tv)/i, weight: 0.35 },
-  { pattern: /great (?:for the |at the )?(?:price|money|budget)/i, weight: 0.3 },
-  { pattern: /looks (?:great|amazing|beautiful|stunning|fantastic)/i, weight: 0.25 },
-  { pattern: /really (?:good|nice|impressive|solid)/i, weight: 0.2 },
-  { pattern: /glad i (?:bought|got|purchased)/i, weight: 0.3 },
-  { pattern: /happy (?:with|about) (?:my |this |the )?(?:purchase|tv|hisense)/i, weight: 0.3 },
-  { pattern: /exceeded (?:my |the )?expectations/i, weight: 0.4 },
+  { pattern: /worth (?:every |the )?(?:penny|cent|dollar|money|price)/i, weight: 0.4 },
+  { pattern: /great (?:for the |at the |for )?(?:price|money|budget|cost)/i, weight: 0.4 },
+  { pattern: /(?:very |super |really )?affordable/i, weight: 0.25 },
+  { pattern: /budget(?: friendly| pick| option| choice)?/i, weight: 0.2 },
+  { pattern: /no (?:regrets|issues|problems|complaints)/i, weight: 0.3 },
+  { pattern: /zero (?:issues|problems|complaints)/i, weight: 0.3 },
+  { pattern: /works (?:great|perfectly|flawlessly|well|fine)/i, weight: 0.35 },
+  { pattern: /works (?:like a )?charm/i, weight: 0.35 },
+  { pattern: /setup (?:was )?(?:easy|simple|quick|straightforward)/i, weight: 0.25 },
+  { pattern: /easy (?:to |to )?(?:set up|setup|install|use)/i, weight: 0.25 },
+
+  // === 满意度表达 ===
+  { pattern: /very (?:happy|pleased|satisfied|impressed)/i, weight: 0.4 },
+  { pattern: /(?:super|really|so|extremely) (?:happy|pleased|satisfied|impressed)/i, weight: 0.4 },
+  { pattern: /happy (?:with|about) (?:my |this |the )?(?:purchase|tv|hisense|product)/i, weight: 0.4 },
+  { pattern: /glad i (?:bought|got|purchased|went with)/i, weight: 0.4 },
+  { pattern: /love it/i, weight: 0.4 },
+  { pattern: /love (?:the|this|my) (?:tv|product|purchase|hisense)/i, weight: 0.45 },
+  { pattern: /exceeded (?:my |the )?expectations/i, weight: 0.45 },
+  { pattern: /better than expected/i, weight: 0.4 },
+  { pattern: /pleasantly surprised/i, weight: 0.4 },
+  { pattern: /(?:so |very |really )?satisfied/i, weight: 0.35 },
+  { pattern: /couldn'?t be (?:happier|more pleased|more satisfied)/i, weight: 0.5 },
+  { pattern: /(?:great|good|amazing|fantastic|excellent|wonderful|awesome) (?:experience|product|purchase)/i, weight: 0.4 },
+
+  // === 对比其他品牌中推荐海信 ===
+  { pattern: /hisense (?:over|instead of|rather than|vs|versus|compared to) (?:samsung|lg|sony|tcl|vizio)/i, weight: 0.4 },
+  { pattern: /(?:switched?|changed?) (?:from|to) hisense/i, weight: 0.3 },
+  { pattern: /hisense (?:beats?|wins?|is better than|outperforms?) /i, weight: 0.45 },
+  { pattern: /picked hisense (?:over|instead)/i, weight: 0.4 },
+  { pattern: /chose hisense/i, weight: 0.35 },
 ];
 
 // Intensity modifiers that amplify negativity
@@ -162,19 +210,18 @@ export function analyzeCommentSentiment(
   // Cap positive score at 1.0
   const normalizedPositive = Math.min(positiveScore, 1.0);
 
-  // Combine: positive offsets negative
-  // If no negative keywords and positive patterns found, score is positive
-  // If negative keywords found, positive patterns can partially offset
+  // Combine: negative takes priority
+  // If negative keywords found, always use negative score (positive cannot offset)
+  // Only use positive score when there are NO negative signals
   let finalScore: number;
-  if (normalizedNegative < 0 && positiveScore > 0) {
-    // Both positive and negative signals: reduce negative impact
-    finalScore = normalizedNegative + (normalizedPositive * 0.5);
-  } else if (normalizedNegative < 0) {
+  if (normalizedNegative < 0) {
+    // Has negative signal: always negative, positive is ignored
     finalScore = normalizedNegative;
   } else if (positiveScore > 0) {
+    // No negative signal, has positive signal: positive
     finalScore = normalizedPositive;
   } else {
-    // Neutral: neither positive nor negative
+    // Neither: neutral
     finalScore = 0;
   }
 
@@ -207,6 +254,17 @@ function escapeRegex(str: string): string {
   return str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 }
 
+// ─── 影响力得分计算（单条评论）───────────────────────────────────
+// 公式：influenceScore = (log10(max(score, 1) + 1) * 5 + 1) * |sentimentScore|
+// - 点赞数取 log10 压缩量级，避免高赞评论一票定胜负
+// - 再乘以情感强度（|sentimentScore|），仅对负面评论有实际意义
+// - 基础值 +1 保证 score=0 的评论也有最低得分
+// 返回值范围：约 0.0 ~ 20.0
+export function calcCommentInfluenceScore(score: number, sentimentScore: number): number {
+  const likeWeight = Math.log10(Math.max(score, 1) + 1) * 5 + 1;
+  return parseFloat((likeWeight * Math.abs(sentimentScore)).toFixed(2));
+}
+
 export function calculatePostAlertLevel(
   comments: RedditComment[],
   rules?: DetectionRules,
@@ -214,54 +272,50 @@ export function calculatePostAlertLevel(
   level: AlertLevel;
   reasons: string[];
   flaggedCount: number;
+  totalInfluenceScore: number; // 所有恶意评论影响力得分之和
 } {
-  const results = comments.map(c => analyzeCommentSentiment(c, rules));
-  const flaggedResults = results.filter(r => r.isFlagged);
-  const flaggedCount = flaggedResults.length;
-
-  const reasons: string[] = [];
-  let severityScore = 0;
+  const results = comments.map(c => ({ comment: c, result: analyzeCommentSentiment(c, rules) }));
+  const flaggedItems = results.filter(r => r.result.isFlagged);
+  const flaggedCount = flaggedItems.length;
 
   if (flaggedCount === 0) {
-    return { level: 'safe', reasons: [], flaggedCount: 0 };
+    return { level: 'safe', reasons: [], flaggedCount: 0, totalInfluenceScore: 0 };
   }
 
-  // Collect all unique flag reasons
-  const allReasons = new Set(flaggedResults.flatMap(r => r.flagReasons));
-  reasons.push(...allReasons);
+  // 收集所有告警类型
+  const allReasons = new Set(flaggedItems.flatMap(r => r.result.flagReasons));
+  const reasons = [...allReasons];
 
-  // Calculate severity based on flagged comments ratio and intensity
-  const flaggedRatio = flaggedCount / comments.length;
-  const avgIntensity = flaggedResults.reduce((sum, r) => sum + r.intensity, 0) / flaggedResults.length;
-  const highIntensityCount = flaggedResults.filter(r => r.intensity >= 3).length;
+  // 计算每条恶意评论的影响力得分，累加得到总分
+  const totalInfluenceScore = flaggedItems.reduce((sum, { comment, result }) => {
+    const influence = calcCommentInfluenceScore(comment.score, result.score);
+    return sum + influence;
+  }, 0);
 
-  severityScore = flaggedRatio * 40 + avgIntensity * 20 + highIntensityCount * 10;
-
-  // Check for call_to_action_negative - this is most dangerous
-  if (allReasons.has('call_to_action_negative')) {
-    severityScore += 20;
-  }
-
+  // ─── 三级判定阈值 ───────────────────────────────────────────
+  // 严重（critical）：总影响力 >= 5 或存在号召抵制类评论
+  // 中等（medium）：  总影响力 > 0 且 < 5
+  // 安全（safe）：    总影响力 = 0（无恶意评论）
   let level: AlertLevel;
-  if (severityScore >= 60 || highIntensityCount >= 3) {
+  const hasCTA = allReasons.has('call_to_action_negative');
+
+  if (totalInfluenceScore >= 5 || hasCTA) {
     level = 'critical';
-  } else if (severityScore >= 40 || flaggedRatio >= 0.3) {
-    level = 'high';
-  } else if (severityScore >= 20 || flaggedRatio >= 0.15) {
+  } else if (totalInfluenceScore > 0) {
     level = 'medium';
   } else {
-    level = 'low';
+    level = 'safe';
   }
 
-  return { level, reasons, flaggedCount };
+  return { level, reasons, flaggedCount, totalInfluenceScore: parseFloat(totalInfluenceScore.toFixed(2)) };
 }
 
 export function getAlertLevelLabel(level: AlertLevel): string {
   switch (level) {
     case 'critical': return '严重';
-    case 'high': return '高危';
+    case 'high': return '严重';   // 兼容旧数据
     case 'medium': return '中等';
-    case 'low': return '低危';
+    case 'low': return '安全';    // 兼容旧数据
     case 'safe': return '安全';
   }
 }

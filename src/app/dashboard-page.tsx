@@ -16,7 +16,6 @@ interface DashboardData {
   stats: {
     totalPosts: number;
     criticalAlerts: number;
-    highAlerts: number;
     mediumAlerts: number;
     safePosts: number;
     totalComments: number;
@@ -32,10 +31,10 @@ interface DashboardData {
 
 const ALERT_STYLES = {
   critical: { bg: 'bg-red-500/15', border: 'border-red-500/40', text: 'text-red-400', badge: 'bg-red-500', label: '严重' },
-  high: { bg: 'bg-orange-500/15', border: 'border-orange-500/40', text: 'text-orange-400', badge: 'bg-orange-500', label: '高危' },
-  medium: { bg: 'bg-yellow-500/15', border: 'border-yellow-500/40', text: 'text-yellow-400', badge: 'bg-yellow-500', label: '中等' },
-  low: { bg: 'bg-blue-500/15', border: 'border-blue-500/40', text: 'text-blue-400', badge: 'bg-blue-500', label: '低危' },
-  safe: { bg: 'bg-green-500/15', border: 'border-green-500/40', text: 'text-green-400', badge: 'bg-green-500', label: '安全' },
+  high:     { bg: 'bg-red-500/15', border: 'border-red-500/40', text: 'text-red-400', badge: 'bg-red-500', label: '严重' },  // 兼容旧数据
+  medium:   { bg: 'bg-yellow-500/15', border: 'border-yellow-500/40', text: 'text-yellow-400', badge: 'bg-yellow-500', label: '中等' },
+  low:      { bg: 'bg-green-500/15', border: 'border-green-500/40', text: 'text-green-400', badge: 'bg-green-500', label: '安全' }, // 兼容旧数据
+  safe:     { bg: 'bg-green-500/15', border: 'border-green-500/40', text: 'text-green-400', badge: 'bg-green-500', label: '安全' },
 };
 
 const PIE_COLORS = ['#10b981', '#64748b', '#ef4444'];
@@ -283,7 +282,17 @@ export default function DashboardPage() {
         const total = data.sentimentDistribution.positive + data.sentimentDistribution.neutral + data.sentimentDistribution.negative;
         const negRatio = total > 0 ? data.sentimentDistribution.negative / total : 0;
         const flaggedRatioNum = parseFloat(data.stats.flaggedRatio);
-        let healthScore = Math.max(0, Math.round(100 - negRatio * 60 - flaggedRatioNum * 0.8 - data.stats.criticalAlerts * 8 - data.stats.highAlerts * 4));
+        
+        // 舆情健康度计算（基于负面评论数，按帖子等级差异化扣分）
+        // 满分100，扣分项：
+        // - 严重帖子中的负面评论：每条扣 4 分（封顶 60 分）
+        // - 中等帖子中的负面评论：每条扣 1.5 分（封顶 25 分）
+        // - 恶意评论率：每 1% 扣 0.5 分（封顶 15 分）
+        const criticalPenalty = data.stats.criticalAlerts * 4;
+        const mediumPenalty = data.stats.mediumAlerts * 1.5;
+        const flaggedPenalty = flaggedRatioNum * 0.5;
+        
+        let healthScore = Math.max(0, Math.round(100 - Math.min(criticalPenalty, 60) - Math.min(mediumPenalty, 25) - Math.min(flaggedPenalty, 15)));
         healthScore = Math.min(100, Math.max(0, healthScore));
         const healthLabel = healthScore >= 80 ? '健康' : healthScore >= 60 ? '一般' : healthScore >= 40 ? '预警' : '高危';
         const borderColor = healthScore >= 80 ? 'border-green-500/40' : healthScore >= 60 ? 'border-yellow-500/40' : healthScore >= 40 ? 'border-orange-500/40' : 'border-red-500/40';
@@ -368,14 +377,14 @@ export default function DashboardPage() {
           </div>
         </div>
 
-        <div className="bg-card rounded-xl p-4 border border-orange-500/30">
+        <div className="bg-card rounded-xl p-4 border border-yellow-500/30">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm text-muted">高危预警</p>
-              <p className="text-3xl font-bold text-orange-400 mt-1">{data.stats.highAlerts}</p>
+              <p className="text-sm text-muted">中等预警</p>
+              <p className="text-3xl font-bold text-yellow-400 mt-1">{data.stats.mediumAlerts}</p>
             </div>
-            <div className="w-10 h-10 rounded-lg bg-orange-500/20 flex items-center justify-center">
-              <AlertTriangle className="w-5 h-5 text-orange-400" />
+            <div className="w-10 h-10 rounded-lg bg-yellow-500/20 flex items-center justify-center">
+              <AlertTriangle className="w-5 h-5 text-yellow-400" />
             </div>
           </div>
         </div>

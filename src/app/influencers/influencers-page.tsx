@@ -1,112 +1,310 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import Link from 'next/link';
+import { ExternalLink, Search, Calendar, X, MessageSquare, Eye, ChevronDown } from 'lucide-react';
 
-interface Influencer {
+interface FlaggedComment {
+  id: string;
   author: string;
-  totalComments: number;
-  avgScore: number;
-  flaggedCount: number;
-  topNegativeComment: string;
+  body: string;
+  score: number;
+  sentimentScore: number;
   influenceScore: number;
+  createdAt: string;
+  postId: string;
+  postTitle: string;
+  subreddit: string;
+  postCreatedAt: string;
+  postUrl: string;
+  flagReasons: string[];
 }
 
+const CATEGORY_LABELS: Record<string, string> = {
+  brand_attack: '品牌攻击',
+  product_hate: '产品差评',
+  negative_sentiment: '负面情绪',
+  call_to_action_negative: '号召抵制',
+  competitor_push: '竞品推荐',
+};
+
 export default function InfluencersPage() {
-  const [influencers, setInfluencers] = useState<Influencer[]>([]);
-  const [expandedAuthor, setExpandedAuthor] = useState<string | null>(null);
-  const [filter, setFilter] = useState<'all' | 'negative'>('all');
+  const [comments, setComments] = useState<FlaggedComment[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [subreddits, setSubreddits] = useState<string[]>([]);
+  
+  // Filters
+  const [subreddit, setSubreddit] = useState('');
+  const [keyword, setKeyword] = useState('');
+  const [authorFilter, setAuthorFilter] = useState('');
+  const [commentDateFrom, setCommentDateFrom] = useState('');
+  const [commentDateTo, setCommentDateTo] = useState('');
+  const [postDateFrom, setPostDateFrom] = useState('');
+  const [postDateTo, setPostDateTo] = useState('');
+  const [showSubredditMenu, setShowSubredditMenu] = useState(false);
+
+  const fetchComments = async () => {
+    setLoading(true);
+    try {
+      const params = new URLSearchParams();
+      if (subreddit) params.set('subreddit', subreddit);
+      if (keyword) params.set('keyword', keyword);
+      if (authorFilter) params.set('author', authorFilter);
+      if (commentDateFrom) params.set('commentDateFrom', commentDateFrom);
+      if (commentDateTo) params.set('commentDateTo', commentDateTo);
+      if (postDateFrom) params.set('postDateFrom', postDateFrom);
+      if (postDateTo) params.set('postDateTo', postDateTo);
+
+      const res = await fetch(`/api/influencers?${params}`);
+      const json = await res.json();
+      setComments(json.comments || []);
+      setSubreddits(json.subreddits || []);
+    } catch (e) {
+      console.error(e);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
-    fetch('/api/influencers')
-      .then(r => r.json())
-      .then(json => setInfluencers(json.influencers || []))
-      .catch(console.error);
-  }, []);
+    fetchComments();
+  }, [subreddit, keyword, authorFilter, commentDateFrom, commentDateTo, postDateFrom, postDateTo]);
 
-  const filtered = filter === 'negative'
-    ? influencers.filter(i => i.flaggedCount > 0)
-    : influencers;
+  const clearFilters = () => {
+    setSubreddit('');
+    setKeyword('');
+    setAuthorFilter('');
+    setCommentDateFrom('');
+    setCommentDateTo('');
+    setPostDateFrom('');
+    setPostDateTo('');
+  };
+
+  const hasFilters = subreddit || keyword || authorFilter || commentDateFrom || commentDateTo || postDateFrom || postDateTo;
+
+  const formatDate = (dateStr: string) => {
+    return new Date(dateStr).toLocaleDateString('zh-CN', {
+      month: 'short',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+    });
+  };
+
+  const getInfluenceBadge = (score: number) => {
+    if (score >= 20) return { bg: 'bg-red-500/25', text: 'text-red-300' };
+    if (score >= 10) return { bg: 'bg-orange-500/25', text: 'text-orange-300' };
+    if (score >= 5) return { bg: 'bg-yellow-500/25', text: 'text-yellow-300' };
+    return { bg: 'bg-gray-500/25', text: 'text-gray-300' };
+  };
 
   return (
-    <div className="p-6 space-y-6">
+    <div className="p-6 space-y-6 max-w-[1600px] mx-auto">
+      {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-xl font-bold text-foreground">影响力用户识别</h1>
-          <p className="text-sm text-muted mt-1">按影响力分数排序，识别高影响力负面用户</p>
+          <h1 className="text-2xl font-bold text-foreground">恶意评论追踪</h1>
+          <p className="text-sm text-muted mt-1">共 {comments.length} 条恶意评论，按影响力得分排序</p>
         </div>
-        <div className="flex gap-2">
-          <button
-            onClick={() => setFilter('all')}
-            className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${filter === 'all' ? 'bg-primary text-white' : 'bg-card border border-border text-muted hover:text-foreground'}`}
-          >全部用户</button>
-          <button
-            onClick={() => setFilter('negative')}
-            className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${filter === 'negative' ? 'bg-red-600 text-white' : 'bg-card border border-border text-muted hover:text-foreground'}`}
-          >含负面评论</button>
-        </div>
+        <button
+          onClick={fetchComments}
+          className="flex items-center gap-2 px-4 py-2 bg-card hover:bg-card-hover border border-border text-foreground rounded-lg text-sm transition-colors"
+        >
+          <Search className="w-4 h-4" />
+          刷新
+        </button>
       </div>
 
-      {/* Top 3 Highlight */}
-      {filtered.length > 0 && (
-        <div className="grid grid-cols-3 gap-4">
-          {filtered.slice(0, 3).map((user, idx) => (
-            <div key={user.author} className={`bg-card rounded-xl p-5 border ${idx === 0 ? 'border-yellow-500/40' : idx === 1 ? 'border-slate-400/40' : 'border-orange-700/40'}`}>
-              <div className="flex items-center gap-3">
-                <div className={`w-12 h-12 rounded-full flex items-center justify-center text-lg font-bold ${idx === 0 ? 'bg-yellow-500/20 text-yellow-400' : idx === 1 ? 'bg-slate-400/20 text-slate-300' : 'bg-orange-700/20 text-orange-400'}`}>
-                  #{idx + 1}
-                </div>
-                <div>
-                  <p className="text-sm font-bold text-foreground">u/{user.author}</p>
-                  <p className="text-xs text-muted">影响力分数: {user.influenceScore}</p>
-                </div>
-              </div>
-              <div className="mt-3 grid grid-cols-3 gap-2 text-center">
-                <div><p className="text-lg font-bold text-foreground">{user.totalComments}</p><p className="text-xs text-muted">评论</p></div>
-                <div><p className="text-lg font-bold text-foreground">{user.avgScore}</p><p className="text-xs text-muted">均分</p></div>
-                <div><p className={`text-lg font-bold ${user.flaggedCount > 0 ? 'text-red-400' : 'text-foreground'}`}>{user.flaggedCount}</p><p className="text-xs text-muted">恶意</p></div>
-              </div>
-            </div>
-          ))}
-        </div>
-      )}
-
-      {/* Full List */}
-      <div className="space-y-2">
-        {filtered.slice(3).map(user => (
-          <div key={user.author} className="bg-card rounded-xl border border-border overflow-hidden">
-            <div
-              className="p-4 flex items-center justify-between cursor-pointer hover:bg-card-hover transition-colors"
-              onClick={() => setExpandedAuthor(expandedAuthor === user.author ? null : user.author)}
+      {/* Filters */}
+      <div className="bg-card border border-border rounded-xl p-4 space-y-3">
+        {/* Row 1: Subreddit + Keyword */}
+        <div className="flex items-center gap-3 flex-wrap">
+          {/* Subreddit Filter */}
+          <div className="relative">
+            <button
+              onClick={() => setShowSubredditMenu(!showSubredditMenu)}
+              className="flex items-center gap-2 px-3 py-2 bg-background border border-border rounded-lg text-sm text-foreground hover:bg-card-hover min-w-[160px]"
             >
-              <div className="flex items-center gap-3">
-                <div className="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center text-xs font-bold text-primary">
-                  {user.author.charAt(0).toUpperCase()}
-                </div>
-                <div>
-                  <p className="text-sm font-medium text-foreground">u/{user.author}</p>
-                  <p className="text-xs text-muted">影响力: {user.influenceScore} | 评论: {user.totalComments} | 均分: {user.avgScore}</p>
-                </div>
-              </div>
-              <div className="flex items-center gap-3">
-                {user.flaggedCount > 0 && (
-                  <span className="text-xs px-2 py-0.5 rounded-full bg-red-500/20 text-red-400">{user.flaggedCount}条恶意</span>
-                )}
-              </div>
-            </div>
-            {expandedAuthor === user.author && user.topNegativeComment && (
-              <div className="px-4 pb-4 border-t border-border pt-3">
-                <p className="text-xs text-muted mb-1">最负面评论:</p>
-                <p className="text-sm text-foreground bg-background p-3 rounded-lg">{user.topNegativeComment}</p>
+              <span className="text-muted">板块:</span>
+              {subreddit || '全部'}
+              <ChevronDown className="w-3 h-3 ml-auto" />
+            </button>
+            {showSubredditMenu && (
+              <div className="absolute top-full mt-1 left-0 bg-card border border-border rounded-lg shadow-lg z-10 py-1 min-w-[160px] max-h-60 overflow-y-auto">
+                <button
+                  onClick={() => { setSubreddit(''); setShowSubredditMenu(false); }}
+                  className={`w-full text-left px-3 py-1.5 text-sm hover:bg-card-hover ${!subreddit ? 'text-primary' : 'text-foreground'}`}
+                >
+                  全部板块
+                </button>
+                {subreddits.map(s => (
+                  <button
+                    key={s}
+                    onClick={() => { setSubreddit(s); setShowSubredditMenu(false); }}
+                    className={`w-full text-left px-3 py-1.5 text-sm hover:bg-card-hover ${subreddit === s ? 'text-primary' : 'text-foreground'}`}
+                  >
+                    r/{s}
+                  </button>
+                ))}
               </div>
             )}
           </div>
-        ))}
-        {filtered.length === 0 && (
-          <div className="bg-card rounded-xl p-8 border border-border text-center text-muted">
-            暂无影响力用户数据
+
+          {/* Keyword Search */}
+          <div className="relative flex-1 max-w-sm">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted" />
+            <input
+              type="text"
+              placeholder="搜索评论内容或帖子标题..."
+              value={keyword}
+              onChange={(e) => setKeyword(e.target.value)}
+              className="w-full pl-9 pr-4 py-2 bg-background border border-border rounded-lg text-sm text-foreground placeholder:text-muted focus:outline-none focus:border-primary"
+            />
           </div>
-        )}
+
+          {/* Author Search */}
+          <div className="relative flex-1 max-w-xs">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted" />
+            <input
+              type="text"
+              placeholder="搜索评论者名字..."
+              value={authorFilter}
+              onChange={(e) => setAuthorFilter(e.target.value)}
+              className="w-full pl-9 pr-4 py-2 bg-background border border-border rounded-lg text-sm text-foreground placeholder:text-muted focus:outline-none focus:border-primary"
+            />
+          </div>
+
+          {/* Clear Filters */}
+          {hasFilters && (
+            <button
+              onClick={clearFilters}
+              className="flex items-center gap-1 px-3 py-2 text-sm text-muted hover:text-foreground"
+            >
+              <X className="w-4 h-4" />
+              清除筛选
+            </button>
+          )}
+        </div>
+
+        {/* Row 2: Date Filters */}
+        <div className="flex items-center gap-3 flex-wrap text-sm">
+          <span className="text-muted">评论时间:</span>
+          <div className="flex items-center gap-1.5 bg-background border border-border rounded-lg px-3 py-1.5">
+            <Calendar className="w-4 h-4 text-muted flex-shrink-0" />
+            <input
+              type="date"
+              value={commentDateFrom}
+              onChange={(e) => setCommentDateFrom(e.target.value)}
+              className="bg-transparent text-foreground focus:outline-none w-[130px]"
+              title="评论开始日期"
+            />
+            <span className="text-muted text-xs">—</span>
+            <input
+              type="date"
+              value={commentDateTo}
+              onChange={(e) => setCommentDateTo(e.target.value)}
+              className="bg-transparent text-foreground focus:outline-none w-[130px]"
+              title="评论结束日期"
+            />
+          </div>
+
+          <span className="text-muted ml-2">发帖时间:</span>
+          <div className="flex items-center gap-1.5 bg-background border border-border rounded-lg px-3 py-1.5">
+            <Calendar className="w-4 h-4 text-muted flex-shrink-0" />
+            <input
+              type="date"
+              value={postDateFrom}
+              onChange={(e) => setPostDateFrom(e.target.value)}
+              className="bg-transparent text-foreground focus:outline-none w-[130px]"
+              title="发帖开始日期"
+            />
+            <span className="text-muted text-xs">—</span>
+            <input
+              type="date"
+              value={postDateTo}
+              onChange={(e) => setPostDateTo(e.target.value)}
+              className="bg-transparent text-foreground focus:outline-none w-[130px]"
+              title="发帖结束日期"
+            />
+          </div>
+        </div>
       </div>
+
+      {/* Comments List */}
+      {loading ? (
+        <div className="flex items-center justify-center py-20">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+        </div>
+      ) : comments.length === 0 ? (
+        <div className="text-center py-20 text-muted bg-card border border-border rounded-xl">
+          <MessageSquare className="w-12 h-12 mx-auto mb-3 opacity-50" />
+          <p>没有找到匹配的恶意评论</p>
+        </div>
+      ) : (
+        <div className="space-y-3">
+          {comments.map((comment) => {
+            const badge = getInfluenceBadge(comment.influenceScore);
+            return (
+              <div key={comment.id} className="bg-card border border-border rounded-xl overflow-hidden hover:border-red-500/30 transition-colors">
+                <div className="p-4">
+                  {/* Header: Author + Influence + Post Link */}
+                  <div className="flex items-start justify-between gap-3 mb-3">
+                    <div className="flex items-center gap-3 flex-wrap">
+                      <span className="text-sm font-medium text-primary">u/{comment.author}</span>
+                      <span className={`px-2 py-0.5 rounded text-xs font-bold ${badge.bg} ${badge.text}`}>
+                        ⚡ {comment.influenceScore}
+                      </span>
+                      <span className="text-xs text-muted flex items-center gap-1">
+                        <Eye className="w-3.5 h-3.5" />
+                        {comment.score} 赞
+                      </span>
+                      <span className="text-xs text-muted">
+                        评论于 {formatDate(comment.createdAt)}
+                      </span>
+                    </div>
+                    <Link
+                      href={comment.postUrl}
+                      target="_blank"
+                      className="flex items-center gap-1 text-xs text-muted hover:text-primary flex-shrink-0"
+                    >
+                      r/{comment.subreddit}
+                      <ExternalLink className="w-3.5 h-3.5" />
+                    </Link>
+                  </div>
+
+                  {/* Comment Body */}
+                  <div className="bg-background rounded-lg p-3 mb-3">
+                    <p className="text-sm text-foreground leading-relaxed line-clamp-3">
+                      {comment.body}
+                    </p>
+                  </div>
+
+                  {/* Footer: Post Title + Categories */}
+                  <div className="flex items-center justify-between gap-3 flex-wrap">
+                    <Link
+                      href={`/posts/${comment.postId}`}
+                      className="text-xs text-primary hover:underline truncate max-w-md"
+                      title={comment.postTitle}
+                    >
+                      📎 {comment.postTitle}
+                    </Link>
+                    <div className="flex items-center gap-1.5 flex-wrap">
+                      {comment.flagReasons.map((reason) => (
+                        <span
+                          key={reason}
+                          className="px-1.5 py-0.5 text-[10px] bg-red-500/10 text-red-300 rounded"
+                        >
+                          {CATEGORY_LABELS[reason] || reason}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      )}
     </div>
   );
 }

@@ -31,7 +31,6 @@ const STATUS_STYLES: Record<string, { bg: string; text: string; label: string }>
 
 const LEVEL_STYLES: Record<string, { text: string; label: string }> = {
   critical: { text: 'text-red-400', label: '严重' },
-  high: { text: 'text-orange-400', label: '高危' },
   medium: { text: 'text-yellow-400', label: '中等' },
 };
 

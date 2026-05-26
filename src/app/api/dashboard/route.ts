@@ -17,7 +17,6 @@ export async function GET() {
     // Calculate stats
     const totalPosts = posts.length;
     const criticalPosts = posts.filter(p => p.alertLevel === 'critical').length;
-    const highPosts = posts.filter(p => p.alertLevel === 'high').length;
     const mediumPosts = posts.filter(p => p.alertLevel === 'medium').length;
     const safePosts = posts.filter(p => p.alertLevel === 'safe' || p.alertLevel === 'low').length;
 
@@ -50,10 +49,10 @@ export async function GET() {
 
     // Top flagged posts
     const topFlaggedPosts = posts
-      .filter(p => p.alertLevel !== 'safe')
+      .filter(p => p.alertLevel !== 'safe' && p.alertLevel !== 'low')
       .sort((a, b) => {
-        const order = { critical: 0, high: 1, medium: 2, low: 3, safe: 4 };
-        return order[a.alertLevel] - order[b.alertLevel];
+        const order = { critical: 0, medium: 1 };
+        return ((order as any)[a.alertLevel] ?? 99) - ((order as any)[b.alertLevel] ?? 99);
       })
       .slice(0, 5);
 
@@ -90,7 +89,6 @@ export async function GET() {
       stats: {
         totalPosts,
         criticalAlerts: criticalPosts,
-        highAlerts: highPosts,
         mediumAlerts: mediumPosts,
         safePosts,
         totalComments: allComments.length,

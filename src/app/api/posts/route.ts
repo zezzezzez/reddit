@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { getPosts, getComments } from '@/lib/store';
 import { mockPosts, mockComments } from '@/lib/mock-data';
+import { calcCommentInfluenceScore } from '@/lib/sentiment';
 
 function getDataSources() {
   const storePosts = getPosts();
@@ -15,13 +16,47 @@ export async function GET(request: Request) {
     const level = searchParams.get('level');
     const search = searchParams.get('search');
     const sort = searchParams.get('sort') || 'alert';
+    const dateFrom = searchParams.get('dateFrom');
+    const dateTo = searchParams.get('dateTo');
 
     const { posts: allPosts, useMock } = getDataSources();
     let posts = [...allPosts];
 
-    // Filter by alert level
+    // Pre-calculate influence score for sorting (attach temporarily)
+    posts.forEach(post => {
+      let comments;
+      if (useMock) {
+        comments = mockComments[post.id] || [];
+      } else {
+        comments = getComments(post.id);
+      }
+      const allFlagged = comments.filter(c => c.isFlagged);
+      (post as any)._totalInfluenceScore = allFlagged.reduce(
+        (sum, c) => sum + calcCommentInfluenceScore(c.score, c.sentimentScore), 0
+      );
+    });
+
+    // Filter by alert level (兼容旧数据 high/low)
     if (level && level !== 'all') {
-      posts = posts.filter(p => p.alertLevel === level);
+      const levelMap: Record<string, string[]> = {
+        critical: ['critical', 'high'],
+        medium: ['medium'],
+        safe: ['safe', 'low'],
+      };
+      const allowedLevels = levelMap[level] || [level];
+      posts = posts.filter(p => allowedLevels.includes(p.alertLevel));
+    }
+
+    // Filter by date range
+    if (dateFrom) {
+      const from = new Date(dateFrom);
+      from.setHours(0, 0, 0, 0);
+      posts = posts.filter(p => new Date(p.createdAt) >= from);
+    }
+    if (dateTo) {
+      const to = new Date(dateTo);
+      to.setHours(23, 59, 59, 999);
+      posts = posts.filter(p => new Date(p.createdAt) <= to);
     }
 
     // Search
@@ -46,6 +81,9 @@ export async function GET(request: Request) {
       case 'comments':
         posts.sort((a, b) => b.commentCount - a.commentCount);
         break;
+      case 'influence':
+        posts.sort((a, b) => ((b as any)._totalInfluenceScore || 0) - ((a as any)._totalInfluenceScore || 0));
+        break;
     }
 
     // Add comment stats for each post
@@ -62,6 +100,7 @@ export async function GET(request: Request) {
         totalCommentsFetched: comments.length,
         flaggedComments: flagged,
         flaggedRatio: comments.length > 0 ? (flagged / comments.length * 100).toFixed(0) : '0',
+        totalInfluenceScore: parseFloat(((post as any)._totalInfluenceScore || 0).toFixed(2)),
       };
     });
 

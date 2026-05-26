@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { getPosts, getPostById, getComments } from '@/lib/store';
 import { mockPosts, mockComments } from '@/lib/mock-data';
 import { RedditComment } from '@/lib/types';
+import { calcCommentInfluenceScore } from '@/lib/sentiment';
 
 // Flatten nested comments (with replies) into a single list for accurate counting
 function flattenAllComments(comments: RedditComment[]): RedditComment[] {
@@ -13,6 +14,17 @@ function flattenAllComments(comments: RedditComment[]): RedditComment[] {
     }
   }
   return result;
+}
+
+// 为评论树中的每条评论注入影响力得分
+function injectInfluenceScore(comments: RedditComment[]): RedditComment[] {
+  return comments.map(c => ({
+    ...c,
+    influenceScore: c.isFlagged
+      ? calcCommentInfluenceScore(c.score, c.sentimentScore)
+      : undefined,
+    replies: c.replies ? injectInfluenceScore(c.replies) : undefined,
+  }));
 }
 
 export async function GET(
@@ -60,7 +72,7 @@ export async function GET(
 
     return NextResponse.json({
       post,
-      comments: comments.sort((a, b) => {
+      comments: injectInfluenceScore(comments).sort((a, b) => {
         if (a.isFlagged !== b.isFlagged) return a.isFlagged ? -1 : 1;
         return b.score - a.score;
       }),
@@ -74,6 +86,9 @@ export async function GET(
         avgSentiment: allComments.length > 0
           ? (allComments.reduce((sum, c) => sum + c.sentimentScore, 0) / allComments.length).toFixed(2)
           : '0',
+        totalInfluenceScore: parseFloat(
+          flaggedComments.reduce((sum, c) => sum + calcCommentInfluenceScore(c.score, c.sentimentScore), 0).toFixed(2)
+        ),
       },
     });
   } catch (error) {

@@ -20,7 +20,7 @@ const navItems = [
   { href: '/', label: '监控面板', icon: LayoutDashboard },
   { href: '/posts', label: '帖子管理', icon: FileText },
   { href: '/alerts', label: '预警事件', icon: Bell },
-  { href: '/influencers', label: '影响力用户', icon: Users },
+  { href: '/influencers', label: '恶意评论追踪', icon: Users },
   { href: '/keywords', label: '关键词热度', icon: Hash },
   { href: '/compare', label: '板块对比', icon: BarChart3 },
   { href: '/settings', label: '系统设置', icon: Settings },

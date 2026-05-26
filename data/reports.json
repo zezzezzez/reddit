@@ -16,5 +16,23 @@
         "negative": 16
       }
     ]
+  },
+  {
+    "date": "2026-05-26",
+    "totalPosts": 36,
+    "totalComments": 533,
+    "flaggedComments": 17,
+    "criticalAlerts": 4,
+    "highAlerts": 0,
+    "mediumAlerts": 3,
+    "safePosts": 29,
+    "sentimentTrend": [
+      {
+        "date": "2026-05-26",
+        "positive": 197,
+        "neutral": 319,
+        "negative": 17
+      }
+    ]
   }
 ]

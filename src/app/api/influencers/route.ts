@@ -1,65 +1,110 @@
 import { NextResponse } from 'next/server';
-import { getComments } from '@/lib/store';
+import { getPosts, getComments } from '@/lib/store';
+import { calcCommentInfluenceScore } from '@/lib/sentiment';
 
-export async function GET() {
-  const comments = getComments();
+export async function GET(request: Request) {
+  const { searchParams } = new URL(request.url);
+  const subreddit = searchParams.get('subreddit') || '';
+  const keyword = searchParams.get('keyword') || '';
+  const author = searchParams.get('author') || '';
+  const commentDateFrom = searchParams.get('commentDateFrom') || '';
+  const commentDateTo = searchParams.get('commentDateTo') || '';
+  const postDateFrom = searchParams.get('postDateFrom') || '';
+  const postDateTo = searchParams.get('postDateTo') || '';
 
-  // Aggregate by author
-  const authorMap = new Map<string, {
-    author: string;
-    totalComments: number;
-    totalScore: number;
-    flaggedCount: number;
-    mostNegativeScore: number;
-    mostNegativeBody: string;
-  }>();
+  const posts = getPosts();
+  const allComments = getComments();
 
-  for (const c of comments) {
-    const key = c.author || '[deleted]';
-    const existing = authorMap.get(key) || {
-      author: key,
-      totalComments: 0,
-      totalScore: 0,
-      flaggedCount: 0,
-      mostNegativeScore: 0,
-      mostNegativeBody: '',
-    };
+  // Build post lookup map
+  const postMap = new Map<string, any>();
+  posts.forEach(p => postMap.set(p.id, p));
 
-    existing.totalComments++;
-    existing.totalScore += c.score;
-    if (c.isFlagged) existing.flaggedCount++;
-    if (c.sentimentScore < existing.mostNegativeScore) {
-      existing.mostNegativeScore = c.sentimentScore;
-      existing.mostNegativeBody = c.body;
+  // Flatten all comments (including replies)
+  function flattenComments(comments: any[]): any[] {
+    const result: any[] = [];
+    for (const c of comments) {
+      result.push(c);
+      if (c.replies && Array.isArray(c.replies)) {
+        result.push(...flattenComments(c.replies));
+      }
     }
-
-    authorMap.set(key, existing);
+    return result;
   }
 
-  // Calculate influence score and sort
-  const influencers = Array.from(authorMap.values())
-    .filter(a => a.totalComments >= 1)
-    .map(a => {
-      const avgScore = a.totalComments > 0 ? a.totalScore / a.totalComments : 0;
-      // Influence = comment volume (primary) + capped upvote reach + negative risk weight
-      // Use totalScore with cap to prevent single viral comment from dominating
-      const influenceScore = Math.round(
-        a.totalComments * 5 +
-        Math.min(Math.max(0, a.totalScore), 100) +
-        a.flaggedCount * 15
-      );
-      return {
-        author: a.author,
-        totalComments: a.totalComments,
-        avgScore: Math.round(avgScore * 10) / 10,
-        flaggedCount: a.flaggedCount,
-        topNegativeComment: a.mostNegativeBody.length > 150
-          ? a.mostNegativeBody.slice(0, 150) + '...'
-          : a.mostNegativeBody,
+  // Get all flagged comments with post info
+  let flaggedComments: any[] = [];
+  for (const post of posts) {
+    const postComments = allComments.filter(c => c.postId === post.id);
+    const flatComments = flattenComments(postComments);
+    const flagged = flatComments.filter(c => c.isFlagged);
+    
+    for (const c of flagged) {
+      const influenceScore = calcCommentInfluenceScore(c.score, c.sentimentScore);
+      flaggedComments.push({
+        ...c,
+        postId: post.id,
+        postTitle: post.title,
+        subreddit: post.subreddit,
+        postCreatedAt: post.createdAt,
+        postUrl: post.redditUrl,
         influenceScore,
-      };
-    })
-    .sort((a, b) => b.influenceScore - a.influenceScore);
+      });
+    }
+  }
 
-  return NextResponse.json({ influencers: influencers.slice(0, 50) });
+  // Apply filters
+  if (subreddit) {
+    flaggedComments = flaggedComments.filter(c => 
+      c.subreddit.toLowerCase().includes(subreddit.toLowerCase())
+    );
+  }
+  
+  if (keyword) {
+    const kw = keyword.toLowerCase();
+    flaggedComments = flaggedComments.filter(c => 
+      c.body.toLowerCase().includes(kw) ||
+      c.postTitle.toLowerCase().includes(kw)
+    );
+  }
+
+  if (author) {
+    const authorLower = author.toLowerCase();
+    flaggedComments = flaggedComments.filter(c => 
+      c.author.toLowerCase().includes(authorLower)
+    );
+  }
+
+  if (commentDateFrom) {
+    const from = new Date(commentDateFrom);
+    from.setHours(0, 0, 0, 0);
+    flaggedComments = flaggedComments.filter(c => new Date(c.createdAt) >= from);
+  }
+  if (commentDateTo) {
+    const to = new Date(commentDateTo);
+    to.setHours(23, 59, 59, 999);
+    flaggedComments = flaggedComments.filter(c => new Date(c.createdAt) <= to);
+  }
+
+  if (postDateFrom) {
+    const from = new Date(postDateFrom);
+    from.setHours(0, 0, 0, 0);
+    flaggedComments = flaggedComments.filter(c => new Date(c.postCreatedAt) >= from);
+  }
+  if (postDateTo) {
+    const to = new Date(postDateTo);
+    to.setHours(23, 59, 59, 999);
+    flaggedComments = flaggedComments.filter(c => new Date(c.postCreatedAt) <= to);
+  }
+
+  // Sort by influence score (descending)
+  flaggedComments.sort((a, b) => b.influenceScore - a.influenceScore);
+
+  // Get unique subreddits for filter
+  const subreddits = [...new Set(posts.map(p => p.subreddit))].sort();
+
+  return NextResponse.json({ 
+    comments: flaggedComments,
+    total: flaggedComments.length,
+    subreddits,
+  });
 }

@@ -1,126 +1,155 @@
 import { NextResponse } from 'next/server';
-import { getComments, getConfig } from '@/lib/store';
+import { getPosts, getComments } from '@/lib/store';
+import { CONTROLLED_VOCAB, KEYWORD_CATEGORIES } from '@/lib/summary';
 
-// English stop words to filter out
-const STOP_WORDS = new Set([
-  'the', 'a', 'an', 'is', 'are', 'was', 'were', 'be', 'been', 'being',
-  'have', 'has', 'had', 'do', 'does', 'did', 'will', 'would', 'could',
-  'should', 'may', 'might', 'shall', 'can', 'need', 'dare', 'ought',
-  'used', 'to', 'of', 'in', 'for', 'on', 'with', 'at', 'by', 'from',
-  'as', 'into', 'through', 'during', 'before', 'after', 'above', 'below',
-  'between', 'out', 'off', 'over', 'under', 'again', 'further', 'then',
-  'once', 'here', 'there', 'when', 'where', 'why', 'how', 'all', 'each',
-  'every', 'both', 'few', 'more', 'most', 'other', 'some', 'such', 'no',
-  'nor', 'not', 'only', 'own', 'same', 'so', 'than', 'too', 'very',
-  'just', 'because', 'but', 'and', 'or', 'if', 'while', 'about', 'up',
-  'its', 'it', 'this', 'that', 'these', 'those', 'i', 'me', 'my', 'we',
-  'our', 'you', 'your', 'he', 'him', 'his', 'she', 'her', 'they', 'them',
-  'their', 'what', 'which', 'who', 'whom', 'am', 'any', 'also', 'even',
-  'still', 'already', 'really', 'much', 'like', 'get', 'got', 'go',
-  'one', 'two', 'make', 'made', 'know', 'think', 'see', 'come', 'take',
-  'want', 'look', 'use', 'find', 'give', 'tell', 'work', 'call', 'try',
-  'ask', 'need', 'feel', 'become', 'leave', 'put', 'mean', 'keep',
-  'let', 'begin', 'seem', 'help', 'show', 'hear', 'play', 'run', 'move',
-  'live', 'believe', 'bring', 'happen', 'write', 'provide', 'sit', 'stand',
-  'lose', 'pay', 'meet', 'include', 'continue', 'set', 'learn', 'change',
-  'lead', 'understand', 'watch', 'follow', 'stop', 'create', 'speak',
-  'read', 'allow', 'add', 'spend', 'grow', 'open', 'walk', 'win', 'offer',
-  'remember', 'love', 'consider', 'appear', 'buy', 'wait', 'serve', 'die',
-  'send', 'expect', 'build', 'stay', 'fall', 'cut', 'reach', 'kill',
-  'remain', 'suggest', 'raise', 'pass', 'sell', 'require', 'report',
-]);
+export async function GET(request: Request) {
+  const { searchParams } = new URL(request.url);
+  const subreddit = searchParams.get('subreddit') || '';
+  const keywordFilter = searchParams.get('keyword') || '';
+  const commentDateFrom = searchParams.get('commentDateFrom') || '';
+  const commentDateTo = searchParams.get('commentDateTo') || '';
+  const postDateFrom = searchParams.get('postDateFrom') || '';
+  const postDateTo = searchParams.get('postDateTo') || '';
+  
+  // 分类筛选参数（逗号分隔的关键词列表）
+  const brandKeywords = searchParams.get('brandKeywords') || '';
+  const sceneKeywords = searchParams.get('sceneKeywords') || '';
+  const modelKeywords = searchParams.get('modelKeywords') || '';
+  const qualityKeywords = searchParams.get('qualityKeywords') || '';
 
-// Brand/product/sentiment keyword classification
-const BRAND_WORDS = new Set(['hisense', 'samsung', 'lg', 'sony', 'tcl', 'vizio', 'hisense', 'brand', 'company', 'warranty', 'customer', 'service', 'support']);
-const PRODUCT_WORDS = new Set(['tv', 'oled', 'qled', 'led', 'lcd', '4k', '8k', 'uhd', 'hdr', 'dolby', 'atmos', 'hdm', 'panel', 'firmware', 'update', 'remote', 'smart', 'apps', 'netflix', 'refresh', 'hz', 'inch', 'soundbar', 'gaming', 'ps5', 'xbox', 'input', 'lag', 'motion', 'color', 'brightness', 'contrast', 'black', 'uniform', 'banding', 'dse', 'dead', 'pixel']);
-const SENTIMENT_WORDS = new Set(['great', 'good', 'bad', 'terrible', 'amazing', 'horrible', 'worst', 'best', 'love', 'hate', 'excellent', 'poor', 'perfect', 'awful', 'fantastic', 'disappointed', 'satisfied', 'happy', 'angry', 'frustrated', 'return', 'refund', 'broken', 'defective', 'issue', 'problem', 'fix', 'work', 'working', 'recommend', 'avoid', 'buy', 'bought', 'purchas', 'price', 'value', 'quality', 'waste', 'money']);
+  const posts = getPosts();
+  const allComments = getComments();
 
-function categorizeWord(word: string): 'brand' | 'product' | 'sentiment' | 'other' {
-  if (BRAND_WORDS.has(word)) return 'brand';
-  if (PRODUCT_WORDS.has(word)) return 'product';
-  if (SENTIMENT_WORDS.has(word)) return 'sentiment';
-  return 'other';
-}
+  // Build post lookup
+  const postMap = new Map<string, any>();
+  posts.forEach(p => postMap.set(p.id, p));
 
-export async function GET() {
-  const comments = getComments();
-  const config = getConfig();
-  const watchedWords: string[] = (config as any).watchedKeywords || [];
-
-  // Count word frequencies
-  const wordCount = new Map<string, number>();
-  for (const c of comments) {
-    const words = c.body.toLowerCase().replace(/[^a-z0-9\s-]/g, ' ').split(/\s+/);
-    for (const w of words) {
-      if (w.length < 3 || STOP_WORDS.has(w)) continue;
-      wordCount.set(w, (wordCount.get(w) || 0) + 1);
-    }
-  }
-
-  // Sort by count, take top 50
-  const sorted = Array.from(wordCount.entries())
-    .sort((a, b) => b[1] - a[1])
-    .slice(0, 50);
-
-  // Previous scan comparison for trend (simple: compare with stored keyword history)
-  const prevCount = new Map<string, number>();
-  try {
-    const fs = await import('fs');
-    const path = await import('path');
-    const histFile = path.join(process.cwd(), 'data', 'keyword-history.json');
-    if (fs.existsSync(histFile)) {
-      const hist = JSON.parse(fs.readFileSync(histFile, 'utf-8'));
-      for (const entry of hist) {
-        prevCount.set(entry.word, entry.count);
+  // Flatten comments
+  function flattenComments(comments: any[]): any[] {
+    const result: any[] = [];
+    for (const c of comments) {
+      result.push(c);
+      if (c.replies && Array.isArray(c.replies)) {
+        result.push(...flattenComments(c.replies));
       }
     }
-  } catch {}
-
-  const keywords = sorted.map(([word, count]) => {
-    const prev = prevCount.get(word) || 0;
-    let trend: 'up' | 'down' | 'stable' = 'stable';
-    if (prev > 0 && count > prev * 1.2) trend = 'up';
-    else if (prev > 0 && count < prev * 0.8) trend = 'down';
-
-    return {
-      word,
-      count,
-      trend,
-      category: categorizeWord(word),
-      watched: watchedWords.includes(word),
-    };
-  });
-
-  // Save current counts as history for next comparison
-  try {
-    const fs = await import('fs');
-    const path = await import('path');
-    const histFile = path.join(process.cwd(), 'data', 'keyword-history.json');
-    fs.writeFileSync(histFile, JSON.stringify(sorted.map(([word, count]) => ({ word, count }))));
-  } catch {}
-
-  return NextResponse.json({ keywords });
-}
-
-export async function POST(request: Request) {
-  // Watch/unwatch a keyword
-  const body = await request.json();
-  const { word, watched } = body;
-  if (!word) return NextResponse.json({ error: 'Missing word' }, { status: 400 });
-
-  const config = getConfig();
-  const watchedWords: string[] = (config as any).watchedKeywords || [];
-
-  if (watched && !watchedWords.includes(word)) {
-    watchedWords.push(word);
-  } else if (!watched) {
-    const idx = watchedWords.indexOf(word);
-    if (idx >= 0) watchedWords.splice(idx, 1);
+    return result;
   }
 
-  (config as any).watchedKeywords = watchedWords;
-  const { saveConfig } = await import('@/lib/store');
-  saveConfig(config);
+  // Filter posts by subreddit and date
+  let filteredPosts = posts;
+  if (subreddit) {
+    filteredPosts = filteredPosts.filter(p => 
+      p.subreddit.toLowerCase().includes(subreddit.toLowerCase())
+    );
+  }
+  if (postDateFrom) {
+    const from = new Date(postDateFrom);
+    from.setHours(0, 0, 0, 0);
+    filteredPosts = filteredPosts.filter(p => new Date(p.createdAt) >= from);
+  }
+  if (postDateTo) {
+    const to = new Date(postDateTo);
+    to.setHours(23, 59, 59, 999);
+    filteredPosts = filteredPosts.filter(p => new Date(p.createdAt) <= to);
+  }
 
-  return NextResponse.json({ success: true, watchedKeywords: watchedWords });
+  const filteredPostIds = new Set(filteredPosts.map(p => p.id));
+
+  // Collect all comments from filtered posts
+  let comments: any[] = [];
+  for (const post of filteredPosts) {
+    const postComments = allComments.filter(c => c.postId === post.id);
+    comments.push(...flattenComments(postComments));
+  }
+
+  // Filter comments by date
+  if (commentDateFrom) {
+    const from = new Date(commentDateFrom);
+    from.setHours(0, 0, 0, 0);
+    comments = comments.filter(c => new Date(c.createdAt) >= from);
+  }
+  if (commentDateTo) {
+    const to = new Date(commentDateTo);
+    to.setHours(23, 59, 59, 999);
+    comments = comments.filter(c => new Date(c.createdAt) <= to);
+  }
+
+  // Count keyword frequencies using CONTROLLED_VOCAB
+  const keywordCount: Record<string, number> = {};
+  
+  // Initialize all keywords with 0
+  for (const label of Object.keys(CONTROLLED_VOCAB)) {
+    keywordCount[label] = 0;
+  }
+
+  // Count occurrences
+  for (const c of comments) {
+    const lower = c.body.toLowerCase();
+    const titleLower = (c.postTitle || '').toLowerCase();
+    const text = lower + ' ' + titleLower;
+
+    // Check each controlled vocab keyword
+    const matchedLabels = new Set<string>();
+    for (const [label, keywords] of Object.entries(CONTROLLED_VOCAB)) {
+      for (const kw of keywords) {
+        if (text.includes(kw)) {
+          matchedLabels.add(label);
+          break; // One match per label per comment
+        }
+      }
+    }
+
+    // Increment count for each matched label
+    for (const label of matchedLabels) {
+      keywordCount[label]++;
+    }
+  }
+
+  // Convert to array and sort by count
+  let keywords = Object.entries(keywordCount)
+    .map(([word, count]) => ({ word, count }))
+    .filter(k => k.count > 0);
+
+  // 应用分类筛选（如果任一分类有选中，则只显示选中的关键词）
+  const selectedKeywords = new Set<string>();
+  if (brandKeywords) brandKeywords.split(',').forEach(k => selectedKeywords.add(k));
+  if (sceneKeywords) sceneKeywords.split(',').forEach(k => selectedKeywords.add(k));
+  if (modelKeywords) modelKeywords.split(',').forEach(k => selectedKeywords.add(k));
+  if (qualityKeywords) qualityKeywords.split(',').forEach(k => selectedKeywords.add(k));
+
+  if (selectedKeywords.size > 0) {
+    keywords = keywords.filter(k => selectedKeywords.has(k.word));
+  }
+
+  // Filter by keyword search
+  if (keywordFilter) {
+    const kw = keywordFilter.toLowerCase();
+    keywords = keywords.filter(k => k.word.toLowerCase().includes(kw));
+  }
+
+  // Sort by count
+  keywords.sort((a, b) => b.count - a.count);
+
+  // 动态构建分类信息（只包含实际出现的关键词）
+  const dynamicCategories: Record<string, string[]> = {};
+  for (const [catKey, catInfo] of Object.entries(KEYWORD_CATEGORIES)) {
+    // 只保留实际有数据的关键词
+    const appearedKeywords = catInfo.keywords.filter(kw => 
+      keywordCount[kw] && keywordCount[kw] > 0
+    );
+    if (appearedKeywords.length > 0) {
+      dynamicCategories[catKey] = appearedKeywords;
+    }
+  }
+
+  // Get unique subreddits for filter
+  const subreddits = [...new Set(posts.map(p => p.subreddit))].sort();
+
+  return NextResponse.json({ 
+    keywords,
+    total: keywords.length,
+    subreddits,
+    categories: dynamicCategories, // 动态分类信息
+  });
 }

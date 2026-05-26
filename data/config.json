@@ -26,7 +26,7 @@
     "maxTokens": 1024,
     "temperature": 0.1
   },
-  "tunnelUrl": "https://butler-plaza-independence-chubby.trycloudflare.com",
+  "tunnelUrl": "https://monster-tooth-carol-temporarily.trycloudflare.com",
   "feishuNotify": {
     "enabled": true,
     "mode": "webhook",
@@ -43,5 +43,6 @@
     "negative_sentiment": true,
     "call_to_action_negative": true,
     "competitor_push": true
-  }
+  },
+  "watchedKeywords": []
 }
