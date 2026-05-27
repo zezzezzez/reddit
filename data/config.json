@@ -1,10 +1,10 @@
 {
   "feishu": {
-    "appId": "",
-    "appSecret": "",
-    "appToken": "",
-    "tableId": "",
-    "urlFieldName": "Reddit URL"
+    "appId": "cli_a92035f3c3385cb1",
+    "appSecret": "CKVTCMkg532yBOi21SB9obBeFiRnqYbi",
+    "appToken": "Ex9uwGiZLixftrkLoPmcae4Ynxg",
+    "tableId": "9dRNBr",
+    "urlFieldName": "发布完成后反链"
   },
   "scanSchedule": "0 9 * * *",
   "keywords": [],

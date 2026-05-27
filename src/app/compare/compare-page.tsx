@@ -20,11 +20,24 @@ interface Post {
   influenceScore: number;
   alertLevel: string;
   commentCount: number;
+  flaggedCommentCount: number;
   redditUrl: string;
+  maliciousComments?: MaliciousComment[];
+}
+
+interface MaliciousComment {
+  id: string;
+  author: string;
+  body: string;
+  score: number;
+  sentimentScore: number;
+  influenceScore: number;
+  flagReasons: string[];
+  permalink: string;
 }
 
 interface KeywordStats {
-  keyword: string;
+  word: string;
   count: number;
   category: string;
 }
@@ -53,15 +66,11 @@ export default function ComparePage() {
     setExpandedSubreddit(subreddit);
 
     try {
-      // Load posts for this subreddit
-      const postsRes = await fetch(`/api/posts?subreddit=${subreddit}&sort=influence`);
-      const postsJson = await postsRes.json();
-      setPosts(postsJson.posts || []);
-
-      // Load keywords for this subreddit
-      const keywordsRes = await fetch(`/api/keywords?subreddit=${subreddit}`);
-      const keywordsJson = await keywordsRes.json();
-      setKeywords(keywordsJson.keywords || []);
+      // Load posts with malicious comments and keywords for this subreddit
+      const res = await fetch(`/api/subreddit-detail?subreddit=${subreddit}`);
+      const json = await res.json();
+      setPosts(json.posts || []);
+      setKeywords(json.keywords || []);
     } catch (error) {
       console.error('Failed to load subreddit data:', error);
     } finally {
@@ -157,14 +166,17 @@ export default function ComparePage() {
                   <div>
                     <h4 className="text-sm font-semibold text-foreground mb-2 flex items-center gap-2">
                       <TrendingUp className="w-4 h-4" />
-                      关键词统计
+                      关键词统计（按出现次数排序）
                     </h4>
-                    <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
-                      {keywords.map(kw => (
-                        <div key={kw.keyword} className="bg-card rounded-lg p-2 border border-border">
-                          <p className="text-xs text-muted truncate">{kw.keyword}</p>
-                          <p className="text-lg font-bold text-foreground">{kw.count}</p>
-                          <p className="text-xs text-muted">{kw.category}</p>
+                    <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-2">
+                      {keywords.map((kw, idx) => (
+                        <div key={kw.word} className="bg-card rounded-lg p-3 border border-border">
+                          <div className="flex items-center justify-between mb-1">
+                            <span className="text-xs font-bold text-primary">#{idx + 1}</span>
+                            <span className="text-xs text-muted">{kw.category}</span>
+                          </div>
+                          <p className="text-sm font-medium text-foreground truncate">{kw.word}</p>
+                          <p className="text-2xl font-bold text-foreground mt-1">{kw.count}</p>
                         </div>
                       ))}
                     </div>
@@ -175,17 +187,18 @@ export default function ComparePage() {
                 <div>
                   <h4 className="text-sm font-semibold text-foreground mb-2 flex items-center gap-2">
                     <MessageSquare className="w-4 h-4" />
-                    帖子列表（按影响力排序）
+                    帖子列表（含恶意评论，按影响力排序）
                   </h4>
                   {loading ? (
                     <div className="text-center py-4 text-muted">加载中...</div>
                   ) : posts.length > 0 ? (
-                    <div className="space-y-2 max-h-96 overflow-y-auto">
+                    <div className="space-y-3 max-h-[600px] overflow-y-auto">
                       {posts.map((post, idx) => (
-                        <div key={post.id} className="bg-card rounded-lg p-3 border border-border hover:border-primary/50 transition-colors">
-                          <div className="flex items-start justify-between gap-2">
-                            <div className="flex-1 min-w-0">
-                              <div className="flex items-center gap-2 mb-1">
+                        <div key={post.id} className="bg-card rounded-lg border border-border hover:border-primary/50 transition-colors">
+                          {/* Post Header */}
+                          <div className="p-3 border-b border-border">
+                            <div className="flex items-start justify-between gap-2 mb-2">
+                              <div className="flex items-center gap-2 flex-1 min-w-0">
                                 <span className="text-xs font-bold text-primary">#{idx + 1}</span>
                                 <a 
                                   href={post.redditUrl}
@@ -196,27 +209,57 @@ export default function ComparePage() {
                                   {post.title}
                                 </a>
                               </div>
-                              <div className="flex items-center gap-3 text-xs text-muted">
-                                <span>影响力: {post.influenceScore}</span>
-                                <span>评论: {post.commentCount}</span>
-                                <span className={`px-2 py-0.5 rounded ${
-                                  post.alertLevel === 'critical' ? 'bg-red-500/20 text-red-400' :
-                                  post.alertLevel === 'high' ? 'bg-orange-500/20 text-orange-400' :
-                                  post.alertLevel === 'medium' ? 'bg-yellow-500/20 text-yellow-400' :
-                                  'bg-green-500/20 text-green-400'
-                                }`}>
-                                  {post.alertLevel === 'critical' ? '严重' :
-                                   post.alertLevel === 'high' ? '高危' :
-                                   post.alertLevel === 'medium' ? '中等' : '安全'}
-                                </span>
-                              </div>
+                              <span className={`px-2 py-0.5 rounded text-xs whitespace-nowrap ${
+                                post.alertLevel === 'critical' ? 'bg-red-500/20 text-red-400' :
+                                post.alertLevel === 'high' ? 'bg-orange-500/20 text-orange-400' :
+                                post.alertLevel === 'medium' ? 'bg-yellow-500/20 text-yellow-400' :
+                                'bg-green-500/20 text-green-400'
+                              }`}>
+                                {post.alertLevel === 'critical' ? '严重' :
+                                 post.alertLevel === 'high' ? '高危' :
+                                 post.alertLevel === 'medium' ? '中等' : '安全'}
+                              </span>
+                            </div>
+                            <div className="flex items-center gap-3 text-xs text-muted">
+                              <span>影响力: <span className="font-bold text-primary">{post.influenceScore}</span></span>
+                              <span>评论: {post.commentCount}</span>
+                              <span>恶意评论: <span className="font-bold text-red-400">{post.flaggedCommentCount}</span></span>
                             </div>
                           </div>
+
+                          {/* Malicious Comments */}
+                          {post.maliciousComments && post.maliciousComments.length > 0 && (
+                            <div className="p-3 space-y-2">
+                              <p className="text-xs font-semibold text-muted">恶意评论详情：</p>
+                              {post.maliciousComments.map(comment => (
+                                <div key={comment.id} className="bg-red-500/5 rounded-lg p-2 border border-red-500/20">
+                                  <div className="flex items-center justify-between mb-1">
+                                    <div className="flex items-center gap-2">
+                                      <span className="text-xs font-medium text-foreground">@{comment.author}</span>
+                                      <span className="text-xs text-muted">· {comment.score} 赞</span>
+                                    </div>
+                                    <span className="text-xs font-bold text-red-400">影响力: {comment.influenceScore}</span>
+                                  </div>
+                                  <p className="text-xs text-foreground mb-1">{comment.body}</p>
+                                  <div className="flex items-center gap-2">
+                                    {comment.flagReasons.map((reason, i) => (
+                                      <span key={i} className="text-xs px-2 py-0.5 rounded bg-red-500/20 text-red-400">
+                                        {reason}
+                                      </span>
+                                    ))}
+                                  </div>
+                                </div>
+                              ))}
+                            </div>
+                          )}
                         </div>
                       ))}
                     </div>
                   ) : (
-                    <div className="text-center py-4 text-muted">暂无帖子数据</div>
+                    <div className="text-center py-8 text-muted">
+                      <MessageSquare className="w-12 h-12 mx-auto mb-2 opacity-50" />
+                      <p>暂无恶意评论的帖子</p>
+                    </div>
                   )}
                 </div>
               </div>

@@ -35199,5 +35199,83 @@
       "negative": 0
     },
     "topFlaggedComments": []
+  },
+  {
+    "postId": "short_RJCDMzRF3u",
+    "scanTime": "2026-05-27T07:06:59.743Z",
+    "totalComments": 25,
+    "flaggedComments": 0,
+    "alertLevel": "safe",
+    "sentimentSummary": {
+      "positive": 4,
+      "neutral": 21,
+      "negative": 0
+    },
+    "topFlaggedComments": []
+  },
+  {
+    "postId": "short_d4hYNInjqw",
+    "scanTime": "2026-05-27T07:07:00.540Z",
+    "totalComments": 1,
+    "flaggedComments": 0,
+    "alertLevel": "safe",
+    "sentimentSummary": {
+      "positive": 0,
+      "neutral": 1,
+      "negative": 0
+    },
+    "topFlaggedComments": []
+  },
+  {
+    "postId": "short_1fmgdkSYeU",
+    "scanTime": "2026-05-27T07:07:05.585Z",
+    "totalComments": 29,
+    "flaggedComments": 0,
+    "alertLevel": "safe",
+    "sentimentSummary": {
+      "positive": 2,
+      "neutral": 27,
+      "negative": 0
+    },
+    "topFlaggedComments": []
+  },
+  {
+    "postId": "short_RJCDMzRF3u",
+    "scanTime": "2026-05-27T07:07:06.308Z",
+    "totalComments": 25,
+    "flaggedComments": 0,
+    "alertLevel": "safe",
+    "sentimentSummary": {
+      "positive": 4,
+      "neutral": 21,
+      "negative": 0
+    },
+    "topFlaggedComments": []
+  },
+  {
+    "postId": "short_oFwlmYHZe2",
+    "scanTime": "2026-05-27T07:07:09.955Z",
+    "totalComments": 9,
+    "flaggedComments": 0,
+    "alertLevel": "safe",
+    "sentimentSummary": {
+      "positive": 1,
+      "neutral": 8,
+      "negative": 0
+    },
+    "topFlaggedComments": []
+  },
+  {
+    "postId": "short_1fmgdkSYeU",
+    "scanTime": "2026-05-27T07:07:11.602Z",
+    "totalComments": 29,
+    "flaggedComments": 0,
+    "alertLevel": "safe",
+    "sentimentSummary": {
+      "positive": 2,
+      "neutral": 27,
+      "negative": 0
+    },
+    "topFlaggedComments": []
   }
 ]
