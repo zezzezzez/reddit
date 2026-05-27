@@ -20,22 +20,6 @@ let scanProgress = {
 
 export async function POST(request: Request) {
   try {
-    // Connectivity check before scanning
-    try {
-      const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 10000);
-      await proxyFetch('https://www.reddit.com/.json?limit=1', {
-        signal: controller.signal,
-        headers: { 'User-Agent': 'HisenseRedditMonitor/1.0' },
-      });
-      clearTimeout(timeoutId);
-    } catch {
-      return NextResponse.json({
-        success: false,
-        message: '无法连接 Reddit，请检查网络连接',
-      }, { status: 503 });
-    }
-
     const body = await request.json();
     const { postIds, scanAll, quickScan } = body;
 

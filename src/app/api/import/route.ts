@@ -218,39 +218,24 @@ export async function POST(request: Request) {
     const mergedPosts = [...existingPosts, ...newPosts];
     savePosts(mergedPosts);
 
-    // Auto-scan: try to scan new posts in background
+    // Auto-scan: trigger scan for new posts in background
     let autoScanStatus = 'pending';
     const newPostIds = newPosts.map(p => p.id);
 
     if (newPostIds.length > 0) {
-      try {
-        const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 8000);
-        await proxyFetch('https://www.reddit.com/.json?limit=1', {
-          signal: controller.signal,
-          headers: { 'User-Agent': 'HisenseRedditMonitor/1.0' },
-        });
-        clearTimeout(timeoutId);
-
-        // Connectivity OK - trigger auto scan via internal call
-        autoScanStatus = 'triggered';
-
-        // Fire and forget - scan in background
-        fetch('/api/scan', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ postIds: newPostIds }),
-        }).catch(() => {});
-      } catch {
-        autoScanStatus = 'no_proxy';
-      }
+      autoScanStatus = 'triggered';
+      // Fire and forget - scan in background
+      fetch('/api/scan', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ postIds: newPostIds }),
+      }).catch(() => {});
     }
 
     return NextResponse.json({
       success: true,
       message: `导入成功！新增 ${newPosts.length} 个帖子，${duplicateCount} 个已存在，跳过 ${skippedCount} 行无效数据${
-        autoScanStatus === 'triggered' ? '，已自动开始扫描评论' :
-        autoScanStatus === 'no_proxy' ? '，但无法连接Reddit，请开启代理后手动扫描' : ''
+        autoScanStatus === 'triggered' ? '，已自动开始扫描评论' : ''
       }`,
       autoScanStatus,
       totalRows: rows.length,

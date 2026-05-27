@@ -5,7 +5,7 @@ import Link from 'next/link';
 import {
   Search, Filter, ExternalLink, MessageSquare, Clock,
   RefreshCw, ChevronDown, AlertTriangle, Shield, CheckCircle,
-  Trash2, Eye, Loader2, Radar, CircleDot, Wifi, WifiOff,
+  Trash2, Eye, Loader2, Radar, CircleDot,
   Calendar, X,
 } from 'lucide-react';
 
@@ -50,29 +50,13 @@ export default function PostsPage() {
   const [dateTo, setDateTo] = useState('');
   const [scanning, setScanning] = useState(false);
   const [scanProgress, setScanProgress] = useState('');
+
   const [scanResult, setScanResult] = useState<{success: boolean; message: string} | null>(null);
   const [showSortMenu, setShowSortMenu] = useState(false);
-  const [networkStatus, setNetworkStatus] = useState<'checking' | 'connected' | 'disconnected' | 'rateLimited'>('checking');
 
   useEffect(() => {
     fetchPosts();
-    checkNetwork();
   }, [filterLevel, sortBy, search, dateFrom, dateTo]);
-
-  const checkNetwork = async () => {
-    setNetworkStatus('checking');
-    try {
-      const res = await fetch('/api/connectivity');
-      const json = await res.json();
-      if (json.rateLimited) {
-        setNetworkStatus('rateLimited');
-      } else {
-        setNetworkStatus(json.connected ? 'connected' : 'disconnected');
-      }
-    } catch {
-      setNetworkStatus('disconnected');
-    }
-  };
 
   const fetchPosts = async () => {
     setLoading(true);
@@ -95,11 +79,6 @@ export default function PostsPage() {
   };
 
   const handleScanAll = async (quickScan = false) => {
-    // Check connectivity first
-    if (networkStatus === 'disconnected') {
-      setScanResult({ success: false, message: '无法连接 Reddit，请先开启外网代理/VPN，然后点击刷新网络状态' });
-      return;
-    }
     setScanning(true);
     setScanResult(null);
     setScanProgress(quickScan ? '' : '准备扫描...');
@@ -154,25 +133,6 @@ export default function PostsPage() {
           <p className="text-sm text-muted mt-1">共 {posts.length} 个帖子正在监控中</p>
         </div>
         <div className="flex items-center gap-2">
-          {/* Network Status Indicator */}
-          <button
-            onClick={checkNetwork}
-            className={`flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs border transition-colors ${
-              networkStatus === 'connected' ? 'bg-green-500/10 border-green-500/30 text-green-400' :
-              networkStatus === 'rateLimited' ? 'bg-yellow-500/10 border-yellow-500/30 text-yellow-400' :
-              networkStatus === 'disconnected' ? 'bg-red-500/10 border-red-500/30 text-red-400' :
-              'bg-gray-500/10 border-gray-500/30 text-gray-400'
-            }`}
-            title="点击刷新网络状态"
-          >
-            {networkStatus === 'checking' ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> :
-             networkStatus === 'connected' ? <Wifi className="w-3.5 h-3.5" /> :
-             networkStatus === 'rateLimited' ? <Wifi className="w-3.5 h-3.5" /> :
-             <WifiOff className="w-3.5 h-3.5" />}
-            {networkStatus === 'connected' ? '网络正常' :
-             networkStatus === 'rateLimited' ? '限速中' :
-             networkStatus === 'disconnected' ? '无代理' : '检测中...'}
-          </button>
           <button
             onClick={() => handleScanAll(false)}
             disabled={scanning}
@@ -215,14 +175,6 @@ export default function PostsPage() {
         <div className="p-3 rounded-lg bg-blue-500/10 border border-blue-500/30 flex items-center gap-2">
           <CircleDot className="w-4 h-4 text-blue-400" />
           <span className="text-sm text-blue-300">帖子已导入，但尚未扫描评论。点击上方「扫描全部帖子」按钮从 Reddit 抓取评论并分析情感倾向。</span>
-        </div>
-      )}
-
-      {/* No Proxy Warning */}
-      {networkStatus === 'disconnected' && (
-        <div className="p-3 rounded-lg bg-red-500/10 border border-red-500/30 flex items-center gap-2">
-          <WifiOff className="w-4 h-4 text-red-400" />
-          <span className="text-sm text-red-300">无法连接 Reddit，请开启外网代理/VPN后重试。开启代理后点击网络状态按钮刷新。</span>
         </div>
       )}
 
