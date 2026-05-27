@@ -1,0 +1,36 @@
+version: '3.8'
+
+services:
+  reddit-monitor:
+    build: .
+    container_name: reddit-monitor
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    environment:
+      # 企业代理配置
+      - PROXY_ENABLED=true
+      - PROXY_HOST=${PROXY_HOST:-10.19.193.99}
+      - PROXY_PORT=${PROXY_PORT:-443}
+      - PROXY_PROTOCOL=${PROXY_PROTOCOL:-http}
+      
+      # 飞书配置
+      - FEISHU_WEBHOOK_URL=${FEISHU_WEBHOOK_URL:-}
+      
+      # 应用配置
+      - NODE_ENV=production
+      
+      # 数据持久化
+      - DATA_DIR=/app/data
+    volumes:
+      # 持久化数据目录（评论、帖子、配置等）
+      - reddit-data:/app/data
+      
+      # 持久化 node_modules（可选）
+      - reddit-modules:/app/node_modules
+
+volumes:
+  reddit-data:
+    driver: local
+  reddit-modules:
+    driver: local
