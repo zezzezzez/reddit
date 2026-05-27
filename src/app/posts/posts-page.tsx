@@ -352,7 +352,7 @@ export default function PostsPage() {
                 <div className="flex items-center gap-4 text-xs text-muted mb-3">
                   <span className="flex items-center gap-1">
                     <MessageSquare className="w-3.5 h-3.5" />
-                    {post.commentCount}
+                    {post.totalCommentsFetched || post.commentCount || 0}
                   </span>
                   <span className="flex items-center gap-1">
                     <Eye className="w-3.5 h-3.5" />
