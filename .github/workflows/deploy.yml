@@ -1,0 +1,37 @@
+name: Deploy to EC2
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Deploy to Frankfurt EC2
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: 63.183.212.153
+          username: ec2-user
+          key: ${{ secrets.EC2_SSH_KEY }}
+          script: |
+            echo "拉取最新代码..."
+            cd ~/reddit && git pull origin main
+
+            echo "重新构建镜像..."
+            sudo docker build -t reddit-monitor .
+
+            echo "重启容器..."
+            sudo docker stop reddit-monitor || true
+            sudo docker rm reddit-monitor || true
+            sudo docker run -d \
+              --name reddit-monitor \
+              --restart unless-stopped \
+              -p 3000:3000 \
+              -e NODE_ENV=production \
+              -v reddit-data:/app/data \
+              reddit-monitor
+
+            echo "部署完成！"
+            sudo docker ps
