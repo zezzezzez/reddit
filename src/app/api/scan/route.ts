@@ -5,8 +5,36 @@ import { analyzeCommentSentiment, calculatePostAlertLevel } from '@/lib/sentimen
 import { generateDetailedSummary } from '@/lib/summary';
 import { analyzeSentimentWithLLM } from '@/lib/llm';
 import { RedditComment } from '@/lib/types';
+import { getLocalProxyConfig, isLocalDevelopment } from '@/lib/local-proxy';
 
 const isVercel = !!process.env.VERCEL;
+
+// Initialize proxy for local development
+let proxyInitialized = false;
+async function ensureLocalProxyInitialized() {
+  if (proxyInitialized || !isLocalDevelopment()) {
+    return;
+  }
+  
+  const proxyConfig = getLocalProxyConfig();
+  if (!proxyConfig) {
+    proxyInitialized = true;
+    return;
+  }
+
+  try {
+    console.log('[Scan] Initializing local proxy:', `${proxyConfig.protocol}://${proxyConfig.host}:${proxyConfig.port}`);
+    const undici = await import('undici');
+    const proxyUrl = `${proxyConfig.protocol}://${proxyConfig.host}:${proxyConfig.port}`;
+    const proxyAgent = new undici.ProxyAgent(proxyUrl);
+    undici.setGlobalDispatcher(proxyAgent);
+    console.log('[Scan] Local proxy configured successfully');
+  } catch (error) {
+    console.error('[Scan] Failed to configure local proxy:', error);
+  } finally {
+    proxyInitialized = true;
+  }
+}
 
 // Global scan progress (in-memory, single-process only)
 let scanProgress = {
@@ -19,6 +47,9 @@ let scanProgress = {
 
 export async function POST(request: Request) {
   try {
+    // Initialize local proxy for development
+    await ensureLocalProxyInitialized();
+    
     const body = await request.json();
     const { postIds, scanAll, quickScan } = body;
 
