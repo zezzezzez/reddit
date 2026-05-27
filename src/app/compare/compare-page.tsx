@@ -120,67 +120,98 @@ export default function ComparePage() {
       </div>
 
       {/* Subreddit Cards */}
-      <div className="space-y-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         {subreddits.map(s => (
           <div key={s.subreddit} className={`bg-card rounded-xl border ${healthBg(s.healthScore)} overflow-hidden`}>
             {/* Card Header - Clickable */}
             <div 
               onClick={() => loadSubredditData(s.subreddit)}
-              className="p-4 cursor-pointer hover:bg-white/5 transition-colors"
+              className="p-5 cursor-pointer hover:bg-white/5 transition-all duration-200 group"
             >
-              <div className="flex items-center justify-between mb-3">
-                <div className="flex items-center gap-2">
-                  <p className="text-sm font-bold text-foreground">r/{s.subreddit}</p>
-                  <span className="text-xs text-muted">{s.totalPosts} 帖子 · {s.totalComments} 评论</span>
+              {/* Top Row: Name + Health Score */}
+              <div className="flex items-start justify-between mb-4">
+                <div className="flex-1">
+                  <div className="flex items-center gap-2 mb-1">
+                    <h3 className="text-base font-bold text-foreground group-hover:text-primary transition-colors">
+                      r/{s.subreddit}
+                    </h3>
+                  </div>
+                  <div className="flex items-center gap-3 text-xs text-muted">
+                    <span className="flex items-center gap-1">
+                      <MessageSquare className="w-3 h-3" />
+                      {s.totalPosts} 帖子
+                    </span>
+                    <span className="flex items-center gap-1">
+                      <TrendingUp className="w-3 h-3" />
+                      {s.totalComments} 评论
+                    </span>
+                  </div>
                 </div>
-                <div className="flex items-center gap-2">
-                  <span className={`text-lg font-bold ${healthColor(s.healthScore)}`}>{s.healthScore}</span>
-                  {expandedSubreddit === s.subreddit ? (
-                    <ChevronUp className="w-5 h-5 text-muted" />
-                  ) : (
-                    <ChevronDown className="w-5 h-5 text-muted" />
-                  )}
+                <div className="flex flex-col items-end gap-1">
+                  <span className={`text-3xl font-bold ${healthColor(s.healthScore)}`}>
+                    {s.healthScore}
+                  </span>
+                  <span className="text-xs text-muted">健康度</span>
                 </div>
               </div>
-              {/* Health bar */}
-              <div className="w-full h-2 bg-muted/30 rounded-full overflow-hidden mb-3">
-                <div className={`h-full rounded-full ${healthBar(s.healthScore)}`} style={{ width: `${s.healthScore}%` }} />
+
+              {/* Health Bar */}
+              <div className="w-full h-2.5 bg-muted/30 rounded-full overflow-hidden mb-4">
+                <div 
+                  className={`h-full rounded-full transition-all duration-500 ${healthBar(s.healthScore)}`} 
+                  style={{ width: `${s.healthScore}%` }} 
+                />
               </div>
-              <div className="grid grid-cols-3 gap-2 text-center">
-                <div>
-                  <p className="text-sm font-bold text-green-400">{s.positiveRate}%</p>
-                  <p className="text-xs text-muted">正面</p>
+
+              {/* Sentiment Rates */}
+              <div className="grid grid-cols-3 gap-3">
+                <div className="bg-green-500/10 rounded-lg p-2.5 text-center border border-green-500/20">
+                  <p className="text-lg font-bold text-green-400">{s.positiveRate}%</p>
+                  <p className="text-xs text-green-300/70 mt-0.5">正面</p>
                 </div>
-                <div>
-                  <p className="text-sm font-bold text-slate-400">{s.neutralRate}%</p>
-                  <p className="text-xs text-muted">中性</p>
+                <div className="bg-slate-500/10 rounded-lg p-2.5 text-center border border-slate-500/20">
+                  <p className="text-lg font-bold text-slate-400">{s.neutralRate}%</p>
+                  <p className="text-xs text-slate-300/70 mt-0.5">中性</p>
                 </div>
-                <div>
-                  <p className="text-sm font-bold text-red-400">{s.negativeRate}%</p>
-                  <p className="text-xs text-muted">负面</p>
+                <div className="bg-red-500/10 rounded-lg p-2.5 text-center border border-red-500/20">
+                  <p className="text-lg font-bold text-red-400">{s.negativeRate}%</p>
+                  <p className="text-xs text-red-300/70 mt-0.5">负面</p>
                 </div>
+              </div>
+
+              {/* Expand Indicator */}
+              <div className="flex items-center justify-center mt-4 text-muted">
+                {expandedSubreddit === s.subreddit ? (
+                  <ChevronUp className="w-5 h-5 group-hover:text-primary transition-colors" />
+                ) : (
+                  <ChevronDown className="w-5 h-5 group-hover:text-primary transition-colors" />
+                )}
               </div>
             </div>
 
             {/* Expanded Content */}
             {expandedSubreddit === s.subreddit && (
-              <div className="border-t border-border p-4 space-y-4 bg-black/20">
+              <div className="border-t border-border p-5 space-y-5 bg-gradient-to-b from-black/20 to-black/10">
                 {/* Keywords Section */}
                 {keywords.length > 0 && (
                   <div>
-                    <h4 className="text-sm font-semibold text-foreground mb-2 flex items-center gap-2">
-                      <TrendingUp className="w-4 h-4" />
-                      关键词统计（按出现次数排序）
+                    <h4 className="text-sm font-semibold text-foreground mb-3 flex items-center gap-2">
+                      <TrendingUp className="w-4 h-4 text-primary" />
+                      关键词统计
+                      <span className="text-xs text-muted font-normal">（按出现次数排序）</span>
                     </h4>
-                    <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-2">
+                    <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2">
                       {keywords.map((kw, idx) => (
-                        <div key={kw.word} className="bg-card rounded-lg p-3 border border-border">
-                          <div className="flex items-center justify-between mb-1">
+                        <div 
+                          key={kw.word} 
+                          className="bg-card rounded-lg p-3 border border-border hover:border-primary/30 transition-colors"
+                        >
+                          <div className="flex items-center justify-between mb-1.5">
                             <span className="text-xs font-bold text-primary">#{idx + 1}</span>
-                            <span className="text-xs text-muted">{kw.category}</span>
+                            <span className="text-xs text-muted px-1.5 py-0.5 rounded bg-muted/30">{kw.category}</span>
                           </div>
-                          <p className="text-sm font-medium text-foreground truncate">{kw.word}</p>
-                          <p className="text-2xl font-bold text-foreground mt-1">{kw.count}</p>
+                          <p className="text-sm font-medium text-foreground truncate mb-1">{kw.word}</p>
+                          <p className="text-2xl font-bold text-foreground">{kw.count}</p>
                         </div>
                       ))}
                     </div>
@@ -189,78 +220,88 @@ export default function ComparePage() {
 
                 {/* Posts Section */}
                 <div>
-                  <h4 className="text-sm font-semibold text-foreground mb-2 flex items-center gap-2">
-                    <MessageSquare className="w-4 h-4" />
-                    帖子列表（含恶意评论，按影响力排序）
+                  <h4 className="text-sm font-semibold text-foreground mb-3 flex items-center gap-2">
+                    <MessageSquare className="w-4 h-4 text-primary" />
+                    帖子列表
+                    <span className="text-xs text-muted font-normal">（含恶意评论，按影响力排序）</span>
                   </h4>
                   {loading ? (
-                    <div className="text-center py-4 text-muted">加载中...</div>
+                    <div className="text-center py-8 text-muted">
+                      <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+                      <p className="mt-2 text-sm">加载中...</p>
+                    </div>
                   ) : posts.length > 0 ? (
-                    <div className="space-y-3 max-h-[600px] overflow-y-auto">
+                    <div className="space-y-3 max-h-[600px] overflow-y-auto pr-1">
                       {posts.map((post, idx) => (
-                        <div key={post.id} className="bg-card rounded-lg border border-border hover:border-primary/50 transition-colors">
+                        <div 
+                          key={post.id} 
+                          className="bg-card rounded-xl border border-border hover:border-primary/40 transition-all duration-200 hover:shadow-lg"
+                        >
                           {/* Post Header */}
-                          <div className="p-3 border-b border-border">
-                            <div className="flex items-start justify-between gap-2 mb-2">
-                              <div className="flex items-center gap-2 flex-1 min-w-0">
-                                <span className="text-xs font-bold text-primary">#{idx + 1}</span>
+                          <div className="p-4 border-b border-border/50">
+                            <div className="flex items-start justify-between gap-3 mb-2">
+                              <div className="flex items-start gap-2 flex-1 min-w-0">
+                                <span className="text-xs font-bold text-primary mt-1">#{idx + 1}</span>
                                 <a 
                                   href={post.redditUrl}
                                   target="_blank"
                                   rel="noopener noreferrer"
-                                  className="text-sm font-medium text-foreground hover:text-primary truncate"
+                                  className="text-sm font-semibold text-foreground hover:text-primary transition-colors leading-tight"
                                 >
                                   {post.title}
                                 </a>
                               </div>
-                              <span className={`px-2 py-0.5 rounded text-xs whitespace-nowrap ${
-                                post.alertLevel === 'critical' ? 'bg-red-500/20 text-red-400' :
-                                post.alertLevel === 'high' ? 'bg-orange-500/20 text-orange-400' :
-                                post.alertLevel === 'medium' ? 'bg-yellow-500/20 text-yellow-400' :
-                                'bg-green-500/20 text-green-400'
+                              <span className={`px-2.5 py-1 rounded-lg text-xs font-semibold whitespace-nowrap ${
+                                post.alertLevel === 'critical' ? 'bg-red-500/20 text-red-400 border border-red-500/30' :
+                                post.alertLevel === 'high' ? 'bg-orange-500/20 text-orange-400 border border-orange-500/30' :
+                                post.alertLevel === 'medium' ? 'bg-yellow-500/20 text-yellow-400 border border-yellow-500/30' :
+                                'bg-green-500/20 text-green-400 border border-green-500/30'
                               }`}>
                                 {post.alertLevel === 'critical' ? '严重' :
                                  post.alertLevel === 'high' ? '高危' :
                                  post.alertLevel === 'medium' ? '中等' : '安全'}
                               </span>
                             </div>
-                            <div className="flex items-center gap-3 text-xs text-muted">
+                            <div className="flex items-center gap-4 text-xs text-muted">
                               <span className="px-2 py-0.5 rounded font-semibold bg-primary/20 text-primary" title="所有恶意评论影响力得分之和">
                                 ⚡ {post.influenceScore}
                               </span>
-                              <span>评论: {post.commentCount}</span>
-                              <span>恶意评论: <span className="font-bold text-red-400">{post.flaggedCommentCount}</span></span>
+                              <span>📝 {post.commentCount} 评论</span>
+                              <span>🚨 <span className="font-bold text-red-400">{post.flaggedCommentCount}</span> 恶意</span>
                             </div>
                           </div>
 
                           {/* Malicious Comments */}
                           {post.maliciousComments && post.maliciousComments.length > 0 && (
-                            <div className="p-3 space-y-2">
-                              <p className="text-xs font-semibold text-muted">恶意评论详情：</p>
+                            <div className="p-4 space-y-2.5">
+                              <p className="text-xs font-semibold text-muted mb-2">恶意评论详情：</p>
                               {post.maliciousComments.map(comment => (
-                                <div key={comment.id} className="bg-red-500/5 rounded-lg p-2 border border-red-500/20">
-                                  <div className="flex items-center justify-between mb-1">
+                                <div 
+                                  key={comment.id} 
+                                  className="bg-red-500/5 rounded-lg p-3 border border-red-500/20 hover:border-red-500/40 transition-colors"
+                                >
+                                  <div className="flex items-start justify-between mb-2">
                                     <div className="flex items-center gap-2">
-                                      <span className="text-xs font-medium text-foreground">@{comment.author}</span>
+                                      <span className="text-xs font-semibold text-foreground">@{comment.author}</span>
                                       <span className="text-xs text-muted">· {comment.score} 赞</span>
                                     </div>
                                     <span 
-                                      className={`px-2 py-0.5 rounded font-semibold ${
+                                      className={`px-2 py-0.5 rounded font-semibold text-xs ${
                                         comment.influenceScore >= 20
-                                          ? 'bg-red-500/25 text-red-300'
+                                          ? 'bg-red-500/25 text-red-300 border border-red-500/30'
                                           : comment.influenceScore >= 5
-                                          ? 'bg-yellow-500/25 text-yellow-300'
-                                          : 'bg-gray-500/25 text-gray-300'
+                                          ? 'bg-yellow-500/25 text-yellow-300 border border-yellow-500/30'
+                                          : 'bg-gray-500/25 text-gray-300 border border-gray-500/30'
                                       }`}
                                       title="影响力得分 = log₁₀(点赞数+1)×5+1 × |情感得分|"
                                     >
                                       ⚡ {comment.influenceScore}
                                     </span>
                                   </div>
-                                  <p className="text-xs text-foreground mb-1">{comment.body}</p>
-                                  <div className="flex items-center gap-2">
+                                  <p className="text-xs text-foreground mb-2 leading-relaxed">{comment.body}</p>
+                                  <div className="flex flex-wrap gap-1.5">
                                     {comment.flagReasons.map((reason, i) => (
-                                      <span key={i} className="text-xs px-2 py-0.5 rounded bg-red-500/20 text-red-400">
+                                      <span key={i} className="text-xs px-2 py-0.5 rounded bg-red-500/20 text-red-400 border border-red-500/30">
                                         {reason}
                                       </span>
                                     ))}
@@ -273,9 +314,9 @@ export default function ComparePage() {
                       ))}
                     </div>
                   ) : (
-                    <div className="text-center py-8 text-muted">
-                      <MessageSquare className="w-12 h-12 mx-auto mb-2 opacity-50" />
-                      <p>暂无恶意评论的帖子</p>
+                    <div className="text-center py-12 text-muted">
+                      <MessageSquare className="w-16 h-16 mx-auto mb-3 opacity-30" />
+                      <p className="text-sm">暂无恶意评论的帖子</p>
                     </div>
                   )}
                 </div>
@@ -284,53 +325,6 @@ export default function ComparePage() {
           </div>
         ))}
       </div>
-
-      {/* Comparison Charts */}
-      {subreddits.length > 1 && (
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-          {/* Bar Chart */}
-          <div className="bg-card rounded-xl p-5 border border-border">
-            <h3 className="text-sm font-semibold text-foreground mb-3">板块情感对比</h3>
-            <ResponsiveContainer width="100%" height={300}>
-              <BarChart data={barData}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#334155" />
-                <XAxis dataKey="name" stroke="#64748b" fontSize={11} />
-                <YAxis stroke="#64748b" fontSize={12} />
-                <Tooltip
-                  contentStyle={{ backgroundColor: '#1e293b', border: '1px solid #334155', borderRadius: '8px' }}
-                  labelStyle={{ color: '#f1f5f9' }}
-                />
-                <Legend />
-                <Bar dataKey="正面率" fill="#10b981" radius={[4, 4, 0, 0]} label={{ position: 'top', fill: '#10b981', fontSize: 11 }} />
-                <Bar dataKey="中性率" fill="#64748b" radius={[4, 4, 0, 0]} label={{ position: 'top', fill: '#94a3b8', fontSize: 11 }} />
-                <Bar dataKey="负面率" fill="#ef4444" radius={[4, 4, 0, 0]} label={{ position: 'top', fill: '#ef4444', fontSize: 11 }} />
-              </BarChart>
-            </ResponsiveContainer>
-          </div>
-
-          {/* Radar Chart */}
-          <div className="bg-card rounded-xl p-5 border border-border">
-            <h3 className="text-sm font-semibold text-foreground mb-3">板块多维度雷达图</h3>
-            <ResponsiveContainer width="100%" height={300}>
-              <RadarChart data={radarData.length > 0 ? [
-                { dimension: '正面率', ...Object.fromEntries(radarData.map((s, i) => [`r/${subreddits[i]?.subreddit}`, s.正面率])) },
-                { dimension: '中性率', ...Object.fromEntries(radarData.map((s, i) => [`r/${subreddits[i]?.subreddit}`, s.中性率])) },
-                { dimension: '负面率', ...Object.fromEntries(radarData.map((s, i) => [`r/${subreddits[i]?.subreddit}`, s.负面率])) },
-                { dimension: '活跃度', ...Object.fromEntries(radarData.map((s, i) => [`r/${subreddits[i]?.subreddit}`, s.活跃度])) },
-                { dimension: '健康度', ...Object.fromEntries(radarData.map((s, i) => [`r/${subreddits[i]?.subreddit}`, s.健康度])) },
-              ] : []}>
-                <PolarGrid stroke="#334155" />
-                <PolarAngleAxis dataKey="dimension" stroke="#64748b" fontSize={12} />
-                <PolarRadiusAxis stroke="#334155" fontSize={10} />
-                {radarData.slice(0, 3).map((_, i) => (
-                  <Radar key={i} name={`r/${subreddits[i]?.subreddit}`} dataKey={`r/${subreddits[i]?.subreddit}`} stroke={COLORS[i]} fill={COLORS[i]} fillOpacity={0.15} />
-                ))}
-                <Legend />
-              </RadarChart>
-            </ResponsiveContainer>
-          </div>
-        </div>
-      )}
 
       {subreddits.length === 0 && (
         <div className="bg-card rounded-xl p-8 border border-border text-center text-muted">
