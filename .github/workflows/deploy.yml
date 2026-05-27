@@ -30,8 +30,6 @@ jobs:
               --restart unless-stopped \
               -p 3000:3000 \
               -e NODE_ENV=production \
-              -e HTTP_PROXY=http://10.19.193.99:443 \
-              -e HTTPS_PROXY=http://10.19.193.99:443 \
               -v reddit-data:/app/data \
               reddit-monitor
 
