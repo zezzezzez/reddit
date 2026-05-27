@@ -139,54 +139,55 @@ export default function DashboardPage() {
   return (
     <div className="p-6 space-y-6 max-w-[1600px] mx-auto">
       {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold text-foreground">监控面板</h1>
-          <p className="text-sm text-muted mt-1">Reddit 品牌声誉监控 · 海信(Hisense)</p>
-        </div>
-        <div className="flex items-center gap-3">
-          <div className="flex items-center gap-2 text-sm text-muted bg-card px-3 py-2 rounded-lg border border-border">
-            <Clock className="w-4 h-4" />
-            <span>上次扫描: 09:00</span>
+      <div className="bg-gradient-to-r from-blue-600 to-blue-500 rounded-2xl p-6 text-white shadow-lg">
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-3xl font-bold mb-1">📊 监控面板</h1>
+            <p className="text-sm text-blue-100">Reddit 品牌声誉监控 · 海信 (Hisense)</p>
           </div>
-          <button
-            onClick={() => handleScan(false)}
-            disabled={scanning}
-            className="flex items-center gap-2 px-4 py-2 bg-primary hover:bg-primary-hover text-white rounded-lg text-sm font-medium transition-colors disabled:opacity-50"
-          >
-            <RefreshCw className={`w-4 h-4 ${scanning ? 'animate-spin' : ''}`} />
-            {scanning ? (isQuickScan ? '扫描中...' : (scanProgress || '扫描中...')) : '立即扫描'}
-          </button>
-          <button
-            onClick={() => handleScan(true)}
-            disabled={scanning}
-            className="flex items-center gap-2 px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg text-sm font-medium transition-colors disabled:opacity-50"
-          >
-            <RefreshCw className={`w-4 h-4 ${scanning ? 'animate-spin' : ''}`} />
-            {scanning ? (scanProgress || '扫描中...') : '快速扫描'}
-          </button>
-          {/* Push to Feishu */}
-          <button
-            onClick={async () => {
-              setPushing(true);
-              setPushResult(null);
-              try {
-                const res = await fetch('/api/notify', { method: 'PATCH' });
-                const json = await res.json();
-                setPushResult(json);
-                fetchNotifyStatus();
-              } catch (e: any) {
-                setPushResult({ success: false, message: e.message || '推送失败' });
-              } finally {
-                setPushing(false);
-              }
-            }}
-            disabled={pushing}
-            className="flex items-center gap-2 px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg text-sm font-medium transition-colors disabled:opacity-50"
-          >
-            {pushing ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
-            {pushing ? '推送中...' : '推送预警'}
-          </button>
+          <div className="flex items-center gap-3">
+            <div className="flex items-center gap-2 text-sm text-blue-100 bg-white/10 backdrop-blur-sm px-4 py-2.5 rounded-xl border border-white/20">
+              <Clock className="w-4 h-4" />
+              <span>上次扫描: 09:00</span>
+            </div>
+            <button
+              onClick={() => handleScan(false)}
+              disabled={scanning}
+              className="flex items-center gap-2 px-5 py-2.5 bg-white hover:bg-blue-50 text-blue-600 rounded-xl text-sm font-semibold transition-all duration-200 disabled:opacity-50 shadow-md hover:shadow-lg"
+            >
+              <RefreshCw className={`w-4 h-4 ${scanning ? 'animate-spin' : ''}`} />
+              {scanning ? (isQuickScan ? '扫描中...' : (scanProgress || '扫描中...')) : '立即扫描'}
+            </button>
+            <button
+              onClick={() => handleScan(true)}
+              disabled={scanning}
+              className="flex items-center gap-2 px-5 py-2.5 bg-green-500 hover:bg-green-600 text-white rounded-xl text-sm font-semibold transition-all duration-200 disabled:opacity-50 shadow-md hover:shadow-lg"
+            >
+              <RefreshCw className={`w-4 h-4 ${scanning ? 'animate-spin' : ''}`} />
+              {scanning ? (scanProgress || '扫描中...') : '快速扫描'}
+            </button>
+            <button
+              onClick={async () => {
+                setPushing(true);
+                setPushResult(null);
+                try {
+                  const res = await fetch('/api/notify', { method: 'PATCH' });
+                  const json = await res.json();
+                  setPushResult(json);
+                  fetchNotifyStatus();
+                } catch (e: any) {
+                  setPushResult({ success: false, message: e.message || '推送失败' });
+                } finally {
+                  setPushing(false);
+                }
+              }}
+              disabled={pushing}
+              className="flex items-center gap-2 px-5 py-2.5 bg-orange-500 hover:bg-orange-600 text-white rounded-xl text-sm font-semibold transition-all duration-200 disabled:opacity-50 shadow-md hover:shadow-lg"
+            >
+              {pushing ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
+              {pushing ? '推送中...' : '推送预警'}
+            </button>
+          </div>
         </div>
       </div>
 
@@ -308,53 +309,53 @@ export default function DashboardPage() {
 
       {/* Stats Cards */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        <div className="bg-card rounded-xl p-4 border border-border">
+        <div className="bg-gradient-to-br from-blue-500 to-blue-600 rounded-2xl p-5 text-white shadow-lg hover:shadow-xl transition-all duration-300 hover:-translate-y-1">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm text-muted">监控帖子</p>
-              <p className="text-3xl font-bold text-foreground mt-1">{data.stats.totalPosts}</p>
+              <p className="text-sm text-blue-100 mb-1">监控帖子</p>
+              <p className="text-4xl font-bold">{data.stats.totalPosts}</p>
             </div>
-            <div className="w-10 h-10 rounded-lg bg-primary/20 flex items-center justify-center">
-              <MessageSquare className="w-5 h-5 text-primary" />
+            <div className="w-14 h-14 rounded-xl bg-white/20 backdrop-blur-sm flex items-center justify-center">
+              <MessageSquare className="w-7 h-7" />
             </div>
           </div>
         </div>
 
-        <div className="bg-card rounded-xl p-4 border border-red-500/30">
+        <div className="bg-gradient-to-br from-red-500 to-red-600 rounded-2xl p-5 text-white shadow-lg hover:shadow-xl transition-all duration-300 hover:-translate-y-1">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm text-muted">严重预警</p>
-              <p className="text-3xl font-bold text-red-400 mt-1">{data.stats.criticalAlerts}</p>
+              <p className="text-sm text-red-100 mb-1">严重预警</p>
+              <p className="text-4xl font-bold">{data.stats.criticalAlerts}</p>
             </div>
-            <div className="w-10 h-10 rounded-lg bg-red-500/20 flex items-center justify-center">
-              <Flame className="w-5 h-5 text-red-400 animate-pulse-alert" />
+            <div className="w-14 h-14 rounded-xl bg-white/20 backdrop-blur-sm flex items-center justify-center">
+              <Flame className="w-7 h-7 animate-pulse-alert" />
             </div>
           </div>
         </div>
 
-        <div className="bg-card rounded-xl p-4 border border-yellow-500/30">
+        <div className="bg-gradient-to-br from-orange-500 to-orange-600 rounded-2xl p-5 text-white shadow-lg hover:shadow-xl transition-all duration-300 hover:-translate-y-1">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm text-muted">中等预警</p>
-              <p className="text-3xl font-bold text-yellow-400 mt-1">{data.stats.mediumAlerts}</p>
+              <p className="text-sm text-orange-100 mb-1">中等预警</p>
+              <p className="text-4xl font-bold">{data.stats.mediumAlerts}</p>
             </div>
-            <div className="w-10 h-10 rounded-lg bg-yellow-500/20 flex items-center justify-center">
-              <AlertTriangle className="w-5 h-5 text-yellow-400" />
+            <div className="w-14 h-14 rounded-xl bg-white/20 backdrop-blur-sm flex items-center justify-center">
+              <AlertTriangle className="w-7 h-7" />
             </div>
           </div>
         </div>
 
-        <div className="bg-card rounded-xl p-4 border border-border">
+        <div className="bg-gradient-to-br from-slate-600 to-slate-700 rounded-2xl p-5 text-white shadow-lg hover:shadow-xl transition-all duration-300 hover:-translate-y-1">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm text-muted">恶意评论率</p>
-              <p className="text-3xl font-bold text-foreground mt-1">{data.stats.flaggedRatio}%</p>
+              <p className="text-sm text-slate-200 mb-1">恶意评论率</p>
+              <p className="text-4xl font-bold">{data.stats.flaggedRatio}%</p>
             </div>
-            <div className="w-10 h-10 rounded-lg bg-yellow-500/20 flex items-center justify-center">
-              <Shield className="w-5 h-5 text-yellow-400" />
+            <div className="w-14 h-14 rounded-xl bg-white/20 backdrop-blur-sm flex items-center justify-center">
+              <Shield className="w-7 h-7" />
             </div>
           </div>
-          <p className="text-xs text-muted mt-2">
+          <p className="text-xs text-slate-200 mt-3">
             {data.stats.flaggedComments} / {data.stats.totalComments} 条评论
           </p>
         </div>
