@@ -31891,5 +31891,3313 @@
       "negative": 0
     },
     "topFlaggedComments": []
+  },
+  {
+    "postId": "short_pD6BUjg80n",
+    "scanTime": "2026-05-27T07:04:01.805Z",
+    "totalComments": 4,
+    "flaggedComments": 0,
+    "alertLevel": "safe",
+    "sentimentSummary": {
+      "positive": 1,
+      "neutral": 3,
+      "negative": 0
+    },
+    "topFlaggedComments": []
+  },
+  {
+    "postId": "short_zSirDzGGlD",
+    "scanTime": "2026-05-27T07:04:03.218Z",
+    "totalComments": 8,
+    "flaggedComments": 1,
+    "alertLevel": "critical",
+    "sentimentSummary": {
+      "positive": 2,
+      "neutral": 5,
+      "negative": 1
+    },
+    "topFlaggedComments": [
+      {
+        "id": "nml7qhx",
+        "postId": "short_zSirDzGGlD",
+        "author": "Bill_Money",
+        "body": "Your use case SCREAMS Bravia 9 or QN90F budget dictates QM7K maybe QM8K\n\navoid Hisense",
+        "score": 2,
+        "createdAt": "2025-11-01T20:15:09.000Z",
+        "sentimentScore": -0.4,
+        "isFlagged": true,
+        "flagReasons": [
+          "call_to_action_negative",
+          "competitor_push"
+        ],
+        "permalink": "https://www.reddit.com/r/4kTV/comments/1olxqvj/used_our_summer_gig_money_to_finally_upgrade_our/nml7qhx/",
+        "replies": [
+          {
+            "id": "nmmd0ww",
+            "postId": "short_zSirDzGGlD",
+            "author": "yourunclegord",
+            "body": "Avoid what models ?I know some Lower models are shit but i always see this on here But they never say a model are people haVing trouble with the u78 and the u88 models because those are the 2 people always suggest.  I got mom a u78 2years ago and it is sweet and still going hard.  I would assume the 2top models should be built a little better than the ones that cost a third of the price.",
+            "score": 0,
+            "createdAt": "2025-11-02T00:05:55.000Z",
+            "sentimentScore": 0,
+            "isFlagged": false,
+            "flagReasons": [],
+            "permalink": "https://www.reddit.com/r/4kTV/comments/1olxqvj/used_our_summer_gig_money_to_finally_upgrade_our/nmmd0ww/",
+            "replies": [
+              {
+                "id": "nmme4fp",
+                "postId": "short_zSirDzGGlD",
+                "author": "Bill_Money",
+                "body": "Hisense has bad QA/QC, Motion Handling, &amp; Processing/Upscaling",
+                "score": 1,
+                "createdAt": "2025-11-02T00:12:22.000Z",
+                "sentimentScore": 0,
+                "isFlagged": false,
+                "flagReasons": [],
+                "permalink": "https://www.reddit.com/r/4kTV/comments/1olxqvj/used_our_summer_gig_money_to_finally_upgrade_our/nmme4fp/"
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "postId": "short_Nmchv2kYjM",
+    "scanTime": "2026-05-27T07:04:05.073Z",
+    "totalComments": 11,
+    "flaggedComments": 0,
+    "alertLevel": "safe",
+    "sentimentSummary": {
+      "positive": 3,
+      "neutral": 8,
+      "negative": 0
+    },
+    "topFlaggedComments": []
+  },
+  {
+    "postId": "short_zcKeEdW4BD",
+    "scanTime": "2026-05-27T07:04:06.085Z",
+    "totalComments": 3,
+    "flaggedComments": 0,
+    "alertLevel": "safe",
+    "sentimentSummary": {
+      "positive": 0,
+      "neutral": 3,
+      "negative": 0
+    },
+    "topFlaggedComments": []
+  },
+  {
+    "postId": "short_g57xi5WZOO",
+    "scanTime": "2026-05-27T07:04:10.993Z",
+    "totalComments": 11,
+    "flaggedComments": 0,
+    "alertLevel": "safe",
+    "sentimentSummary": {
+      "positive": 10,
+      "neutral": 1,
+      "negative": 0
+    },
+    "topFlaggedComments": []
+  },
+  {
+    "postId": "short_7SPw7AhwQW",
+    "scanTime": "2026-05-27T07:04:11.980Z",
+    "totalComments": 3,
+    "flaggedComments": 0,
+    "alertLevel": "safe",
+    "sentimentSummary": {
+      "positive": 3,
+      "neutral": 0,
+      "negative": 0
+    },
+    "topFlaggedComments": []
+  },
+  {
+    "postId": "short_jsWFlCeQO8",
+    "scanTime": "2026-05-27T07:04:12.042Z",
+    "totalComments": 54,
+    "flaggedComments": 0,
+    "alertLevel": "safe",
+    "sentimentSummary": {
+      "positive": 21,
+      "neutral": 33,
+      "negative": 0
+    },
+    "topFlaggedComments": []
+  },
+  {
+    "postId": "short_zSirDzGGlD",
+    "scanTime": "2026-05-27T07:04:12.273Z",
+    "totalComments": 8,
+    "flaggedComments": 1,
+    "alertLevel": "critical",
+    "sentimentSummary": {
+      "positive": 2,
+      "neutral": 5,
+      "negative": 1
+    },
+    "topFlaggedComments": [
+      {
+        "id": "nml7qhx",
+        "postId": "short_zSirDzGGlD",
+        "author": "Bill_Money",
+        "body": "Your use case SCREAMS Bravia 9 or QN90F budget dictates QM7K maybe QM8K\n\navoid Hisense",
+        "score": 2,
+        "createdAt": "2025-11-01T20:15:09.000Z",
+        "sentimentScore": -0.4,
+        "isFlagged": true,
+        "flagReasons": [
+          "call_to_action_negative",
+          "competitor_push"
+        ],
+        "permalink": "https://www.reddit.com/r/4kTV/comments/1olxqvj/used_our_summer_gig_money_to_finally_upgrade_our/nml7qhx/",
+        "replies": [
+          {
+            "id": "nmmd0ww",
+            "postId": "short_zSirDzGGlD",
+            "author": "yourunclegord",
+            "body": "Avoid what models ?I know some Lower models are shit but i always see this on here But they never say a model are people haVing trouble with the u78 and the u88 models because those are the 2 people always suggest.  I got mom a u78 2years ago and it is sweet and still going hard.  I would assume the 2top models should be built a little better than the ones that cost a third of the price.",
+            "score": 0,
+            "createdAt": "2025-11-02T00:05:55.000Z",
+            "sentimentScore": 0,
+            "isFlagged": false,
+            "flagReasons": [],
+            "permalink": "https://www.reddit.com/r/4kTV/comments/1olxqvj/used_our_summer_gig_money_to_finally_upgrade_our/nmmd0ww/",
+            "replies": [
+              {
+                "id": "nmme4fp",
+                "postId": "short_zSirDzGGlD",
+                "author": "Bill_Money",
+                "body": "Hisense has bad QA/QC, Motion Handling, &amp; Processing/Upscaling",
+                "score": 1,
+                "createdAt": "2025-11-02T00:12:22.000Z",
+                "sentimentScore": 0,
+                "isFlagged": false,
+                "flagReasons": [],
+                "permalink": "https://www.reddit.com/r/4kTV/comments/1olxqvj/used_our_summer_gig_money_to_finally_upgrade_our/nmme4fp/"
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "postId": "short_RJCDMzRF3u",
+    "scanTime": "2026-05-27T07:04:12.398Z",
+    "totalComments": 25,
+    "flaggedComments": 0,
+    "alertLevel": "safe",
+    "sentimentSummary": {
+      "positive": 4,
+      "neutral": 21,
+      "negative": 0
+    },
+    "topFlaggedComments": []
+  },
+  {
+    "postId": "short_rWwExhw36l",
+    "scanTime": "2026-05-27T07:04:15.571Z",
+    "totalComments": 9,
+    "flaggedComments": 0,
+    "alertLevel": "safe",
+    "sentimentSummary": {
+      "positive": 0,
+      "neutral": 9,
+      "negative": 0
+    },
+    "topFlaggedComments": []
+  },
+  {
+    "postId": "short_kIO5FgxFXC",
+    "scanTime": "2026-05-27T07:04:16.549Z",
+    "totalComments": 13,
+    "flaggedComments": 0,
+    "alertLevel": "safe",
+    "sentimentSummary": {
+      "positive": 6,
+      "neutral": 7,
+      "negative": 0
+    },
+    "topFlaggedComments": []
+  },
+  {
+    "postId": "short_g57xi5WZOO",
+    "scanTime": "2026-05-27T07:04:17.375Z",
+    "totalComments": 11,
+    "flaggedComments": 0,
+    "alertLevel": "safe",
+    "sentimentSummary": {
+      "positive": 10,
+      "neutral": 1,
+      "negative": 0
+    },
+    "topFlaggedComments": []
+  },
+  {
+    "postId": "short_1fmgdkSYeU",
+    "scanTime": "2026-05-27T07:04:17.966Z",
+    "totalComments": 29,
+    "flaggedComments": 0,
+    "alertLevel": "safe",
+    "sentimentSummary": {
+      "positive": 2,
+      "neutral": 27,
+      "negative": 0
+    },
+    "topFlaggedComments": []
+  },
+  {
+    "postId": "short_oFwlmYHZe2",
+    "scanTime": "2026-05-27T07:04:18.065Z",
+    "totalComments": 9,
+    "flaggedComments": 0,
+    "alertLevel": "safe",
+    "sentimentSummary": {
+      "positive": 1,
+      "neutral": 8,
+      "negative": 0
+    },
+    "topFlaggedComments": []
+  },
+  {
+    "postId": "short_Nmchv2kYjM",
+    "scanTime": "2026-05-27T07:04:19.105Z",
+    "totalComments": 11,
+    "flaggedComments": 0,
+    "alertLevel": "safe",
+    "sentimentSummary": {
+      "positive": 3,
+      "neutral": 8,
+      "negative": 0
+    },
+    "topFlaggedComments": []
+  },
+  {
+    "postId": "short_z17NKsTpIQ",
+    "scanTime": "2026-05-27T07:04:20.418Z",
+    "totalComments": 17,
+    "flaggedComments": 0,
+    "alertLevel": "safe",
+    "sentimentSummary": {
+      "positive": 9,
+      "neutral": 8,
+      "negative": 0
+    },
+    "topFlaggedComments": []
+  },
+  {
+    "postId": "short_rWwExhw36l",
+    "scanTime": "2026-05-27T07:04:22.452Z",
+    "totalComments": 9,
+    "flaggedComments": 0,
+    "alertLevel": "safe",
+    "sentimentSummary": {
+      "positive": 0,
+      "neutral": 9,
+      "negative": 0
+    },
+    "topFlaggedComments": []
+  },
+  {
+    "postId": "short_kqkKktPrlP",
+    "scanTime": "2026-05-27T07:04:23.021Z",
+    "totalComments": 53,
+    "flaggedComments": 5,
+    "alertLevel": "critical",
+    "sentimentSummary": {
+      "positive": 16,
+      "neutral": 32,
+      "negative": 5
+    },
+    "topFlaggedComments": [
+      {
+        "id": "o44un67",
+        "postId": "short_kqkKktPrlP",
+        "author": "perinummassager",
+        "body": "98\" TCL is better, and it's $1299.99!",
+        "score": 331,
+        "createdAt": "2026-02-07T19:55:24.000Z",
+        "sentimentScore": -0.195,
+        "isFlagged": true,
+        "flagReasons": [
+          "competitor_push"
+        ],
+        "permalink": "https://www.reddit.com/r/Costco/comments/1qynfli/thoughts_on_costcos_100_hisense_u6_miniled/o44un67/",
+        "replies": [
+          {
+            "id": "o44viu4",
+            "postId": "short_kqkKktPrlP",
+            "author": "Ok-Seaworthiness4488",
+            "body": "I read in China most prefer TCL over Hisense as it's better built",
+            "score": 104,
+            "createdAt": "2026-02-07T20:00:04.000Z",
+            "sentimentScore": 0,
+            "isFlagged": false,
+            "flagReasons": [],
+            "permalink": "https://www.reddit.com/r/Costco/comments/1qynfli/thoughts_on_costcos_100_hisense_u6_miniled/o44viu4/",
+            "replies": [
+              {
+                "id": "o44zouv",
+                "postId": "short_kqkKktPrlP",
+                "author": "Automatic-Photo-4919",
+                "body": "TCL outperformed Hisense in their tv reliability test: https://www.rtings.com/tv/learn/longevity-failures",
+                "score": 127,
+                "createdAt": "2026-02-07T20:22:24.000Z",
+                "sentimentScore": 0,
+                "isFlagged": false,
+                "flagReasons": [],
+                "permalink": "https://www.reddit.com/r/Costco/comments/1qynfli/thoughts_on_costcos_100_hisense_u6_miniled/o44zouv/",
+                "replies": [
+                  {
+                    "id": "o4636as",
+                    "postId": "short_kqkKktPrlP",
+                    "author": "fthesemods",
+                    "body": "TCL outperformed every brand.",
+                    "score": 26,
+                    "createdAt": "2026-02-08T00:06:24.000Z",
+                    "sentimentScore": 0,
+                    "isFlagged": false,
+                    "flagReasons": [],
+                    "permalink": "https://www.reddit.com/r/Costco/comments/1qynfli/thoughts_on_costcos_100_hisense_u6_miniled/o4636as/"
+                  }
+                ]
+              },
+              {
+                "id": "o45616b",
+                "postId": "short_kqkKktPrlP",
+                "author": "GoingOffRoading",
+                "body": "We bought a cheap/mid $500 65\" TCL and I genuinely feel that the TV picture, experience, behind it was better than our $1,000 flagship Vizio.\n\nI'm pretty jazzed on TCL for it",
+                "score": 49,
+                "createdAt": "2026-02-07T20:56:58.000Z",
+                "sentimentScore": 0,
+                "isFlagged": false,
+                "flagReasons": [],
+                "permalink": "https://www.reddit.com/r/Costco/comments/1qynfli/thoughts_on_costcos_100_hisense_u6_miniled/o45616b/",
+                "replies": [
+                  {
+                    "id": "o4592ud",
+                    "postId": "short_kqkKktPrlP",
+                    "author": "DannyGutes",
+                    "body": "Did you just say jazzed??!",
+                    "score": 12,
+                    "createdAt": "2026-02-07T21:13:31.000Z",
+                    "sentimentScore": 0,
+                    "isFlagged": false,
+                    "flagReasons": [],
+                    "permalink": "https://www.reddit.com/r/Costco/comments/1qynfli/thoughts_on_costcos_100_hisense_u6_miniled/o4592ud/"
+                  }
+                ]
+              },
+              {
+                "id": "o45a5o8",
+                "postId": "short_kqkKktPrlP",
+                "author": "AsstootObservation",
+                "body": "My Hisense crapped out after 2 years and it needed a whole new motherboard. Since it was on back order I got my money back on a 3 year warranty. Wouldn't buy them again.",
+                "score": 9,
+                "createdAt": "2026-02-07T21:19:19.000Z",
+                "sentimentScore": 0,
+                "isFlagged": false,
+                "flagReasons": [],
+                "permalink": "https://www.reddit.com/r/Costco/comments/1qynfli/thoughts_on_costcos_100_hisense_u6_miniled/o45a5o8/",
+                "replies": []
+              },
+              {
+                "id": "o457v08",
+                "postId": "short_kqkKktPrlP",
+                "author": "destonomos",
+                "body": "Ive had 1 tv die in my adultness. It was a hisense and im glad i bought the best buy warranty. Swapped to LG and its going strong.\n\nWe still use my wifes old lg as well in the bedroom. Its nearing 10 yrs old. Might swap it out because it cant take volume controls over hdmi like the one downstairs. It stops me from using volume controls with the remote app on my iphone.",
+                "score": 9,
+                "createdAt": "2026-02-07T21:06:55.000Z",
+                "sentimentScore": 0,
+                "isFlagged": false,
+                "flagReasons": [],
+                "permalink": "https://www.reddit.com/r/Costco/comments/1qynfli/thoughts_on_costcos_100_hisense_u6_miniled/o457v08/"
+              },
+              {
+                "id": "o45aznx",
+                "postId": "short_kqkKktPrlP",
+                "author": "0dtefomo",
+                "body": "Correct me if I'm wrong. I read an article recently that Sony will be using TCL for their panels or something",
+                "score": 2,
+                "createdAt": "2026-02-07T21:23:42.000Z",
+                "sentimentScore": 0,
+                "isFlagged": false,
+                "flagReasons": [],
+                "permalink": "https://www.reddit.com/r/Costco/comments/1qynfli/thoughts_on_costcos_100_hisense_u6_miniled/o45aznx/",
+                "replies": [
+                  {
+                    "id": "o45fmhn",
+                    "postId": "short_kqkKktPrlP",
+                    "author": "wandererarkhamknight",
+                    "body": "Sony is in talk to hand over 51% of their TV (and probably audio business) to TCL. They already use TCL (CSOT) LCD panels on most of their LCD TV. So does Samsung on their LCD TVs. Right now, panels from CSOT and AUO are on most LCD TVs.",
+                    "score": 6,
+                    "createdAt": "2026-02-07T21:48:28.000Z",
+                    "sentimentScore": 0,
+                    "isFlagged": false,
+                    "flagReasons": [],
+                    "permalink": "https://www.reddit.com/r/Costco/comments/1qynfli/thoughts_on_costcos_100_hisense_u6_miniled/o45fmhn/"
+                  },
+                  {
+                    "id": "o45bgc8",
+                    "postId": "short_kqkKktPrlP",
+                    "author": "perinummassager",
+                    "body": "That is correct",
+                    "score": 2,
+                    "createdAt": "2026-02-07T21:26:08.000Z",
+                    "sentimentScore": 0,
+                    "isFlagged": false,
+                    "flagReasons": [],
+                    "permalink": "https://www.reddit.com/r/Costco/comments/1qynfli/thoughts_on_costcos_100_hisense_u6_miniled/o45bgc8/"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "id": "o455vy7",
+            "postId": "short_kqkKktPrlP",
+            "author": "Mk1Racer25",
+            "body": "Yeah, if I want a big screen like that, I'd get the TCL for sure.  I wouldn't buy anything by Hisense.  Do they still offer the extended warranty if you use the Costco Visa?  If not, buy it.",
+            "score": 5,
+            "createdAt": "2026-02-07T20:56:12.000Z",
+            "sentimentScore": 0,
+            "isFlagged": false,
+            "flagReasons": [],
+            "permalink": "https://www.reddit.com/r/Costco/comments/1qynfli/thoughts_on_costcos_100_hisense_u6_miniled/o455vy7/",
+            "replies": [
+              {
+                "id": "o46zxyc",
+                "postId": "short_kqkKktPrlP",
+                "author": "RockHardSalami",
+                "body": "Costco is giving the warranty away with TCLs thru the 22nd.  Going to get mine tomorrow.",
+                "score": 3,
+                "createdAt": "2026-02-08T03:30:50.000Z",
+                "sentimentScore": 0,
+                "isFlagged": false,
+                "flagReasons": [],
+                "permalink": "https://www.reddit.com/r/Costco/comments/1qynfli/thoughts_on_costcos_100_hisense_u6_miniled/o46zxyc/"
+              }
+            ]
+          },
+          {
+            "id": "o45e29l",
+            "postId": "short_kqkKktPrlP",
+            "author": "pineapplesuit7",
+            "body": "Better yet get the QM7K. It is 100% the best price to performance deal in my books",
+            "score": 4,
+            "createdAt": "2026-02-07T21:40:03.000Z",
+            "sentimentScore": 0,
+            "isFlagged": false,
+            "flagReasons": [],
+            "permalink": "https://www.reddit.com/r/Costco/comments/1qynfli/thoughts_on_costcos_100_hisense_u6_miniled/o45e29l/",
+            "replies": [
+              {
+                "id": "o45vsee",
+                "postId": "short_kqkKktPrlP",
+                "author": "Newcomer156",
+                "body": "I have the 75\" QM7K. It has a great picture quality for the price and it supports pretty much all video/audio codecs. I just hope it lasts a while! 🤞 My previous Vizio lasted about 8 years.",
+                "score": 3,
+                "createdAt": "2026-02-07T23:19:10.000Z",
+                "sentimentScore": 0,
+                "isFlagged": false,
+                "flagReasons": [],
+                "permalink": "https://www.reddit.com/r/Costco/comments/1qynfli/thoughts_on_costcos_100_hisense_u6_miniled/o45vsee/"
+              }
+            ]
+          },
+          {
+            "id": "o45eszj",
+            "postId": "short_kqkKktPrlP",
+            "author": "straylight_2022",
+            "body": "My TCL was great.....for four years until it up and died suddenly. ",
+            "score": 5,
+            "createdAt": "2026-02-07T21:44:04.000Z",
+            "sentimentScore": 0,
+            "isFlagged": false,
+            "flagReasons": [],
+            "permalink": "https://www.reddit.com/r/Costco/comments/1qynfli/thoughts_on_costcos_100_hisense_u6_miniled/o45eszj/",
+            "replies": [
+              {
+                "id": "o45l6s4",
+                "postId": "short_kqkKktPrlP",
+                "author": "old-new-programmer",
+                "body": "Mine did that last week. Just died. Had it for 3 years, spent $1700 on it as at the time mini-led was still expensive. Now I just bought the 65\" version of this Hisense TV for $530 form Costco and it works great/looks as good or better to me. I'm over TCL at this point. ",
+                "score": 5,
+                "createdAt": "2026-02-07T22:18:38.000Z",
+                "sentimentScore": 0,
+                "isFlagged": false,
+                "flagReasons": [],
+                "permalink": "https://www.reddit.com/r/Costco/comments/1qynfli/thoughts_on_costcos_100_hisense_u6_miniled/o45l6s4/",
+                "replies": []
+              }
+            ]
+          },
+          {
+            "id": "o453llj",
+            "postId": "short_kqkKktPrlP",
+            "author": "LouieVbbp",
+            "body": "If only it had Dolby vision.",
+            "score": 7,
+            "createdAt": "2026-02-07T20:43:51.000Z",
+            "sentimentScore": 0,
+            "isFlagged": false,
+            "flagReasons": [],
+            "permalink": "https://www.reddit.com/r/Costco/comments/1qynfli/thoughts_on_costcos_100_hisense_u6_miniled/o453llj/",
+            "replies": [
+              {
+                "id": "o46q6oo",
+                "postId": "short_kqkKktPrlP",
+                "author": "Gears6",
+                "body": "If only it had OLED panel.",
+                "score": 2,
+                "createdAt": "2026-02-08T02:28:12.000Z",
+                "sentimentScore": 0,
+                "isFlagged": false,
+                "flagReasons": [],
+                "permalink": "https://www.reddit.com/r/Costco/comments/1qynfli/thoughts_on_costcos_100_hisense_u6_miniled/o46q6oo/",
+                "replies": []
+              }
+            ]
+          },
+          {
+            "id": "o482ssi",
+            "postId": "short_kqkKktPrlP",
+            "author": "JoIIyRanter",
+            "body": "I have owned 2 TCL TVs, both died completely within 3 years of purchase.",
+            "score": 2,
+            "createdAt": "2026-02-08T08:51:19.000Z",
+            "sentimentScore": 0,
+            "isFlagged": false,
+            "flagReasons": [],
+            "permalink": "https://www.reddit.com/r/Costco/comments/1qynfli/thoughts_on_costcos_100_hisense_u6_miniled/o482ssi/",
+            "replies": []
+          }
+        ]
+      },
+      {
+        "id": "o456huj",
+        "postId": "short_kqkKktPrlP",
+        "author": "AggravatingExpert365",
+        "body": "Hisense is dogshit quality. I bought into all the “for the price their quality is great!” crap years ago, and it’s the worst tv I’ve ever owned. It glitches out frequently, and when it does work, it’s not impressive. Get a Sony",
+        "score": 35,
+        "createdAt": "2026-02-07T20:59:30.000Z",
+        "sentimentScore": -0.23399999999999999,
+        "isFlagged": true,
+        "flagReasons": [
+          "product_hate"
+        ],
+        "permalink": "https://www.reddit.com/r/Costco/comments/1qynfli/thoughts_on_costcos_100_hisense_u6_miniled/o456huj/",
+        "replies": [
+          {
+            "id": "o462h3x",
+            "postId": "short_kqkKktPrlP",
+            "author": "quesabirriatacos",
+            "body": "I got a Hisense and the screen cracked from a small tap from my lamp… called Hisense and they revoked the warranty. I know the warranty only covers the manufacturer defects, but the customer service showed me the company isn’t that great either. Surprised Costco sells them.",
+            "score": 5,
+            "createdAt": "2026-02-08T00:02:09.000Z",
+            "sentimentScore": 0,
+            "isFlagged": false,
+            "flagReasons": [],
+            "permalink": "https://www.reddit.com/r/Costco/comments/1qynfli/thoughts_on_costcos_100_hisense_u6_miniled/o462h3x/",
+            "replies": [
+              {
+                "id": "o46d5gm",
+                "postId": "short_kqkKktPrlP",
+                "author": "AggravatingExpert365",
+                "body": "I also had a little 43\" TCL that died after like 14 months and they also told me too bad. I do have an older TCL that has been working for 10 years though. Either way, I'm done with the \"bargain\" brands. Not worth it. ",
+                "score": 2,
+                "createdAt": "2026-02-08T01:06:00.000Z",
+                "sentimentScore": 0,
+                "isFlagged": false,
+                "flagReasons": [],
+                "permalink": "https://www.reddit.com/r/Costco/comments/1qynfli/thoughts_on_costcos_100_hisense_u6_miniled/o46d5gm/",
+                "replies": [
+                  {
+                    "id": "o46rnq5",
+                    "postId": "short_kqkKktPrlP",
+                    "author": "Feeling-Visit1472",
+                    "body": "The only people who seem to love TCL are on Reddit, and their comments are all so similar that I’m not convinced it isn’t paid marketing. I stick with the known brands, who all have pros/cons: LG, Samsung, Sony, possibly Toshiba/Panasonic. But they’re all well-known entities and their pros/cons are well and genuinely documents.",
+                    "score": 2,
+                    "createdAt": "2026-02-08T02:37:28.000Z",
+                    "sentimentScore": 0,
+                    "isFlagged": false,
+                    "flagReasons": [],
+                    "permalink": "https://www.reddit.com/r/Costco/comments/1qynfli/thoughts_on_costcos_100_hisense_u6_miniled/o46rnq5/"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "id": "o45cmzf",
+            "postId": "short_kqkKktPrlP",
+            "author": "rsshurtz",
+            "body": "Same here. I did my research a few years ago and got the Hisense, and apparently the picture quality is good for the money, but that does you no good when the TV is glitching all the time. I switched to a Sony and am sooo pleased with my decision.",
+            "score": 4,
+            "createdAt": "2026-02-07T21:32:28.000Z",
+            "sentimentScore": 0,
+            "isFlagged": false,
+            "flagReasons": [],
+            "permalink": "https://www.reddit.com/r/Costco/comments/1qynfli/thoughts_on_costcos_100_hisense_u6_miniled/o45cmzf/"
+          }
+        ]
+      },
+      {
+        "id": "o45oubf",
+        "postId": "short_kqkKktPrlP",
+        "author": "jackattack80808",
+        "body": "Do not buy Hisense products.  Got a Hisense chest freezer for my birthday from my wife.  Used it for six months and it stopped cooling.  Had about $500 in food spoil which thankfully was all bought at Costco.  Costco refunded the food tht was spoiled and their warranty department handled communications with Hisense who had been difficult for me to get in touch with.  Hisense sent someone out to service and they deemed it non repairable.  Costco ended up picking it up and refunding.  Not worth the headache.  Go with a reputable brand.",
+        "score": 7,
+        "createdAt": "2026-02-07T22:39:01.000Z",
+        "sentimentScore": -0.264,
+        "isFlagged": true,
+        "flagReasons": [
+          "brand_attack"
+        ],
+        "permalink": "https://www.reddit.com/r/Costco/comments/1qynfli/thoughts_on_costcos_100_hisense_u6_miniled/o45oubf/",
+        "replies": [
+          {
+            "id": "o47gftk",
+            "postId": "short_kqkKktPrlP",
+            "author": "Connect-Region-4258",
+            "body": "God, I love Costco. Like they really don’t need to do that. But they do it anyway. I wish more businesses still valued the customer experience like they do. Walmart would’ve told you to go F yourself, aka, you have to work with the manufacturer we can’t help you",
+            "score": 4,
+            "createdAt": "2026-02-08T05:29:38.000Z",
+            "sentimentScore": 0,
+            "isFlagged": false,
+            "flagReasons": [],
+            "permalink": "https://www.reddit.com/r/Costco/comments/1qynfli/thoughts_on_costcos_100_hisense_u6_miniled/o47gftk/",
+            "replies": []
+          }
+        ]
+      },
+      {
+        "id": "o4631b7",
+        "postId": "short_kqkKktPrlP",
+        "author": "quesabirriatacos",
+        "body": "Avoid Hisense if you can",
+        "score": 6,
+        "createdAt": "2026-02-08T00:05:34.000Z",
+        "sentimentScore": -0.44000000000000006,
+        "isFlagged": true,
+        "flagReasons": [
+          "call_to_action_negative",
+          "competitor_push"
+        ],
+        "permalink": "https://www.reddit.com/r/Costco/comments/1qynfli/thoughts_on_costcos_100_hisense_u6_miniled/o4631b7/"
+      },
+      {
+        "id": "o48uvil",
+        "postId": "short_kqkKktPrlP",
+        "author": "Darrkman2",
+        "body": "Hisense does not make good tvs. I've had 4 Hisense tvs all bought from Costco.  None lasted more than 2.5 years.\n\nAvoid Hisense at all costs.",
+        "score": 2,
+        "createdAt": "2026-02-08T13:01:20.000Z",
+        "sentimentScore": -0.4,
+        "isFlagged": true,
+        "flagReasons": [
+          "call_to_action_negative",
+          "competitor_push"
+        ],
+        "permalink": "https://www.reddit.com/r/Costco/comments/1qynfli/thoughts_on_costcos_100_hisense_u6_miniled/o48uvil/"
+      }
+    ]
+  },
+  {
+    "postId": "short_oFwlmYHZe2",
+    "scanTime": "2026-05-27T07:04:23.585Z",
+    "totalComments": 9,
+    "flaggedComments": 0,
+    "alertLevel": "safe",
+    "sentimentSummary": {
+      "positive": 1,
+      "neutral": 8,
+      "negative": 0
+    },
+    "topFlaggedComments": []
+  },
+  {
+    "postId": "short_1fmgdkSYeU",
+    "scanTime": "2026-05-27T07:04:23.634Z",
+    "totalComments": 29,
+    "flaggedComments": 0,
+    "alertLevel": "safe",
+    "sentimentSummary": {
+      "positive": 2,
+      "neutral": 27,
+      "negative": 0
+    },
+    "topFlaggedComments": []
+  },
+  {
+    "postId": "short_96n5B4JULj",
+    "scanTime": "2026-05-27T07:04:24.785Z",
+    "totalComments": 11,
+    "flaggedComments": 0,
+    "alertLevel": "safe",
+    "sentimentSummary": {
+      "positive": 8,
+      "neutral": 3,
+      "negative": 0
+    },
+    "topFlaggedComments": []
+  },
+  {
+    "postId": "short_jsWFlCeQO8",
+    "scanTime": "2026-05-27T07:04:26.052Z",
+    "totalComments": 54,
+    "flaggedComments": 0,
+    "alertLevel": "safe",
+    "sentimentSummary": {
+      "positive": 21,
+      "neutral": 33,
+      "negative": 0
+    },
+    "topFlaggedComments": []
+  },
+  {
+    "postId": "1rq992x",
+    "scanTime": "2026-05-27T07:04:26.684Z",
+    "totalComments": 35,
+    "flaggedComments": 0,
+    "alertLevel": "safe",
+    "sentimentSummary": {
+      "positive": 19,
+      "neutral": 16,
+      "negative": 0
+    },
+    "topFlaggedComments": []
+  },
+  {
+    "postId": "short_z17NKsTpIQ",
+    "scanTime": "2026-05-27T07:04:26.888Z",
+    "totalComments": 17,
+    "flaggedComments": 0,
+    "alertLevel": "safe",
+    "sentimentSummary": {
+      "positive": 9,
+      "neutral": 8,
+      "negative": 0
+    },
+    "topFlaggedComments": []
+  },
+  {
+    "postId": "1rq992x",
+    "scanTime": "2026-05-27T07:04:27.286Z",
+    "totalComments": 35,
+    "flaggedComments": 0,
+    "alertLevel": "safe",
+    "sentimentSummary": {
+      "positive": 19,
+      "neutral": 16,
+      "negative": 0
+    },
+    "topFlaggedComments": []
+  },
+  {
+    "postId": "short_HHeJGvZZqO",
+    "scanTime": "2026-05-27T07:04:28.887Z",
+    "totalComments": 6,
+    "flaggedComments": 0,
+    "alertLevel": "safe",
+    "sentimentSummary": {
+      "positive": 5,
+      "neutral": 1,
+      "negative": 0
+    },
+    "topFlaggedComments": []
+  },
+  {
+    "postId": "short_kIO5FgxFXC",
+    "scanTime": "2026-05-27T07:04:31.385Z",
+    "totalComments": 13,
+    "flaggedComments": 0,
+    "alertLevel": "safe",
+    "sentimentSummary": {
+      "positive": 6,
+      "neutral": 7,
+      "negative": 0
+    },
+    "topFlaggedComments": []
+  },
+  {
+    "postId": "short_96n5B4JULj",
+    "scanTime": "2026-05-27T07:04:31.933Z",
+    "totalComments": 11,
+    "flaggedComments": 0,
+    "alertLevel": "safe",
+    "sentimentSummary": {
+      "positive": 8,
+      "neutral": 3,
+      "negative": 0
+    },
+    "topFlaggedComments": []
+  },
+  {
+    "postId": "short_RJCDMzRF3u",
+    "scanTime": "2026-05-27T07:04:32.431Z",
+    "totalComments": 25,
+    "flaggedComments": 0,
+    "alertLevel": "safe",
+    "sentimentSummary": {
+      "positive": 4,
+      "neutral": 21,
+      "negative": 0
+    },
+    "topFlaggedComments": []
+  },
+  {
+    "postId": "short_d4hYNInjqw",
+    "scanTime": "2026-05-27T07:04:32.505Z",
+    "totalComments": 1,
+    "flaggedComments": 0,
+    "alertLevel": "safe",
+    "sentimentSummary": {
+      "positive": 0,
+      "neutral": 1,
+      "negative": 0
+    },
+    "topFlaggedComments": []
+  },
+  {
+    "postId": "short_U5DnUcAOu4",
+    "scanTime": "2026-05-27T07:04:33.782Z",
+    "totalComments": 11,
+    "flaggedComments": 0,
+    "alertLevel": "safe",
+    "sentimentSummary": {
+      "positive": 7,
+      "neutral": 4,
+      "negative": 0
+    },
+    "topFlaggedComments": []
+  },
+  {
+    "postId": "short_HHeJGvZZqO",
+    "scanTime": "2026-05-27T07:04:37.296Z",
+    "totalComments": 6,
+    "flaggedComments": 0,
+    "alertLevel": "safe",
+    "sentimentSummary": {
+      "positive": 5,
+      "neutral": 1,
+      "negative": 0
+    },
+    "topFlaggedComments": []
+  },
+  {
+    "postId": "short_d4hYNInjqw",
+    "scanTime": "2026-05-27T07:04:38.163Z",
+    "totalComments": 1,
+    "flaggedComments": 0,
+    "alertLevel": "safe",
+    "sentimentSummary": {
+      "positive": 0,
+      "neutral": 1,
+      "negative": 0
+    },
+    "topFlaggedComments": []
+  },
+  {
+    "postId": "short_kqkKktPrlP",
+    "scanTime": "2026-05-27T07:04:38.473Z",
+    "totalComments": 53,
+    "flaggedComments": 5,
+    "alertLevel": "critical",
+    "sentimentSummary": {
+      "positive": 16,
+      "neutral": 32,
+      "negative": 5
+    },
+    "topFlaggedComments": [
+      {
+        "id": "o44un67",
+        "postId": "short_kqkKktPrlP",
+        "author": "perinummassager",
+        "body": "98\" TCL is better, and it's $1299.99!",
+        "score": 331,
+        "createdAt": "2026-02-07T19:55:24.000Z",
+        "sentimentScore": -0.195,
+        "isFlagged": true,
+        "flagReasons": [
+          "competitor_push"
+        ],
+        "permalink": "https://www.reddit.com/r/Costco/comments/1qynfli/thoughts_on_costcos_100_hisense_u6_miniled/o44un67/",
+        "replies": [
+          {
+            "id": "o44viu4",
+            "postId": "short_kqkKktPrlP",
+            "author": "Ok-Seaworthiness4488",
+            "body": "I read in China most prefer TCL over Hisense as it's better built",
+            "score": 100,
+            "createdAt": "2026-02-07T20:00:04.000Z",
+            "sentimentScore": 0,
+            "isFlagged": false,
+            "flagReasons": [],
+            "permalink": "https://www.reddit.com/r/Costco/comments/1qynfli/thoughts_on_costcos_100_hisense_u6_miniled/o44viu4/",
+            "replies": [
+              {
+                "id": "o44zouv",
+                "postId": "short_kqkKktPrlP",
+                "author": "Automatic-Photo-4919",
+                "body": "TCL outperformed Hisense in their tv reliability test: https://www.rtings.com/tv/learn/longevity-failures",
+                "score": 122,
+                "createdAt": "2026-02-07T20:22:24.000Z",
+                "sentimentScore": 0,
+                "isFlagged": false,
+                "flagReasons": [],
+                "permalink": "https://www.reddit.com/r/Costco/comments/1qynfli/thoughts_on_costcos_100_hisense_u6_miniled/o44zouv/",
+                "replies": [
+                  {
+                    "id": "o4636as",
+                    "postId": "short_kqkKktPrlP",
+                    "author": "fthesemods",
+                    "body": "TCL outperformed every brand.",
+                    "score": 28,
+                    "createdAt": "2026-02-08T00:06:24.000Z",
+                    "sentimentScore": 0,
+                    "isFlagged": false,
+                    "flagReasons": [],
+                    "permalink": "https://www.reddit.com/r/Costco/comments/1qynfli/thoughts_on_costcos_100_hisense_u6_miniled/o4636as/"
+                  }
+                ]
+              },
+              {
+                "id": "o45616b",
+                "postId": "short_kqkKktPrlP",
+                "author": "GoingOffRoading",
+                "body": "We bought a cheap/mid $500 65\" TCL and I genuinely feel that the TV picture, experience, behind it was better than our $1,000 flagship Vizio.\n\nI'm pretty jazzed on TCL for it",
+                "score": 43,
+                "createdAt": "2026-02-07T20:56:58.000Z",
+                "sentimentScore": 0,
+                "isFlagged": false,
+                "flagReasons": [],
+                "permalink": "https://www.reddit.com/r/Costco/comments/1qynfli/thoughts_on_costcos_100_hisense_u6_miniled/o45616b/",
+                "replies": [
+                  {
+                    "id": "o4592ud",
+                    "postId": "short_kqkKktPrlP",
+                    "author": "DannyGutes",
+                    "body": "Did you just say jazzed??!",
+                    "score": 13,
+                    "createdAt": "2026-02-07T21:13:31.000Z",
+                    "sentimentScore": 0,
+                    "isFlagged": false,
+                    "flagReasons": [],
+                    "permalink": "https://www.reddit.com/r/Costco/comments/1qynfli/thoughts_on_costcos_100_hisense_u6_miniled/o4592ud/"
+                  }
+                ]
+              },
+              {
+                "id": "o45a5o8",
+                "postId": "short_kqkKktPrlP",
+                "author": "AsstootObservation",
+                "body": "My Hisense crapped out after 2 years and it needed a whole new motherboard. Since it was on back order I got my money back on a 3 year warranty. Wouldn't buy them again.",
+                "score": 7,
+                "createdAt": "2026-02-07T21:19:19.000Z",
+                "sentimentScore": 0,
+                "isFlagged": false,
+                "flagReasons": [],
+                "permalink": "https://www.reddit.com/r/Costco/comments/1qynfli/thoughts_on_costcos_100_hisense_u6_miniled/o45a5o8/",
+                "replies": []
+              },
+              {
+                "id": "o457v08",
+                "postId": "short_kqkKktPrlP",
+                "author": "destonomos",
+                "body": "Ive had 1 tv die in my adultness. It was a hisense and im glad i bought the best buy warranty. Swapped to LG and its going strong.\n\nWe still use my wifes old lg as well in the bedroom. Its nearing 10 yrs old. Might swap it out because it cant take volume controls over hdmi like the one downstairs. It stops me from using volume controls with the remote app on my iphone.",
+                "score": 8,
+                "createdAt": "2026-02-07T21:06:55.000Z",
+                "sentimentScore": 0,
+                "isFlagged": false,
+                "flagReasons": [],
+                "permalink": "https://www.reddit.com/r/Costco/comments/1qynfli/thoughts_on_costcos_100_hisense_u6_miniled/o457v08/"
+              },
+              {
+                "id": "o45aznx",
+                "postId": "short_kqkKktPrlP",
+                "author": "0dtefomo",
+                "body": "Correct me if I'm wrong. I read an article recently that Sony will be using TCL for their panels or something",
+                "score": 3,
+                "createdAt": "2026-02-07T21:23:42.000Z",
+                "sentimentScore": 0,
+                "isFlagged": false,
+                "flagReasons": [],
+                "permalink": "https://www.reddit.com/r/Costco/comments/1qynfli/thoughts_on_costcos_100_hisense_u6_miniled/o45aznx/",
+                "replies": [
+                  {
+                    "id": "o45fmhn",
+                    "postId": "short_kqkKktPrlP",
+                    "author": "wandererarkhamknight",
+                    "body": "Sony is in talk to hand over 51% of their TV (and probably audio business) to TCL. They already use TCL (CSOT) LCD panels on most of their LCD TV. So does Samsung on their LCD TVs. Right now, panels from CSOT and AUO are on most LCD TVs.",
+                    "score": 6,
+                    "createdAt": "2026-02-07T21:48:28.000Z",
+                    "sentimentScore": 0,
+                    "isFlagged": false,
+                    "flagReasons": [],
+                    "permalink": "https://www.reddit.com/r/Costco/comments/1qynfli/thoughts_on_costcos_100_hisense_u6_miniled/o45fmhn/"
+                  },
+                  {
+                    "id": "o45bgc8",
+                    "postId": "short_kqkKktPrlP",
+                    "author": "perinummassager",
+                    "body": "That is correct",
+                    "score": 2,
+                    "createdAt": "2026-02-07T21:26:08.000Z",
+                    "sentimentScore": 0,
+                    "isFlagged": false,
+                    "flagReasons": [],
+                    "permalink": "https://www.reddit.com/r/Costco/comments/1qynfli/thoughts_on_costcos_100_hisense_u6_miniled/o45bgc8/"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "id": "o455vy7",
+            "postId": "short_kqkKktPrlP",
+            "author": "Mk1Racer25",
+            "body": "Yeah, if I want a big screen like that, I'd get the TCL for sure.  I wouldn't buy anything by Hisense.  Do they still offer the extended warranty if you use the Costco Visa?  If not, buy it.",
+            "score": 5,
+            "createdAt": "2026-02-07T20:56:12.000Z",
+            "sentimentScore": 0,
+            "isFlagged": false,
+            "flagReasons": [],
+            "permalink": "https://www.reddit.com/r/Costco/comments/1qynfli/thoughts_on_costcos_100_hisense_u6_miniled/o455vy7/",
+            "replies": [
+              {
+                "id": "o46zxyc",
+                "postId": "short_kqkKktPrlP",
+                "author": "RockHardSalami",
+                "body": "Costco is giving the warranty away with TCLs thru the 22nd.  Going to get mine tomorrow.",
+                "score": 4,
+                "createdAt": "2026-02-08T03:30:50.000Z",
+                "sentimentScore": 0,
+                "isFlagged": false,
+                "flagReasons": [],
+                "permalink": "https://www.reddit.com/r/Costco/comments/1qynfli/thoughts_on_costcos_100_hisense_u6_miniled/o46zxyc/"
+              }
+            ]
+          },
+          {
+            "id": "o45e29l",
+            "postId": "short_kqkKktPrlP",
+            "author": "pineapplesuit7",
+            "body": "Better yet get the QM7K. It is 100% the best price to performance deal in my books",
+            "score": 4,
+            "createdAt": "2026-02-07T21:40:03.000Z",
+            "sentimentScore": 0,
+            "isFlagged": false,
+            "flagReasons": [],
+            "permalink": "https://www.reddit.com/r/Costco/comments/1qynfli/thoughts_on_costcos_100_hisense_u6_miniled/o45e29l/",
+            "replies": [
+              {
+                "id": "o45vsee",
+                "postId": "short_kqkKktPrlP",
+                "author": "Newcomer156",
+                "body": "I have the 75\" QM7K. It has a great picture quality for the price and it supports pretty much all video/audio codecs. I just hope it lasts a while! 🤞 My previous Vizio lasted about 8 years.",
+                "score": 3,
+                "createdAt": "2026-02-07T23:19:10.000Z",
+                "sentimentScore": 0,
+                "isFlagged": false,
+                "flagReasons": [],
+                "permalink": "https://www.reddit.com/r/Costco/comments/1qynfli/thoughts_on_costcos_100_hisense_u6_miniled/o45vsee/"
+              }
+            ]
+          },
+          {
+            "id": "o45eszj",
+            "postId": "short_kqkKktPrlP",
+            "author": "straylight_2022",
+            "body": "My TCL was great.....for four years until it up and died suddenly. ",
+            "score": 3,
+            "createdAt": "2026-02-07T21:44:04.000Z",
+            "sentimentScore": 0,
+            "isFlagged": false,
+            "flagReasons": [],
+            "permalink": "https://www.reddit.com/r/Costco/comments/1qynfli/thoughts_on_costcos_100_hisense_u6_miniled/o45eszj/",
+            "replies": [
+              {
+                "id": "o45l6s4",
+                "postId": "short_kqkKktPrlP",
+                "author": "old-new-programmer",
+                "body": "Mine did that last week. Just died. Had it for 3 years, spent $1700 on it as at the time mini-led was still expensive. Now I just bought the 65\" version of this Hisense TV for $530 form Costco and it works great/looks as good or better to me. I'm over TCL at this point. ",
+                "score": 3,
+                "createdAt": "2026-02-07T22:18:38.000Z",
+                "sentimentScore": 0,
+                "isFlagged": false,
+                "flagReasons": [],
+                "permalink": "https://www.reddit.com/r/Costco/comments/1qynfli/thoughts_on_costcos_100_hisense_u6_miniled/o45l6s4/",
+                "replies": []
+              }
+            ]
+          },
+          {
+            "id": "o453llj",
+            "postId": "short_kqkKktPrlP",
+            "author": "LouieVbbp",
+            "body": "If only it had Dolby vision.",
+            "score": 6,
+            "createdAt": "2026-02-07T20:43:51.000Z",
+            "sentimentScore": 0,
+            "isFlagged": false,
+            "flagReasons": [],
+            "permalink": "https://www.reddit.com/r/Costco/comments/1qynfli/thoughts_on_costcos_100_hisense_u6_miniled/o453llj/",
+            "replies": [
+              {
+                "id": "o46q6oo",
+                "postId": "short_kqkKktPrlP",
+                "author": "Gears6",
+                "body": "If only it had OLED panel.",
+                "score": 2,
+                "createdAt": "2026-02-08T02:28:12.000Z",
+                "sentimentScore": 0,
+                "isFlagged": false,
+                "flagReasons": [],
+                "permalink": "https://www.reddit.com/r/Costco/comments/1qynfli/thoughts_on_costcos_100_hisense_u6_miniled/o46q6oo/",
+                "replies": []
+              }
+            ]
+          },
+          {
+            "id": "o482ssi",
+            "postId": "short_kqkKktPrlP",
+            "author": "JoIIyRanter",
+            "body": "I have owned 2 TCL TVs, both died completely within 3 years of purchase.",
+            "score": 2,
+            "createdAt": "2026-02-08T08:51:19.000Z",
+            "sentimentScore": 0,
+            "isFlagged": false,
+            "flagReasons": [],
+            "permalink": "https://www.reddit.com/r/Costco/comments/1qynfli/thoughts_on_costcos_100_hisense_u6_miniled/o482ssi/",
+            "replies": []
+          }
+        ]
+      },
+      {
+        "id": "o456huj",
+        "postId": "short_kqkKktPrlP",
+        "author": "AggravatingExpert365",
+        "body": "Hisense is dogshit quality. I bought into all the “for the price their quality is great!” crap years ago, and it’s the worst tv I’ve ever owned. It glitches out frequently, and when it does work, it’s not impressive. Get a Sony",
+        "score": 34,
+        "createdAt": "2026-02-07T20:59:30.000Z",
+        "sentimentScore": -0.23399999999999999,
+        "isFlagged": true,
+        "flagReasons": [
+          "product_hate"
+        ],
+        "permalink": "https://www.reddit.com/r/Costco/comments/1qynfli/thoughts_on_costcos_100_hisense_u6_miniled/o456huj/",
+        "replies": [
+          {
+            "id": "o462h3x",
+            "postId": "short_kqkKktPrlP",
+            "author": "quesabirriatacos",
+            "body": "I got a Hisense and the screen cracked from a small tap from my lamp… called Hisense and they revoked the warranty. I know the warranty only covers the manufacturer defects, but the customer service showed me the company isn’t that great either. Surprised Costco sells them.",
+            "score": 5,
+            "createdAt": "2026-02-08T00:02:09.000Z",
+            "sentimentScore": 0,
+            "isFlagged": false,
+            "flagReasons": [],
+            "permalink": "https://www.reddit.com/r/Costco/comments/1qynfli/thoughts_on_costcos_100_hisense_u6_miniled/o462h3x/",
+            "replies": [
+              {
+                "id": "o46d5gm",
+                "postId": "short_kqkKktPrlP",
+                "author": "AggravatingExpert365",
+                "body": "I also had a little 43\" TCL that died after like 14 months and they also told me too bad. I do have an older TCL that has been working for 10 years though. Either way, I'm done with the \"bargain\" brands. Not worth it. ",
+                "score": 2,
+                "createdAt": "2026-02-08T01:06:00.000Z",
+                "sentimentScore": 0,
+                "isFlagged": false,
+                "flagReasons": [],
+                "permalink": "https://www.reddit.com/r/Costco/comments/1qynfli/thoughts_on_costcos_100_hisense_u6_miniled/o46d5gm/",
+                "replies": [
+                  {
+                    "id": "o46rnq5",
+                    "postId": "short_kqkKktPrlP",
+                    "author": "Feeling-Visit1472",
+                    "body": "The only people who seem to love TCL are on Reddit, and their comments are all so similar that I’m not convinced it isn’t paid marketing. I stick with the known brands, who all have pros/cons: LG, Samsung, Sony, possibly Toshiba/Panasonic. But they’re all well-known entities and their pros/cons are well and genuinely documents.",
+                    "score": 2,
+                    "createdAt": "2026-02-08T02:37:28.000Z",
+                    "sentimentScore": 0,
+                    "isFlagged": false,
+                    "flagReasons": [],
+                    "permalink": "https://www.reddit.com/r/Costco/comments/1qynfli/thoughts_on_costcos_100_hisense_u6_miniled/o46rnq5/"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "id": "o45cmzf",
+            "postId": "short_kqkKktPrlP",
+            "author": "rsshurtz",
+            "body": "Same here. I did my research a few years ago and got the Hisense, and apparently the picture quality is good for the money, but that does you no good when the TV is glitching all the time. I switched to a Sony and am sooo pleased with my decision.",
+            "score": 5,
+            "createdAt": "2026-02-07T21:32:28.000Z",
+            "sentimentScore": 0,
+            "isFlagged": false,
+            "flagReasons": [],
+            "permalink": "https://www.reddit.com/r/Costco/comments/1qynfli/thoughts_on_costcos_100_hisense_u6_miniled/o45cmzf/"
+          }
+        ]
+      },
+      {
+        "id": "o45oubf",
+        "postId": "short_kqkKktPrlP",
+        "author": "jackattack80808",
+        "body": "Do not buy Hisense products.  Got a Hisense chest freezer for my birthday from my wife.  Used it for six months and it stopped cooling.  Had about $500 in food spoil which thankfully was all bought at Costco.  Costco refunded the food tht was spoiled and their warranty department handled communications with Hisense who had been difficult for me to get in touch with.  Hisense sent someone out to service and they deemed it non repairable.  Costco ended up picking it up and refunding.  Not worth the headache.  Go with a reputable brand.",
+        "score": 7,
+        "createdAt": "2026-02-07T22:39:01.000Z",
+        "sentimentScore": -0.264,
+        "isFlagged": true,
+        "flagReasons": [
+          "brand_attack"
+        ],
+        "permalink": "https://www.reddit.com/r/Costco/comments/1qynfli/thoughts_on_costcos_100_hisense_u6_miniled/o45oubf/",
+        "replies": [
+          {
+            "id": "o47gftk",
+            "postId": "short_kqkKktPrlP",
+            "author": "Connect-Region-4258",
+            "body": "God, I love Costco. Like they really don’t need to do that. But they do it anyway. I wish more businesses still valued the customer experience like they do. Walmart would’ve told you to go F yourself, aka, you have to work with the manufacturer we can’t help you",
+            "score": 3,
+            "createdAt": "2026-02-08T05:29:38.000Z",
+            "sentimentScore": 0,
+            "isFlagged": false,
+            "flagReasons": [],
+            "permalink": "https://www.reddit.com/r/Costco/comments/1qynfli/thoughts_on_costcos_100_hisense_u6_miniled/o47gftk/",
+            "replies": []
+          }
+        ]
+      },
+      {
+        "id": "o4631b7",
+        "postId": "short_kqkKktPrlP",
+        "author": "quesabirriatacos",
+        "body": "Avoid Hisense if you can",
+        "score": 5,
+        "createdAt": "2026-02-08T00:05:34.000Z",
+        "sentimentScore": -0.4,
+        "isFlagged": true,
+        "flagReasons": [
+          "call_to_action_negative",
+          "competitor_push"
+        ],
+        "permalink": "https://www.reddit.com/r/Costco/comments/1qynfli/thoughts_on_costcos_100_hisense_u6_miniled/o4631b7/"
+      },
+      {
+        "id": "o48uvil",
+        "postId": "short_kqkKktPrlP",
+        "author": "Darrkman2",
+        "body": "Hisense does not make good tvs. I've had 4 Hisense tvs all bought from Costco.  None lasted more than 2.5 years.\n\nAvoid Hisense at all costs.",
+        "score": 2,
+        "createdAt": "2026-02-08T13:01:20.000Z",
+        "sentimentScore": -0.4,
+        "isFlagged": true,
+        "flagReasons": [
+          "call_to_action_negative",
+          "competitor_push"
+        ],
+        "permalink": "https://www.reddit.com/r/Costco/comments/1qynfli/thoughts_on_costcos_100_hisense_u6_miniled/o48uvil/"
+      }
+    ]
+  },
+  {
+    "postId": "short_RJCDMzRF3u",
+    "scanTime": "2026-05-27T07:04:38.522Z",
+    "totalComments": 25,
+    "flaggedComments": 0,
+    "alertLevel": "safe",
+    "sentimentSummary": {
+      "positive": 4,
+      "neutral": 21,
+      "negative": 0
+    },
+    "topFlaggedComments": []
+  },
+  {
+    "postId": "short_UhUbok1od9",
+    "scanTime": "2026-05-27T07:04:39.688Z",
+    "totalComments": 3,
+    "flaggedComments": 0,
+    "alertLevel": "safe",
+    "sentimentSummary": {
+      "positive": 1,
+      "neutral": 2,
+      "negative": 0
+    },
+    "topFlaggedComments": []
+  },
+  {
+    "postId": "short_U5DnUcAOu4",
+    "scanTime": "2026-05-27T07:04:42.411Z",
+    "totalComments": 11,
+    "flaggedComments": 0,
+    "alertLevel": "safe",
+    "sentimentSummary": {
+      "positive": 7,
+      "neutral": 4,
+      "negative": 0
+    },
+    "topFlaggedComments": []
+  },
+  {
+    "postId": "1rq992x",
+    "scanTime": "2026-05-27T07:04:43.499Z",
+    "totalComments": 35,
+    "flaggedComments": 0,
+    "alertLevel": "safe",
+    "sentimentSummary": {
+      "positive": 19,
+      "neutral": 16,
+      "negative": 0
+    },
+    "topFlaggedComments": []
+  },
+  {
+    "postId": "short_1fmgdkSYeU",
+    "scanTime": "2026-05-27T07:04:44.773Z",
+    "totalComments": 29,
+    "flaggedComments": 0,
+    "alertLevel": "safe",
+    "sentimentSummary": {
+      "positive": 2,
+      "neutral": 27,
+      "negative": 0
+    },
+    "topFlaggedComments": []
+  },
+  {
+    "postId": "short_VjvRra9XrL",
+    "scanTime": "2026-05-27T07:04:44.811Z",
+    "totalComments": 22,
+    "flaggedComments": 1,
+    "alertLevel": "medium",
+    "sentimentSummary": {
+      "positive": 5,
+      "neutral": 16,
+      "negative": 1
+    },
+    "topFlaggedComments": [
+      {
+        "id": "nq7txua",
+        "postId": "short_VjvRra9XrL",
+        "author": "rharrow",
+        "body": "I’ll never buy Hisense again. My current set is the Hisense U8H and it’s already turning blue after only 3 years. I’ve had cheaper TCL sets last longer.",
+        "score": 3,
+        "createdAt": "2025-11-22T16:57:10.000Z",
+        "sentimentScore": -0.2,
+        "isFlagged": true,
+        "flagReasons": [
+          "brand_attack"
+        ],
+        "permalink": "https://www.reddit.com/r/4kTV/comments/1p3v646/ok_its_black_friday_eve_final_check_hisense_u8qg/nq7txua/"
+      }
+    ]
+  },
+  {
+    "postId": "short_d4hYNInjqw",
+    "scanTime": "2026-05-27T07:04:47.570Z",
+    "totalComments": 1,
+    "flaggedComments": 0,
+    "alertLevel": "safe",
+    "sentimentSummary": {
+      "positive": 0,
+      "neutral": 1,
+      "negative": 0
+    },
+    "topFlaggedComments": []
+  },
+  {
+    "postId": "short_UhUbok1od9",
+    "scanTime": "2026-05-27T07:04:48.188Z",
+    "totalComments": 3,
+    "flaggedComments": 0,
+    "alertLevel": "safe",
+    "sentimentSummary": {
+      "positive": 1,
+      "neutral": 2,
+      "negative": 0
+    },
+    "topFlaggedComments": []
+  },
+  {
+    "postId": "short_oFwlmYHZe2",
+    "scanTime": "2026-05-27T07:04:49.085Z",
+    "totalComments": 9,
+    "flaggedComments": 0,
+    "alertLevel": "safe",
+    "sentimentSummary": {
+      "positive": 1,
+      "neutral": 8,
+      "negative": 0
+    },
+    "topFlaggedComments": []
+  },
+  {
+    "postId": "short_JL4LaE9f0Y",
+    "scanTime": "2026-05-27T07:04:49.495Z",
+    "totalComments": 6,
+    "flaggedComments": 0,
+    "alertLevel": "safe",
+    "sentimentSummary": {
+      "positive": 0,
+      "neutral": 6,
+      "negative": 0
+    },
+    "topFlaggedComments": []
+  },
+  {
+    "postId": "short_RJCDMzRF3u",
+    "scanTime": "2026-05-27T07:04:52.298Z",
+    "totalComments": 25,
+    "flaggedComments": 0,
+    "alertLevel": "safe",
+    "sentimentSummary": {
+      "positive": 4,
+      "neutral": 21,
+      "negative": 0
+    },
+    "topFlaggedComments": []
+  },
+  {
+    "postId": "short_VjvRra9XrL",
+    "scanTime": "2026-05-27T07:04:53.280Z",
+    "totalComments": 22,
+    "flaggedComments": 1,
+    "alertLevel": "medium",
+    "sentimentSummary": {
+      "positive": 5,
+      "neutral": 16,
+      "negative": 1
+    },
+    "topFlaggedComments": [
+      {
+        "id": "nq7txua",
+        "postId": "short_VjvRra9XrL",
+        "author": "rharrow",
+        "body": "I’ll never buy Hisense again. My current set is the Hisense U8H and it’s already turning blue after only 3 years. I’ve had cheaper TCL sets last longer.",
+        "score": 4,
+        "createdAt": "2025-11-22T16:57:10.000Z",
+        "sentimentScore": -0.2,
+        "isFlagged": true,
+        "flagReasons": [
+          "brand_attack"
+        ],
+        "permalink": "https://www.reddit.com/r/4kTV/comments/1p3v646/ok_its_black_friday_eve_final_check_hisense_u8qg/nq7txua/"
+      }
+    ]
+  },
+  {
+    "postId": "short_OYoXN8Q1kL",
+    "scanTime": "2026-05-27T07:04:54.402Z",
+    "totalComments": 5,
+    "flaggedComments": 0,
+    "alertLevel": "safe",
+    "sentimentSummary": {
+      "positive": 0,
+      "neutral": 5,
+      "negative": 0
+    },
+    "topFlaggedComments": []
+  },
+  {
+    "postId": "short_1fmgdkSYeU",
+    "scanTime": "2026-05-27T07:04:57.876Z",
+    "totalComments": 29,
+    "flaggedComments": 0,
+    "alertLevel": "safe",
+    "sentimentSummary": {
+      "positive": 2,
+      "neutral": 27,
+      "negative": 0
+    },
+    "topFlaggedComments": []
+  },
+  {
+    "postId": "short_JL4LaE9f0Y",
+    "scanTime": "2026-05-27T07:04:58.965Z",
+    "totalComments": 6,
+    "flaggedComments": 0,
+    "alertLevel": "safe",
+    "sentimentSummary": {
+      "positive": 0,
+      "neutral": 6,
+      "negative": 0
+    },
+    "topFlaggedComments": []
+  },
+  {
+    "postId": "short_2cDSRXiuip",
+    "scanTime": "2026-05-27T07:05:00.766Z",
+    "totalComments": 17,
+    "flaggedComments": 0,
+    "alertLevel": "safe",
+    "sentimentSummary": {
+      "positive": 11,
+      "neutral": 6,
+      "negative": 0
+    },
+    "topFlaggedComments": []
+  },
+  {
+    "postId": "short_OYoXN8Q1kL",
+    "scanTime": "2026-05-27T07:05:03.146Z",
+    "totalComments": 5,
+    "flaggedComments": 0,
+    "alertLevel": "safe",
+    "sentimentSummary": {
+      "positive": 0,
+      "neutral": 5,
+      "negative": 0
+    },
+    "topFlaggedComments": []
+  },
+  {
+    "postId": "short_oFwlmYHZe2",
+    "scanTime": "2026-05-27T07:05:04.598Z",
+    "totalComments": 9,
+    "flaggedComments": 0,
+    "alertLevel": "safe",
+    "sentimentSummary": {
+      "positive": 1,
+      "neutral": 8,
+      "negative": 0
+    },
+    "topFlaggedComments": []
+  },
+  {
+    "postId": "short_wkS0OkTS4o",
+    "scanTime": "2026-05-27T07:05:06.082Z",
+    "totalComments": 30,
+    "flaggedComments": 3,
+    "alertLevel": "critical",
+    "sentimentSummary": {
+      "positive": 13,
+      "neutral": 14,
+      "negative": 3
+    },
+    "topFlaggedComments": [
+      {
+        "id": "nqjhmbl",
+        "postId": "short_wkS0OkTS4o",
+        "author": "Brutusthecat20",
+        "body": "Bad deal . Bought this brand last Black Friday deal it lasted 8 months only. Worst brand ever.😢😔😠",
+        "score": 1,
+        "createdAt": "2025-11-24T15:21:04.000Z",
+        "sentimentScore": -0.2,
+        "isFlagged": true,
+        "flagReasons": [
+          "brand_attack"
+        ],
+        "permalink": "https://www.reddit.com/r/Hisense/comments/1p4vpy5/pulling_the_trigger_early_on_a_hisense_tv_for/nqjhmbl/"
+      },
+      {
+        "id": "nqjkp11",
+        "postId": "short_wkS0OkTS4o",
+        "author": "Longstreet61",
+        "body": "Don't do it, they break within a year. Worst TV I've ever bought.",
+        "score": 1,
+        "createdAt": "2025-11-24T15:36:53.000Z",
+        "sentimentScore": -0.15,
+        "isFlagged": true,
+        "flagReasons": [
+          "product_hate"
+        ],
+        "permalink": "https://www.reddit.com/r/Hisense/comments/1p4vpy5/pulling_the_trigger_early_on_a_hisense_tv_for/nqjkp11/"
+      },
+      {
+        "id": "nqp5qnb",
+        "postId": "short_wkS0OkTS4o",
+        "author": "spirit8991",
+        "body": "Please go for another brand we bought a brand new refrigerator from hisense which didn't cool after 4 months of use. Repairmen came, couldn't be repaired.. It took ALOT of phone calls because they won't respond to emails at all. You can call yourself lucky when you actually get someone on the phone. To finally have a document after weeks of waiting that says \" The refrigerator is a total damage and that we get a new (other brand) one\"\nSo for  the love of your nerves don't buy Hisense.\nThey really need to improve their service because in this state it's near too non existent.\n\nEdit: We only checked costumer ratings about Hisense after  our refrigerator literally died. And there are lots of the exact same reviews. Be it about TV's, Refrigerators etc.\nSo I only warn you",
+        "score": 1,
+        "createdAt": "2025-11-25T13:10:37.000Z",
+        "sentimentScore": -0.675,
+        "isFlagged": true,
+        "flagReasons": [
+          "brand_attack",
+          "call_to_action_negative"
+        ],
+        "permalink": "https://www.reddit.com/r/Hisense/comments/1p4vpy5/pulling_the_trigger_early_on_a_hisense_tv_for/nqp5qnb/"
+      }
+    ]
+  },
+  {
+    "postId": "short_2cDSRXiuip",
+    "scanTime": "2026-05-27T07:05:08.694Z",
+    "totalComments": 17,
+    "flaggedComments": 0,
+    "alertLevel": "safe",
+    "sentimentSummary": {
+      "positive": 11,
+      "neutral": 6,
+      "negative": 0
+    },
+    "topFlaggedComments": []
+  },
+  {
+    "postId": "short_XTITdHdl9i",
+    "scanTime": "2026-05-27T07:05:11.132Z",
+    "totalComments": 35,
+    "flaggedComments": 5,
+    "alertLevel": "critical",
+    "sentimentSummary": {
+      "positive": 14,
+      "neutral": 16,
+      "negative": 5
+    },
+    "topFlaggedComments": [
+      {
+        "id": "nqxwkfu",
+        "postId": "short_XTITdHdl9i",
+        "author": "jaydee288",
+        "body": "Stay away from Hisense",
+        "score": 4,
+        "createdAt": "2025-11-26T20:36:19.000Z",
+        "sentimentScore": -0.45,
+        "isFlagged": true,
+        "flagReasons": [
+          "brand_attack",
+          "call_to_action_negative"
+        ],
+        "permalink": "https://www.reddit.com/r/Costco/comments/1p7fhuj/costco_members_hisense_75_u6_is_74999includes/nqxwkfu/"
+      },
+      {
+        "id": "nqy6ky7",
+        "postId": "short_XTITdHdl9i",
+        "author": "Decent-Bluejay-4040",
+        "body": "hisense is the worst TV brand out there. don't do it.",
+        "score": 1,
+        "createdAt": "2025-11-26T21:27:01.000Z",
+        "sentimentScore": -0.15,
+        "isFlagged": true,
+        "flagReasons": [
+          "product_hate"
+        ],
+        "permalink": "https://www.reddit.com/r/Costco/comments/1p7fhuj/costco_members_hisense_75_u6_is_74999includes/nqy6ky7/"
+      },
+      {
+        "id": "nqz0bog",
+        "postId": "short_XTITdHdl9i",
+        "author": "goman2012",
+        "body": "TCL is better than Hisense according to 4k reddit. Buy that one",
+        "score": 1,
+        "createdAt": "2025-11-27T00:14:08.000Z",
+        "sentimentScore": -0.15,
+        "isFlagged": true,
+        "flagReasons": [
+          "competitor_push"
+        ],
+        "permalink": "https://www.reddit.com/r/Costco/comments/1p7fhuj/costco_members_hisense_75_u6_is_74999includes/nqz0bog/"
+      },
+      {
+        "id": "nqxpdbk",
+        "postId": "short_XTITdHdl9i",
+        "author": "CIDR-ClassB",
+        "body": "Hisense is garbage.",
+        "score": -4,
+        "createdAt": "2025-11-26T19:59:19.000Z",
+        "sentimentScore": -0.15,
+        "isFlagged": true,
+        "flagReasons": [
+          "competitor_push"
+        ],
+        "permalink": "https://www.reddit.com/r/Costco/comments/1p7fhuj/costco_members_hisense_75_u6_is_74999includes/nqxpdbk/"
+      },
+      {
+        "id": "nqxpifk",
+        "postId": "short_XTITdHdl9i",
+        "author": "CIDR-ClassB",
+        "body": "Hisense is garbage.",
+        "score": -7,
+        "createdAt": "2025-11-26T20:00:03.000Z",
+        "sentimentScore": -0.15,
+        "isFlagged": true,
+        "flagReasons": [
+          "competitor_push"
+        ],
+        "permalink": "https://www.reddit.com/r/Costco/comments/1p7fhuj/costco_members_hisense_75_u6_is_74999includes/nqxpifk/"
+      }
+    ]
+  },
+  {
+    "postId": "short_wkS0OkTS4o",
+    "scanTime": "2026-05-27T07:05:14.576Z",
+    "totalComments": 30,
+    "flaggedComments": 3,
+    "alertLevel": "critical",
+    "sentimentSummary": {
+      "positive": 13,
+      "neutral": 14,
+      "negative": 3
+    },
+    "topFlaggedComments": [
+      {
+        "id": "nqjhmbl",
+        "postId": "short_wkS0OkTS4o",
+        "author": "Brutusthecat20",
+        "body": "Bad deal . Bought this brand last Black Friday deal it lasted 8 months only. Worst brand ever.😢😔😠",
+        "score": 1,
+        "createdAt": "2025-11-24T15:21:04.000Z",
+        "sentimentScore": -0.2,
+        "isFlagged": true,
+        "flagReasons": [
+          "brand_attack"
+        ],
+        "permalink": "https://www.reddit.com/r/Hisense/comments/1p4vpy5/pulling_the_trigger_early_on_a_hisense_tv_for/nqjhmbl/"
+      },
+      {
+        "id": "nqjkp11",
+        "postId": "short_wkS0OkTS4o",
+        "author": "Longstreet61",
+        "body": "Don't do it, they break within a year. Worst TV I've ever bought.",
+        "score": 1,
+        "createdAt": "2025-11-24T15:36:53.000Z",
+        "sentimentScore": -0.15,
+        "isFlagged": true,
+        "flagReasons": [
+          "product_hate"
+        ],
+        "permalink": "https://www.reddit.com/r/Hisense/comments/1p4vpy5/pulling_the_trigger_early_on_a_hisense_tv_for/nqjkp11/"
+      },
+      {
+        "id": "nqp5qnb",
+        "postId": "short_wkS0OkTS4o",
+        "author": "spirit8991",
+        "body": "Please go for another brand we bought a brand new refrigerator from hisense which didn't cool after 4 months of use. Repairmen came, couldn't be repaired.. It took ALOT of phone calls because they won't respond to emails at all. You can call yourself lucky when you actually get someone on the phone. To finally have a document after weeks of waiting that says \" The refrigerator is a total damage and that we get a new (other brand) one\"\nSo for  the love of your nerves don't buy Hisense.\nThey really need to improve their service because in this state it's near too non existent.\n\nEdit: We only checked costumer ratings about Hisense after  our refrigerator literally died. And there are lots of the exact same reviews. Be it about TV's, Refrigerators etc.\nSo I only warn you",
+        "score": 1,
+        "createdAt": "2025-11-25T13:10:37.000Z",
+        "sentimentScore": -0.675,
+        "isFlagged": true,
+        "flagReasons": [
+          "brand_attack",
+          "call_to_action_negative"
+        ],
+        "permalink": "https://www.reddit.com/r/Hisense/comments/1p4vpy5/pulling_the_trigger_early_on_a_hisense_tv_for/nqp5qnb/"
+      }
+    ]
+  },
+  {
+    "postId": "short_cxMQvirU8y",
+    "scanTime": "2026-05-27T07:05:16.085Z",
+    "totalComments": 7,
+    "flaggedComments": 0,
+    "alertLevel": "safe",
+    "sentimentSummary": {
+      "positive": 2,
+      "neutral": 5,
+      "negative": 0
+    },
+    "topFlaggedComments": []
+  },
+  {
+    "postId": "short_XTITdHdl9i",
+    "scanTime": "2026-05-27T07:05:19.740Z",
+    "totalComments": 35,
+    "flaggedComments": 5,
+    "alertLevel": "critical",
+    "sentimentSummary": {
+      "positive": 14,
+      "neutral": 16,
+      "negative": 5
+    },
+    "topFlaggedComments": [
+      {
+        "id": "nqxwkfu",
+        "postId": "short_XTITdHdl9i",
+        "author": "jaydee288",
+        "body": "Stay away from Hisense",
+        "score": 5,
+        "createdAt": "2025-11-26T20:36:19.000Z",
+        "sentimentScore": -0.45,
+        "isFlagged": true,
+        "flagReasons": [
+          "brand_attack",
+          "call_to_action_negative"
+        ],
+        "permalink": "https://www.reddit.com/r/Costco/comments/1p7fhuj/costco_members_hisense_75_u6_is_74999includes/nqxwkfu/"
+      },
+      {
+        "id": "nqy6ky7",
+        "postId": "short_XTITdHdl9i",
+        "author": "Decent-Bluejay-4040",
+        "body": "hisense is the worst TV brand out there. don't do it.",
+        "score": 1,
+        "createdAt": "2025-11-26T21:27:01.000Z",
+        "sentimentScore": -0.15,
+        "isFlagged": true,
+        "flagReasons": [
+          "product_hate"
+        ],
+        "permalink": "https://www.reddit.com/r/Costco/comments/1p7fhuj/costco_members_hisense_75_u6_is_74999includes/nqy6ky7/"
+      },
+      {
+        "id": "nqz0bog",
+        "postId": "short_XTITdHdl9i",
+        "author": "goman2012",
+        "body": "TCL is better than Hisense according to 4k reddit. Buy that one",
+        "score": 1,
+        "createdAt": "2025-11-27T00:14:08.000Z",
+        "sentimentScore": -0.15,
+        "isFlagged": true,
+        "flagReasons": [
+          "competitor_push"
+        ],
+        "permalink": "https://www.reddit.com/r/Costco/comments/1p7fhuj/costco_members_hisense_75_u6_is_74999includes/nqz0bog/"
+      },
+      {
+        "id": "nqxpdbk",
+        "postId": "short_XTITdHdl9i",
+        "author": "CIDR-ClassB",
+        "body": "Hisense is garbage.",
+        "score": -5,
+        "createdAt": "2025-11-26T19:59:19.000Z",
+        "sentimentScore": -0.15,
+        "isFlagged": true,
+        "flagReasons": [
+          "competitor_push"
+        ],
+        "permalink": "https://www.reddit.com/r/Costco/comments/1p7fhuj/costco_members_hisense_75_u6_is_74999includes/nqxpdbk/"
+      },
+      {
+        "id": "nqxpifk",
+        "postId": "short_XTITdHdl9i",
+        "author": "CIDR-ClassB",
+        "body": "Hisense is garbage.",
+        "score": -6,
+        "createdAt": "2025-11-26T20:00:03.000Z",
+        "sentimentScore": -0.15,
+        "isFlagged": true,
+        "flagReasons": [
+          "competitor_push"
+        ],
+        "permalink": "https://www.reddit.com/r/Costco/comments/1p7fhuj/costco_members_hisense_75_u6_is_74999includes/nqxpifk/"
+      }
+    ]
+  },
+  {
+    "postId": "short_1oloHSyyQu",
+    "scanTime": "2026-05-27T07:05:21.265Z",
+    "totalComments": 6,
+    "flaggedComments": 0,
+    "alertLevel": "safe",
+    "sentimentSummary": {
+      "positive": 4,
+      "neutral": 2,
+      "negative": 0
+    },
+    "topFlaggedComments": []
+  },
+  {
+    "postId": "short_cxMQvirU8y",
+    "scanTime": "2026-05-27T07:05:24.717Z",
+    "totalComments": 7,
+    "flaggedComments": 0,
+    "alertLevel": "safe",
+    "sentimentSummary": {
+      "positive": 2,
+      "neutral": 5,
+      "negative": 0
+    },
+    "topFlaggedComments": []
+  },
+  {
+    "postId": "short_PghctMjbQ3",
+    "scanTime": "2026-05-27T07:05:26.371Z",
+    "totalComments": 14,
+    "flaggedComments": 1,
+    "alertLevel": "medium",
+    "sentimentSummary": {
+      "positive": 9,
+      "neutral": 4,
+      "negative": 1
+    },
+    "topFlaggedComments": [
+      {
+        "id": "nslmmsy",
+        "postId": "short_PghctMjbQ3",
+        "author": "Ashamed_Shoe_871",
+        "body": "Hisense sucks so no",
+        "score": 1,
+        "createdAt": "2025-12-06T14:49:35.000Z",
+        "sentimentScore": -0.18,
+        "isFlagged": true,
+        "flagReasons": [
+          "competitor_push"
+        ],
+        "permalink": "https://www.reddit.com/r/Bestbuy/comments/1pe7h9n/killer_hisense_deal_at_best_buy_75_qd6_for_379/nslmmsy/"
+      }
+    ]
+  },
+  {
+    "postId": "short_1oloHSyyQu",
+    "scanTime": "2026-05-27T07:05:30.950Z",
+    "totalComments": 6,
+    "flaggedComments": 0,
+    "alertLevel": "safe",
+    "sentimentSummary": {
+      "positive": 4,
+      "neutral": 2,
+      "negative": 0
+    },
+    "topFlaggedComments": []
+  },
+  {
+    "postId": "short_307ugCzNCa",
+    "scanTime": "2026-05-27T07:05:31.687Z",
+    "totalComments": 13,
+    "flaggedComments": 0,
+    "alertLevel": "safe",
+    "sentimentSummary": {
+      "positive": 3,
+      "neutral": 10,
+      "negative": 0
+    },
+    "topFlaggedComments": []
+  },
+  {
+    "postId": "short_PghctMjbQ3",
+    "scanTime": "2026-05-27T07:05:36.105Z",
+    "totalComments": 14,
+    "flaggedComments": 1,
+    "alertLevel": "medium",
+    "sentimentSummary": {
+      "positive": 9,
+      "neutral": 4,
+      "negative": 1
+    },
+    "topFlaggedComments": [
+      {
+        "id": "nslmmsy",
+        "postId": "short_PghctMjbQ3",
+        "author": "Ashamed_Shoe_871",
+        "body": "Hisense sucks so no",
+        "score": 1,
+        "createdAt": "2025-12-06T14:49:35.000Z",
+        "sentimentScore": -0.18,
+        "isFlagged": true,
+        "flagReasons": [
+          "competitor_push"
+        ],
+        "permalink": "https://www.reddit.com/r/Bestbuy/comments/1pe7h9n/killer_hisense_deal_at_best_buy_75_qd6_for_379/nslmmsy/"
+      }
+    ]
+  },
+  {
+    "postId": "short_K14K642Mn3",
+    "scanTime": "2026-05-27T07:05:36.822Z",
+    "totalComments": 15,
+    "flaggedComments": 1,
+    "alertLevel": "medium",
+    "sentimentSummary": {
+      "positive": 5,
+      "neutral": 9,
+      "negative": 1
+    },
+    "topFlaggedComments": [
+      {
+        "id": "ntl0816",
+        "postId": "short_K14K642Mn3",
+        "author": "NextGur3758",
+        "body": "The Hisense isn't recommended, check the AutoModerator comment about it. TCL is better. QM8K if it fits your budget. Going down from 85\" to 65\" isn't worth it if you sit far away. By the way, I thought competitive gaming is just multiplayer games. Spiderman and Ragnarok are singleplayer.",
+        "score": 1,
+        "createdAt": "2025-12-12T03:21:48.000Z",
+        "sentimentScore": -0.15,
+        "isFlagged": true,
+        "flagReasons": [
+          "competitor_push"
+        ],
+        "permalink": "https://www.reddit.com/r/4kTV/comments/1pkgrw5/analysis_paralysis_85_hisense_u75qg_165hz_or_save/ntl0816/",
+        "replies": [
+          {
+            "id": "ntl3j3v",
+            "postId": "short_K14K642Mn3",
+            "author": "Affectionate_Gas_852",
+            "body": "TCL has motions problems, black smearing and bad processing, i wouldn't buy that 💩",
+            "score": 2,
+            "createdAt": "2025-12-12T03:41:31.000Z",
+            "sentimentScore": 0,
+            "isFlagged": false,
+            "flagReasons": [],
+            "permalink": "https://www.reddit.com/r/4kTV/comments/1pkgrw5/analysis_paralysis_85_hisense_u75qg_165hz_or_save/ntl3j3v/",
+            "replies": [
+              {
+                "id": "ntl4yum",
+                "postId": "short_K14K642Mn3",
+                "author": "Ana1blitzkrieg",
+                "body": "Hisense processing is certainly not any better. Motion issues on the QM8/QM8K are greatly overstated, largely based on old firmware. It still is no OLED, but motion is completely fine for gaming with all the motion processing junk turned off.",
+                "score": 4,
+                "createdAt": "2025-12-12T03:50:13.000Z",
+                "sentimentScore": 0,
+                "isFlagged": false,
+                "flagReasons": [],
+                "permalink": "https://www.reddit.com/r/4kTV/comments/1pkgrw5/analysis_paralysis_85_hisense_u75qg_165hz_or_save/ntl4yum/",
+                "replies": [
+                  {
+                    "id": "ntpl0hp",
+                    "postId": "short_K14K642Mn3",
+                    "author": "ExManUtdFan",
+                    "body": "I beg to differ. I returned a C8K/QM8K just three weeks ago due to the motion issues. From the very first game I loaded up I immediately noticed how motion was so much worse than my old Samsung QLED. It was just a blurry, smeary mess unfortunately.",
+                    "score": 2,
+                    "createdAt": "2025-12-12T21:05:51.000Z",
+                    "sentimentScore": 0,
+                    "isFlagged": false,
+                    "flagReasons": [],
+                    "permalink": "https://www.reddit.com/r/4kTV/comments/1pkgrw5/analysis_paralysis_85_hisense_u75qg_165hz_or_save/ntpl0hp/"
+                  }
+                ]
+              },
+              {
+                "id": "ntobc7e",
+                "postId": "short_K14K642Mn3",
+                "author": "RoundConstruction526",
+                "body": "After I turned off all the bullshit image processing, all the motion blur issues went away on my new TCL.\n\nI honestly hate TVs that over process the source and turn it off on any TV or monitor I buy.",
+                "score": 1,
+                "createdAt": "2025-12-12T17:11:58.000Z",
+                "sentimentScore": 0,
+                "isFlagged": false,
+                "flagReasons": [],
+                "permalink": "https://www.reddit.com/r/4kTV/comments/1pkgrw5/analysis_paralysis_85_hisense_u75qg_165hz_or_save/ntobc7e/"
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "postId": "short_307ugCzNCa",
+    "scanTime": "2026-05-27T07:05:42.071Z",
+    "totalComments": 13,
+    "flaggedComments": 0,
+    "alertLevel": "safe",
+    "sentimentSummary": {
+      "positive": 3,
+      "neutral": 10,
+      "negative": 0
+    },
+    "topFlaggedComments": []
+  },
+  {
+    "postId": "short_qychWhywYI",
+    "scanTime": "2026-05-27T07:05:43.686Z",
+    "totalComments": 8,
+    "flaggedComments": 0,
+    "alertLevel": "safe",
+    "sentimentSummary": {
+      "positive": 4,
+      "neutral": 4,
+      "negative": 0
+    },
+    "topFlaggedComments": []
+  },
+  {
+    "postId": "short_K14K642Mn3",
+    "scanTime": "2026-05-27T07:05:46.193Z",
+    "totalComments": 15,
+    "flaggedComments": 1,
+    "alertLevel": "medium",
+    "sentimentSummary": {
+      "positive": 5,
+      "neutral": 9,
+      "negative": 1
+    },
+    "topFlaggedComments": [
+      {
+        "id": "ntl0816",
+        "postId": "short_K14K642Mn3",
+        "author": "NextGur3758",
+        "body": "The Hisense isn't recommended, check the AutoModerator comment about it. TCL is better. QM8K if it fits your budget. Going down from 85\" to 65\" isn't worth it if you sit far away. By the way, I thought competitive gaming is just multiplayer games. Spiderman and Ragnarok are singleplayer.",
+        "score": 1,
+        "createdAt": "2025-12-12T03:21:48.000Z",
+        "sentimentScore": -0.15,
+        "isFlagged": true,
+        "flagReasons": [
+          "competitor_push"
+        ],
+        "permalink": "https://www.reddit.com/r/4kTV/comments/1pkgrw5/analysis_paralysis_85_hisense_u75qg_165hz_or_save/ntl0816/",
+        "replies": [
+          {
+            "id": "ntl3j3v",
+            "postId": "short_K14K642Mn3",
+            "author": "Affectionate_Gas_852",
+            "body": "TCL has motions problems, black smearing and bad processing, i wouldn't buy that 💩",
+            "score": 2,
+            "createdAt": "2025-12-12T03:41:31.000Z",
+            "sentimentScore": 0,
+            "isFlagged": false,
+            "flagReasons": [],
+            "permalink": "https://www.reddit.com/r/4kTV/comments/1pkgrw5/analysis_paralysis_85_hisense_u75qg_165hz_or_save/ntl3j3v/",
+            "replies": [
+              {
+                "id": "ntl4yum",
+                "postId": "short_K14K642Mn3",
+                "author": "Ana1blitzkrieg",
+                "body": "Hisense processing is certainly not any better. Motion issues on the QM8/QM8K are greatly overstated, largely based on old firmware. It still is no OLED, but motion is completely fine for gaming with all the motion processing junk turned off.",
+                "score": 5,
+                "createdAt": "2025-12-12T03:50:13.000Z",
+                "sentimentScore": 0,
+                "isFlagged": false,
+                "flagReasons": [],
+                "permalink": "https://www.reddit.com/r/4kTV/comments/1pkgrw5/analysis_paralysis_85_hisense_u75qg_165hz_or_save/ntl4yum/",
+                "replies": [
+                  {
+                    "id": "ntpl0hp",
+                    "postId": "short_K14K642Mn3",
+                    "author": "ExManUtdFan",
+                    "body": "I beg to differ. I returned a C8K/QM8K just three weeks ago due to the motion issues. From the very first game I loaded up I immediately noticed how motion was so much worse than my old Samsung QLED. It was just a blurry, smeary mess unfortunately.",
+                    "score": 2,
+                    "createdAt": "2025-12-12T21:05:51.000Z",
+                    "sentimentScore": 0,
+                    "isFlagged": false,
+                    "flagReasons": [],
+                    "permalink": "https://www.reddit.com/r/4kTV/comments/1pkgrw5/analysis_paralysis_85_hisense_u75qg_165hz_or_save/ntpl0hp/"
+                  }
+                ]
+              },
+              {
+                "id": "ntobc7e",
+                "postId": "short_K14K642Mn3",
+                "author": "RoundConstruction526",
+                "body": "After I turned off all the bullshit image processing, all the motion blur issues went away on my new TCL.\n\nI honestly hate TVs that over process the source and turn it off on any TV or monitor I buy.",
+                "score": 1,
+                "createdAt": "2025-12-12T17:11:58.000Z",
+                "sentimentScore": 0,
+                "isFlagged": false,
+                "flagReasons": [],
+                "permalink": "https://www.reddit.com/r/4kTV/comments/1pkgrw5/analysis_paralysis_85_hisense_u75qg_165hz_or_save/ntobc7e/"
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "postId": "short_62VHD24n83",
+    "scanTime": "2026-05-27T07:05:48.632Z",
+    "totalComments": 11,
+    "flaggedComments": 0,
+    "alertLevel": "safe",
+    "sentimentSummary": {
+      "positive": 2,
+      "neutral": 9,
+      "negative": 0
+    },
+    "topFlaggedComments": []
+  },
+  {
+    "postId": "short_qychWhywYI",
+    "scanTime": "2026-05-27T07:05:51.209Z",
+    "totalComments": 8,
+    "flaggedComments": 0,
+    "alertLevel": "safe",
+    "sentimentSummary": {
+      "positive": 4,
+      "neutral": 4,
+      "negative": 0
+    },
+    "topFlaggedComments": []
+  },
+  {
+    "postId": "short_p37wRqjSkZ",
+    "scanTime": "2026-05-27T07:05:54.333Z",
+    "totalComments": 18,
+    "flaggedComments": 0,
+    "alertLevel": "safe",
+    "sentimentSummary": {
+      "positive": 3,
+      "neutral": 15,
+      "negative": 0
+    },
+    "topFlaggedComments": []
+  },
+  {
+    "postId": "short_62VHD24n83",
+    "scanTime": "2026-05-27T07:05:55.810Z",
+    "totalComments": 11,
+    "flaggedComments": 0,
+    "alertLevel": "safe",
+    "sentimentSummary": {
+      "positive": 2,
+      "neutral": 9,
+      "negative": 0
+    },
+    "topFlaggedComments": []
+  },
+  {
+    "postId": "short_yjTGXlWQgk",
+    "scanTime": "2026-05-27T07:05:59.250Z",
+    "totalComments": 3,
+    "flaggedComments": 0,
+    "alertLevel": "safe",
+    "sentimentSummary": {
+      "positive": 0,
+      "neutral": 3,
+      "negative": 0
+    },
+    "topFlaggedComments": []
+  },
+  {
+    "postId": "short_p37wRqjSkZ",
+    "scanTime": "2026-05-27T07:06:00.952Z",
+    "totalComments": 18,
+    "flaggedComments": 0,
+    "alertLevel": "safe",
+    "sentimentSummary": {
+      "positive": 3,
+      "neutral": 15,
+      "negative": 0
+    },
+    "topFlaggedComments": []
+  },
+  {
+    "postId": "short_3RypPrOX2t",
+    "scanTime": "2026-05-27T07:06:05.455Z",
+    "totalComments": 7,
+    "flaggedComments": 0,
+    "alertLevel": "safe",
+    "sentimentSummary": {
+      "positive": 4,
+      "neutral": 3,
+      "negative": 0
+    },
+    "topFlaggedComments": []
+  },
+  {
+    "postId": "short_yjTGXlWQgk",
+    "scanTime": "2026-05-27T07:06:06.005Z",
+    "totalComments": 3,
+    "flaggedComments": 0,
+    "alertLevel": "safe",
+    "sentimentSummary": {
+      "positive": 0,
+      "neutral": 3,
+      "negative": 0
+    },
+    "topFlaggedComments": []
+  },
+  {
+    "postId": "short_pD6BUjg80n",
+    "scanTime": "2026-05-27T07:06:10.330Z",
+    "totalComments": 4,
+    "flaggedComments": 0,
+    "alertLevel": "safe",
+    "sentimentSummary": {
+      "positive": 1,
+      "neutral": 3,
+      "negative": 0
+    },
+    "topFlaggedComments": []
+  },
+  {
+    "postId": "short_3RypPrOX2t",
+    "scanTime": "2026-05-27T07:06:11.343Z",
+    "totalComments": 7,
+    "flaggedComments": 0,
+    "alertLevel": "safe",
+    "sentimentSummary": {
+      "positive": 4,
+      "neutral": 3,
+      "negative": 0
+    },
+    "topFlaggedComments": []
+  },
+  {
+    "postId": "short_zcKeEdW4BD",
+    "scanTime": "2026-05-27T07:06:15.869Z",
+    "totalComments": 3,
+    "flaggedComments": 0,
+    "alertLevel": "safe",
+    "sentimentSummary": {
+      "positive": 0,
+      "neutral": 3,
+      "negative": 0
+    },
+    "topFlaggedComments": []
+  },
+  {
+    "postId": "short_pD6BUjg80n",
+    "scanTime": "2026-05-27T07:06:16.333Z",
+    "totalComments": 4,
+    "flaggedComments": 0,
+    "alertLevel": "safe",
+    "sentimentSummary": {
+      "positive": 1,
+      "neutral": 3,
+      "negative": 0
+    },
+    "topFlaggedComments": []
+  },
+  {
+    "postId": "short_7SPw7AhwQW",
+    "scanTime": "2026-05-27T07:06:20.316Z",
+    "totalComments": 3,
+    "flaggedComments": 0,
+    "alertLevel": "safe",
+    "sentimentSummary": {
+      "positive": 3,
+      "neutral": 0,
+      "negative": 0
+    },
+    "topFlaggedComments": []
+  },
+  {
+    "postId": "short_zcKeEdW4BD",
+    "scanTime": "2026-05-27T07:06:21.173Z",
+    "totalComments": 3,
+    "flaggedComments": 0,
+    "alertLevel": "safe",
+    "sentimentSummary": {
+      "positive": 0,
+      "neutral": 3,
+      "negative": 0
+    },
+    "topFlaggedComments": []
+  },
+  {
+    "postId": "short_Nmchv2kYjM",
+    "scanTime": "2026-05-27T07:06:26.152Z",
+    "totalComments": 11,
+    "flaggedComments": 0,
+    "alertLevel": "safe",
+    "sentimentSummary": {
+      "positive": 3,
+      "neutral": 8,
+      "negative": 0
+    },
+    "topFlaggedComments": []
+  },
+  {
+    "postId": "short_7SPw7AhwQW",
+    "scanTime": "2026-05-27T07:06:27.320Z",
+    "totalComments": 3,
+    "flaggedComments": 0,
+    "alertLevel": "safe",
+    "sentimentSummary": {
+      "positive": 3,
+      "neutral": 0,
+      "negative": 0
+    },
+    "topFlaggedComments": []
+  },
+  {
+    "postId": "short_jsWFlCeQO8",
+    "scanTime": "2026-05-27T07:06:31.070Z",
+    "totalComments": 54,
+    "flaggedComments": 0,
+    "alertLevel": "safe",
+    "sentimentSummary": {
+      "positive": 21,
+      "neutral": 33,
+      "negative": 0
+    },
+    "topFlaggedComments": []
+  },
+  {
+    "postId": "short_Nmchv2kYjM",
+    "scanTime": "2026-05-27T07:06:33.010Z",
+    "totalComments": 11,
+    "flaggedComments": 0,
+    "alertLevel": "safe",
+    "sentimentSummary": {
+      "positive": 3,
+      "neutral": 8,
+      "negative": 0
+    },
+    "topFlaggedComments": []
+  },
+  {
+    "postId": "short_kIO5FgxFXC",
+    "scanTime": "2026-05-27T07:06:35.985Z",
+    "totalComments": 13,
+    "flaggedComments": 0,
+    "alertLevel": "safe",
+    "sentimentSummary": {
+      "positive": 6,
+      "neutral": 7,
+      "negative": 0
+    },
+    "topFlaggedComments": []
+  },
+  {
+    "postId": "short_jsWFlCeQO8",
+    "scanTime": "2026-05-27T07:06:39.433Z",
+    "totalComments": 54,
+    "flaggedComments": 0,
+    "alertLevel": "safe",
+    "sentimentSummary": {
+      "positive": 21,
+      "neutral": 33,
+      "negative": 0
+    },
+    "topFlaggedComments": []
+  },
+  {
+    "postId": "short_kqkKktPrlP",
+    "scanTime": "2026-05-27T07:06:43.056Z",
+    "totalComments": 53,
+    "flaggedComments": 5,
+    "alertLevel": "critical",
+    "sentimentSummary": {
+      "positive": 16,
+      "neutral": 32,
+      "negative": 5
+    },
+    "topFlaggedComments": [
+      {
+        "id": "o44un67",
+        "postId": "short_kqkKktPrlP",
+        "author": "perinummassager",
+        "body": "98\" TCL is better, and it's $1299.99!",
+        "score": 332,
+        "createdAt": "2026-02-07T19:55:24.000Z",
+        "sentimentScore": -0.195,
+        "isFlagged": true,
+        "flagReasons": [
+          "competitor_push"
+        ],
+        "permalink": "https://www.reddit.com/r/Costco/comments/1qynfli/thoughts_on_costcos_100_hisense_u6_miniled/o44un67/",
+        "replies": [
+          {
+            "id": "o44viu4",
+            "postId": "short_kqkKktPrlP",
+            "author": "Ok-Seaworthiness4488",
+            "body": "I read in China most prefer TCL over Hisense as it's better built",
+            "score": 102,
+            "createdAt": "2026-02-07T20:00:04.000Z",
+            "sentimentScore": 0,
+            "isFlagged": false,
+            "flagReasons": [],
+            "permalink": "https://www.reddit.com/r/Costco/comments/1qynfli/thoughts_on_costcos_100_hisense_u6_miniled/o44viu4/",
+            "replies": [
+              {
+                "id": "o44zouv",
+                "postId": "short_kqkKktPrlP",
+                "author": "Automatic-Photo-4919",
+                "body": "TCL outperformed Hisense in their tv reliability test: https://www.rtings.com/tv/learn/longevity-failures",
+                "score": 125,
+                "createdAt": "2026-02-07T20:22:24.000Z",
+                "sentimentScore": 0,
+                "isFlagged": false,
+                "flagReasons": [],
+                "permalink": "https://www.reddit.com/r/Costco/comments/1qynfli/thoughts_on_costcos_100_hisense_u6_miniled/o44zouv/",
+                "replies": [
+                  {
+                    "id": "o4636as",
+                    "postId": "short_kqkKktPrlP",
+                    "author": "fthesemods",
+                    "body": "TCL outperformed every brand.",
+                    "score": 29,
+                    "createdAt": "2026-02-08T00:06:24.000Z",
+                    "sentimentScore": 0,
+                    "isFlagged": false,
+                    "flagReasons": [],
+                    "permalink": "https://www.reddit.com/r/Costco/comments/1qynfli/thoughts_on_costcos_100_hisense_u6_miniled/o4636as/"
+                  }
+                ]
+              },
+              {
+                "id": "o45616b",
+                "postId": "short_kqkKktPrlP",
+                "author": "GoingOffRoading",
+                "body": "We bought a cheap/mid $500 65\" TCL and I genuinely feel that the TV picture, experience, behind it was better than our $1,000 flagship Vizio.\n\nI'm pretty jazzed on TCL for it",
+                "score": 44,
+                "createdAt": "2026-02-07T20:56:58.000Z",
+                "sentimentScore": 0,
+                "isFlagged": false,
+                "flagReasons": [],
+                "permalink": "https://www.reddit.com/r/Costco/comments/1qynfli/thoughts_on_costcos_100_hisense_u6_miniled/o45616b/",
+                "replies": [
+                  {
+                    "id": "o4592ud",
+                    "postId": "short_kqkKktPrlP",
+                    "author": "DannyGutes",
+                    "body": "Did you just say jazzed??!",
+                    "score": 11,
+                    "createdAt": "2026-02-07T21:13:31.000Z",
+                    "sentimentScore": 0,
+                    "isFlagged": false,
+                    "flagReasons": [],
+                    "permalink": "https://www.reddit.com/r/Costco/comments/1qynfli/thoughts_on_costcos_100_hisense_u6_miniled/o4592ud/"
+                  }
+                ]
+              },
+              {
+                "id": "o45a5o8",
+                "postId": "short_kqkKktPrlP",
+                "author": "AsstootObservation",
+                "body": "My Hisense crapped out after 2 years and it needed a whole new motherboard. Since it was on back order I got my money back on a 3 year warranty. Wouldn't buy them again.",
+                "score": 7,
+                "createdAt": "2026-02-07T21:19:19.000Z",
+                "sentimentScore": 0,
+                "isFlagged": false,
+                "flagReasons": [],
+                "permalink": "https://www.reddit.com/r/Costco/comments/1qynfli/thoughts_on_costcos_100_hisense_u6_miniled/o45a5o8/",
+                "replies": []
+              },
+              {
+                "id": "o457v08",
+                "postId": "short_kqkKktPrlP",
+                "author": "destonomos",
+                "body": "Ive had 1 tv die in my adultness. It was a hisense and im glad i bought the best buy warranty. Swapped to LG and its going strong.\n\nWe still use my wifes old lg as well in the bedroom. Its nearing 10 yrs old. Might swap it out because it cant take volume controls over hdmi like the one downstairs. It stops me from using volume controls with the remote app on my iphone.",
+                "score": 7,
+                "createdAt": "2026-02-07T21:06:55.000Z",
+                "sentimentScore": 0,
+                "isFlagged": false,
+                "flagReasons": [],
+                "permalink": "https://www.reddit.com/r/Costco/comments/1qynfli/thoughts_on_costcos_100_hisense_u6_miniled/o457v08/"
+              },
+              {
+                "id": "o45aznx",
+                "postId": "short_kqkKktPrlP",
+                "author": "0dtefomo",
+                "body": "Correct me if I'm wrong. I read an article recently that Sony will be using TCL for their panels or something",
+                "score": 3,
+                "createdAt": "2026-02-07T21:23:42.000Z",
+                "sentimentScore": 0,
+                "isFlagged": false,
+                "flagReasons": [],
+                "permalink": "https://www.reddit.com/r/Costco/comments/1qynfli/thoughts_on_costcos_100_hisense_u6_miniled/o45aznx/",
+                "replies": [
+                  {
+                    "id": "o45fmhn",
+                    "postId": "short_kqkKktPrlP",
+                    "author": "wandererarkhamknight",
+                    "body": "Sony is in talk to hand over 51% of their TV (and probably audio business) to TCL. They already use TCL (CSOT) LCD panels on most of their LCD TV. So does Samsung on their LCD TVs. Right now, panels from CSOT and AUO are on most LCD TVs.",
+                    "score": 6,
+                    "createdAt": "2026-02-07T21:48:28.000Z",
+                    "sentimentScore": 0,
+                    "isFlagged": false,
+                    "flagReasons": [],
+                    "permalink": "https://www.reddit.com/r/Costco/comments/1qynfli/thoughts_on_costcos_100_hisense_u6_miniled/o45fmhn/"
+                  },
+                  {
+                    "id": "o45bgc8",
+                    "postId": "short_kqkKktPrlP",
+                    "author": "perinummassager",
+                    "body": "That is correct",
+                    "score": 2,
+                    "createdAt": "2026-02-07T21:26:08.000Z",
+                    "sentimentScore": 0,
+                    "isFlagged": false,
+                    "flagReasons": [],
+                    "permalink": "https://www.reddit.com/r/Costco/comments/1qynfli/thoughts_on_costcos_100_hisense_u6_miniled/o45bgc8/"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "id": "o455vy7",
+            "postId": "short_kqkKktPrlP",
+            "author": "Mk1Racer25",
+            "body": "Yeah, if I want a big screen like that, I'd get the TCL for sure.  I wouldn't buy anything by Hisense.  Do they still offer the extended warranty if you use the Costco Visa?  If not, buy it.",
+            "score": 5,
+            "createdAt": "2026-02-07T20:56:12.000Z",
+            "sentimentScore": 0,
+            "isFlagged": false,
+            "flagReasons": [],
+            "permalink": "https://www.reddit.com/r/Costco/comments/1qynfli/thoughts_on_costcos_100_hisense_u6_miniled/o455vy7/",
+            "replies": [
+              {
+                "id": "o46zxyc",
+                "postId": "short_kqkKktPrlP",
+                "author": "RockHardSalami",
+                "body": "Costco is giving the warranty away with TCLs thru the 22nd.  Going to get mine tomorrow.",
+                "score": 4,
+                "createdAt": "2026-02-08T03:30:50.000Z",
+                "sentimentScore": 0,
+                "isFlagged": false,
+                "flagReasons": [],
+                "permalink": "https://www.reddit.com/r/Costco/comments/1qynfli/thoughts_on_costcos_100_hisense_u6_miniled/o46zxyc/"
+              }
+            ]
+          },
+          {
+            "id": "o45e29l",
+            "postId": "short_kqkKktPrlP",
+            "author": "pineapplesuit7",
+            "body": "Better yet get the QM7K. It is 100% the best price to performance deal in my books",
+            "score": 4,
+            "createdAt": "2026-02-07T21:40:03.000Z",
+            "sentimentScore": 0,
+            "isFlagged": false,
+            "flagReasons": [],
+            "permalink": "https://www.reddit.com/r/Costco/comments/1qynfli/thoughts_on_costcos_100_hisense_u6_miniled/o45e29l/",
+            "replies": [
+              {
+                "id": "o45vsee",
+                "postId": "short_kqkKktPrlP",
+                "author": "Newcomer156",
+                "body": "I have the 75\" QM7K. It has a great picture quality for the price and it supports pretty much all video/audio codecs. I just hope it lasts a while! 🤞 My previous Vizio lasted about 8 years.",
+                "score": 3,
+                "createdAt": "2026-02-07T23:19:10.000Z",
+                "sentimentScore": 0,
+                "isFlagged": false,
+                "flagReasons": [],
+                "permalink": "https://www.reddit.com/r/Costco/comments/1qynfli/thoughts_on_costcos_100_hisense_u6_miniled/o45vsee/"
+              }
+            ]
+          },
+          {
+            "id": "o45eszj",
+            "postId": "short_kqkKktPrlP",
+            "author": "straylight_2022",
+            "body": "My TCL was great.....for four years until it up and died suddenly. ",
+            "score": 3,
+            "createdAt": "2026-02-07T21:44:04.000Z",
+            "sentimentScore": 0,
+            "isFlagged": false,
+            "flagReasons": [],
+            "permalink": "https://www.reddit.com/r/Costco/comments/1qynfli/thoughts_on_costcos_100_hisense_u6_miniled/o45eszj/",
+            "replies": [
+              {
+                "id": "o45l6s4",
+                "postId": "short_kqkKktPrlP",
+                "author": "old-new-programmer",
+                "body": "Mine did that last week. Just died. Had it for 3 years, spent $1700 on it as at the time mini-led was still expensive. Now I just bought the 65\" version of this Hisense TV for $530 form Costco and it works great/looks as good or better to me. I'm over TCL at this point. ",
+                "score": 3,
+                "createdAt": "2026-02-07T22:18:38.000Z",
+                "sentimentScore": 0,
+                "isFlagged": false,
+                "flagReasons": [],
+                "permalink": "https://www.reddit.com/r/Costco/comments/1qynfli/thoughts_on_costcos_100_hisense_u6_miniled/o45l6s4/",
+                "replies": []
+              }
+            ]
+          },
+          {
+            "id": "o453llj",
+            "postId": "short_kqkKktPrlP",
+            "author": "LouieVbbp",
+            "body": "If only it had Dolby vision.",
+            "score": 6,
+            "createdAt": "2026-02-07T20:43:51.000Z",
+            "sentimentScore": 0,
+            "isFlagged": false,
+            "flagReasons": [],
+            "permalink": "https://www.reddit.com/r/Costco/comments/1qynfli/thoughts_on_costcos_100_hisense_u6_miniled/o453llj/",
+            "replies": [
+              {
+                "id": "o46q6oo",
+                "postId": "short_kqkKktPrlP",
+                "author": "Gears6",
+                "body": "If only it had OLED panel.",
+                "score": 2,
+                "createdAt": "2026-02-08T02:28:12.000Z",
+                "sentimentScore": 0,
+                "isFlagged": false,
+                "flagReasons": [],
+                "permalink": "https://www.reddit.com/r/Costco/comments/1qynfli/thoughts_on_costcos_100_hisense_u6_miniled/o46q6oo/",
+                "replies": []
+              }
+            ]
+          },
+          {
+            "id": "o482ssi",
+            "postId": "short_kqkKktPrlP",
+            "author": "JoIIyRanter",
+            "body": "I have owned 2 TCL TVs, both died completely within 3 years of purchase.",
+            "score": 2,
+            "createdAt": "2026-02-08T08:51:19.000Z",
+            "sentimentScore": 0,
+            "isFlagged": false,
+            "flagReasons": [],
+            "permalink": "https://www.reddit.com/r/Costco/comments/1qynfli/thoughts_on_costcos_100_hisense_u6_miniled/o482ssi/",
+            "replies": []
+          }
+        ]
+      },
+      {
+        "id": "o456huj",
+        "postId": "short_kqkKktPrlP",
+        "author": "AggravatingExpert365",
+        "body": "Hisense is dogshit quality. I bought into all the “for the price their quality is great!” crap years ago, and it’s the worst tv I’ve ever owned. It glitches out frequently, and when it does work, it’s not impressive. Get a Sony",
+        "score": 36,
+        "createdAt": "2026-02-07T20:59:30.000Z",
+        "sentimentScore": -0.23399999999999999,
+        "isFlagged": true,
+        "flagReasons": [
+          "product_hate"
+        ],
+        "permalink": "https://www.reddit.com/r/Costco/comments/1qynfli/thoughts_on_costcos_100_hisense_u6_miniled/o456huj/",
+        "replies": [
+          {
+            "id": "o462h3x",
+            "postId": "short_kqkKktPrlP",
+            "author": "quesabirriatacos",
+            "body": "I got a Hisense and the screen cracked from a small tap from my lamp… called Hisense and they revoked the warranty. I know the warranty only covers the manufacturer defects, but the customer service showed me the company isn’t that great either. Surprised Costco sells them.",
+            "score": 5,
+            "createdAt": "2026-02-08T00:02:09.000Z",
+            "sentimentScore": 0,
+            "isFlagged": false,
+            "flagReasons": [],
+            "permalink": "https://www.reddit.com/r/Costco/comments/1qynfli/thoughts_on_costcos_100_hisense_u6_miniled/o462h3x/",
+            "replies": [
+              {
+                "id": "o46d5gm",
+                "postId": "short_kqkKktPrlP",
+                "author": "AggravatingExpert365",
+                "body": "I also had a little 43\" TCL that died after like 14 months and they also told me too bad. I do have an older TCL that has been working for 10 years though. Either way, I'm done with the \"bargain\" brands. Not worth it. ",
+                "score": 2,
+                "createdAt": "2026-02-08T01:06:00.000Z",
+                "sentimentScore": 0,
+                "isFlagged": false,
+                "flagReasons": [],
+                "permalink": "https://www.reddit.com/r/Costco/comments/1qynfli/thoughts_on_costcos_100_hisense_u6_miniled/o46d5gm/",
+                "replies": [
+                  {
+                    "id": "o46rnq5",
+                    "postId": "short_kqkKktPrlP",
+                    "author": "Feeling-Visit1472",
+                    "body": "The only people who seem to love TCL are on Reddit, and their comments are all so similar that I’m not convinced it isn’t paid marketing. I stick with the known brands, who all have pros/cons: LG, Samsung, Sony, possibly Toshiba/Panasonic. But they’re all well-known entities and their pros/cons are well and genuinely documents.",
+                    "score": 2,
+                    "createdAt": "2026-02-08T02:37:28.000Z",
+                    "sentimentScore": 0,
+                    "isFlagged": false,
+                    "flagReasons": [],
+                    "permalink": "https://www.reddit.com/r/Costco/comments/1qynfli/thoughts_on_costcos_100_hisense_u6_miniled/o46rnq5/"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "id": "o45cmzf",
+            "postId": "short_kqkKktPrlP",
+            "author": "rsshurtz",
+            "body": "Same here. I did my research a few years ago and got the Hisense, and apparently the picture quality is good for the money, but that does you no good when the TV is glitching all the time. I switched to a Sony and am sooo pleased with my decision.",
+            "score": 5,
+            "createdAt": "2026-02-07T21:32:28.000Z",
+            "sentimentScore": 0,
+            "isFlagged": false,
+            "flagReasons": [],
+            "permalink": "https://www.reddit.com/r/Costco/comments/1qynfli/thoughts_on_costcos_100_hisense_u6_miniled/o45cmzf/"
+          }
+        ]
+      },
+      {
+        "id": "o45oubf",
+        "postId": "short_kqkKktPrlP",
+        "author": "jackattack80808",
+        "body": "Do not buy Hisense products.  Got a Hisense chest freezer for my birthday from my wife.  Used it for six months and it stopped cooling.  Had about $500 in food spoil which thankfully was all bought at Costco.  Costco refunded the food tht was spoiled and their warranty department handled communications with Hisense who had been difficult for me to get in touch with.  Hisense sent someone out to service and they deemed it non repairable.  Costco ended up picking it up and refunding.  Not worth the headache.  Go with a reputable brand.",
+        "score": 7,
+        "createdAt": "2026-02-07T22:39:01.000Z",
+        "sentimentScore": -0.264,
+        "isFlagged": true,
+        "flagReasons": [
+          "brand_attack"
+        ],
+        "permalink": "https://www.reddit.com/r/Costco/comments/1qynfli/thoughts_on_costcos_100_hisense_u6_miniled/o45oubf/",
+        "replies": [
+          {
+            "id": "o47gftk",
+            "postId": "short_kqkKktPrlP",
+            "author": "Connect-Region-4258",
+            "body": "God, I love Costco. Like they really don’t need to do that. But they do it anyway. I wish more businesses still valued the customer experience like they do. Walmart would’ve told you to go F yourself, aka, you have to work with the manufacturer we can’t help you",
+            "score": 5,
+            "createdAt": "2026-02-08T05:29:38.000Z",
+            "sentimentScore": 0,
+            "isFlagged": false,
+            "flagReasons": [],
+            "permalink": "https://www.reddit.com/r/Costco/comments/1qynfli/thoughts_on_costcos_100_hisense_u6_miniled/o47gftk/",
+            "replies": []
+          }
+        ]
+      },
+      {
+        "id": "o4631b7",
+        "postId": "short_kqkKktPrlP",
+        "author": "quesabirriatacos",
+        "body": "Avoid Hisense if you can",
+        "score": 5,
+        "createdAt": "2026-02-08T00:05:34.000Z",
+        "sentimentScore": -0.4,
+        "isFlagged": true,
+        "flagReasons": [
+          "call_to_action_negative",
+          "competitor_push"
+        ],
+        "permalink": "https://www.reddit.com/r/Costco/comments/1qynfli/thoughts_on_costcos_100_hisense_u6_miniled/o4631b7/"
+      },
+      {
+        "id": "o48uvil",
+        "postId": "short_kqkKktPrlP",
+        "author": "Darrkman2",
+        "body": "Hisense does not make good tvs. I've had 4 Hisense tvs all bought from Costco.  None lasted more than 2.5 years.\n\nAvoid Hisense at all costs.",
+        "score": 2,
+        "createdAt": "2026-02-08T13:01:20.000Z",
+        "sentimentScore": -0.4,
+        "isFlagged": true,
+        "flagReasons": [
+          "call_to_action_negative",
+          "competitor_push"
+        ],
+        "permalink": "https://www.reddit.com/r/Costco/comments/1qynfli/thoughts_on_costcos_100_hisense_u6_miniled/o48uvil/"
+      }
+    ]
+  },
+  {
+    "postId": "short_kIO5FgxFXC",
+    "scanTime": "2026-05-27T07:06:44.037Z",
+    "totalComments": 13,
+    "flaggedComments": 0,
+    "alertLevel": "safe",
+    "sentimentSummary": {
+      "positive": 6,
+      "neutral": 7,
+      "negative": 0
+    },
+    "topFlaggedComments": []
+  },
+  {
+    "postId": "1rq992x",
+    "scanTime": "2026-05-27T07:06:48.393Z",
+    "totalComments": 35,
+    "flaggedComments": 0,
+    "alertLevel": "safe",
+    "sentimentSummary": {
+      "positive": 19,
+      "neutral": 16,
+      "negative": 0
+    },
+    "topFlaggedComments": []
+  },
+  {
+    "postId": "short_kqkKktPrlP",
+    "scanTime": "2026-05-27T07:06:51.322Z",
+    "totalComments": 53,
+    "flaggedComments": 5,
+    "alertLevel": "critical",
+    "sentimentSummary": {
+      "positive": 16,
+      "neutral": 32,
+      "negative": 5
+    },
+    "topFlaggedComments": [
+      {
+        "id": "o44un67",
+        "postId": "short_kqkKktPrlP",
+        "author": "perinummassager",
+        "body": "98\" TCL is better, and it's $1299.99!",
+        "score": 332,
+        "createdAt": "2026-02-07T19:55:24.000Z",
+        "sentimentScore": -0.195,
+        "isFlagged": true,
+        "flagReasons": [
+          "competitor_push"
+        ],
+        "permalink": "https://www.reddit.com/r/Costco/comments/1qynfli/thoughts_on_costcos_100_hisense_u6_miniled/o44un67/",
+        "replies": [
+          {
+            "id": "o44viu4",
+            "postId": "short_kqkKktPrlP",
+            "author": "Ok-Seaworthiness4488",
+            "body": "I read in China most prefer TCL over Hisense as it's better built",
+            "score": 104,
+            "createdAt": "2026-02-07T20:00:04.000Z",
+            "sentimentScore": 0,
+            "isFlagged": false,
+            "flagReasons": [],
+            "permalink": "https://www.reddit.com/r/Costco/comments/1qynfli/thoughts_on_costcos_100_hisense_u6_miniled/o44viu4/",
+            "replies": [
+              {
+                "id": "o44zouv",
+                "postId": "short_kqkKktPrlP",
+                "author": "Automatic-Photo-4919",
+                "body": "TCL outperformed Hisense in their tv reliability test: https://www.rtings.com/tv/learn/longevity-failures",
+                "score": 125,
+                "createdAt": "2026-02-07T20:22:24.000Z",
+                "sentimentScore": 0,
+                "isFlagged": false,
+                "flagReasons": [],
+                "permalink": "https://www.reddit.com/r/Costco/comments/1qynfli/thoughts_on_costcos_100_hisense_u6_miniled/o44zouv/",
+                "replies": [
+                  {
+                    "id": "o4636as",
+                    "postId": "short_kqkKktPrlP",
+                    "author": "fthesemods",
+                    "body": "TCL outperformed every brand.",
+                    "score": 28,
+                    "createdAt": "2026-02-08T00:06:24.000Z",
+                    "sentimentScore": 0,
+                    "isFlagged": false,
+                    "flagReasons": [],
+                    "permalink": "https://www.reddit.com/r/Costco/comments/1qynfli/thoughts_on_costcos_100_hisense_u6_miniled/o4636as/"
+                  }
+                ]
+              },
+              {
+                "id": "o45616b",
+                "postId": "short_kqkKktPrlP",
+                "author": "GoingOffRoading",
+                "body": "We bought a cheap/mid $500 65\" TCL and I genuinely feel that the TV picture, experience, behind it was better than our $1,000 flagship Vizio.\n\nI'm pretty jazzed on TCL for it",
+                "score": 44,
+                "createdAt": "2026-02-07T20:56:58.000Z",
+                "sentimentScore": 0,
+                "isFlagged": false,
+                "flagReasons": [],
+                "permalink": "https://www.reddit.com/r/Costco/comments/1qynfli/thoughts_on_costcos_100_hisense_u6_miniled/o45616b/",
+                "replies": [
+                  {
+                    "id": "o4592ud",
+                    "postId": "short_kqkKktPrlP",
+                    "author": "DannyGutes",
+                    "body": "Did you just say jazzed??!",
+                    "score": 12,
+                    "createdAt": "2026-02-07T21:13:31.000Z",
+                    "sentimentScore": 0,
+                    "isFlagged": false,
+                    "flagReasons": [],
+                    "permalink": "https://www.reddit.com/r/Costco/comments/1qynfli/thoughts_on_costcos_100_hisense_u6_miniled/o4592ud/"
+                  }
+                ]
+              },
+              {
+                "id": "o45a5o8",
+                "postId": "short_kqkKktPrlP",
+                "author": "AsstootObservation",
+                "body": "My Hisense crapped out after 2 years and it needed a whole new motherboard. Since it was on back order I got my money back on a 3 year warranty. Wouldn't buy them again.",
+                "score": 8,
+                "createdAt": "2026-02-07T21:19:19.000Z",
+                "sentimentScore": 0,
+                "isFlagged": false,
+                "flagReasons": [],
+                "permalink": "https://www.reddit.com/r/Costco/comments/1qynfli/thoughts_on_costcos_100_hisense_u6_miniled/o45a5o8/",
+                "replies": []
+              },
+              {
+                "id": "o457v08",
+                "postId": "short_kqkKktPrlP",
+                "author": "destonomos",
+                "body": "Ive had 1 tv die in my adultness. It was a hisense and im glad i bought the best buy warranty. Swapped to LG and its going strong.\n\nWe still use my wifes old lg as well in the bedroom. Its nearing 10 yrs old. Might swap it out because it cant take volume controls over hdmi like the one downstairs. It stops me from using volume controls with the remote app on my iphone.",
+                "score": 7,
+                "createdAt": "2026-02-07T21:06:55.000Z",
+                "sentimentScore": 0,
+                "isFlagged": false,
+                "flagReasons": [],
+                "permalink": "https://www.reddit.com/r/Costco/comments/1qynfli/thoughts_on_costcos_100_hisense_u6_miniled/o457v08/"
+              },
+              {
+                "id": "o45aznx",
+                "postId": "short_kqkKktPrlP",
+                "author": "0dtefomo",
+                "body": "Correct me if I'm wrong. I read an article recently that Sony will be using TCL for their panels or something",
+                "score": 3,
+                "createdAt": "2026-02-07T21:23:42.000Z",
+                "sentimentScore": 0,
+                "isFlagged": false,
+                "flagReasons": [],
+                "permalink": "https://www.reddit.com/r/Costco/comments/1qynfli/thoughts_on_costcos_100_hisense_u6_miniled/o45aznx/",
+                "replies": [
+                  {
+                    "id": "o45fmhn",
+                    "postId": "short_kqkKktPrlP",
+                    "author": "wandererarkhamknight",
+                    "body": "Sony is in talk to hand over 51% of their TV (and probably audio business) to TCL. They already use TCL (CSOT) LCD panels on most of their LCD TV. So does Samsung on their LCD TVs. Right now, panels from CSOT and AUO are on most LCD TVs.",
+                    "score": 7,
+                    "createdAt": "2026-02-07T21:48:28.000Z",
+                    "sentimentScore": 0,
+                    "isFlagged": false,
+                    "flagReasons": [],
+                    "permalink": "https://www.reddit.com/r/Costco/comments/1qynfli/thoughts_on_costcos_100_hisense_u6_miniled/o45fmhn/"
+                  },
+                  {
+                    "id": "o45bgc8",
+                    "postId": "short_kqkKktPrlP",
+                    "author": "perinummassager",
+                    "body": "That is correct",
+                    "score": 2,
+                    "createdAt": "2026-02-07T21:26:08.000Z",
+                    "sentimentScore": 0,
+                    "isFlagged": false,
+                    "flagReasons": [],
+                    "permalink": "https://www.reddit.com/r/Costco/comments/1qynfli/thoughts_on_costcos_100_hisense_u6_miniled/o45bgc8/"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "id": "o455vy7",
+            "postId": "short_kqkKktPrlP",
+            "author": "Mk1Racer25",
+            "body": "Yeah, if I want a big screen like that, I'd get the TCL for sure.  I wouldn't buy anything by Hisense.  Do they still offer the extended warranty if you use the Costco Visa?  If not, buy it.",
+            "score": 5,
+            "createdAt": "2026-02-07T20:56:12.000Z",
+            "sentimentScore": 0,
+            "isFlagged": false,
+            "flagReasons": [],
+            "permalink": "https://www.reddit.com/r/Costco/comments/1qynfli/thoughts_on_costcos_100_hisense_u6_miniled/o455vy7/",
+            "replies": [
+              {
+                "id": "o46zxyc",
+                "postId": "short_kqkKktPrlP",
+                "author": "RockHardSalami",
+                "body": "Costco is giving the warranty away with TCLs thru the 22nd.  Going to get mine tomorrow.",
+                "score": 3,
+                "createdAt": "2026-02-08T03:30:50.000Z",
+                "sentimentScore": 0,
+                "isFlagged": false,
+                "flagReasons": [],
+                "permalink": "https://www.reddit.com/r/Costco/comments/1qynfli/thoughts_on_costcos_100_hisense_u6_miniled/o46zxyc/"
+              }
+            ]
+          },
+          {
+            "id": "o45e29l",
+            "postId": "short_kqkKktPrlP",
+            "author": "pineapplesuit7",
+            "body": "Better yet get the QM7K. It is 100% the best price to performance deal in my books",
+            "score": 5,
+            "createdAt": "2026-02-07T21:40:03.000Z",
+            "sentimentScore": 0,
+            "isFlagged": false,
+            "flagReasons": [],
+            "permalink": "https://www.reddit.com/r/Costco/comments/1qynfli/thoughts_on_costcos_100_hisense_u6_miniled/o45e29l/",
+            "replies": [
+              {
+                "id": "o45vsee",
+                "postId": "short_kqkKktPrlP",
+                "author": "Newcomer156",
+                "body": "I have the 75\" QM7K. It has a great picture quality for the price and it supports pretty much all video/audio codecs. I just hope it lasts a while! 🤞 My previous Vizio lasted about 8 years.",
+                "score": 3,
+                "createdAt": "2026-02-07T23:19:10.000Z",
+                "sentimentScore": 0,
+                "isFlagged": false,
+                "flagReasons": [],
+                "permalink": "https://www.reddit.com/r/Costco/comments/1qynfli/thoughts_on_costcos_100_hisense_u6_miniled/o45vsee/"
+              }
+            ]
+          },
+          {
+            "id": "o45eszj",
+            "postId": "short_kqkKktPrlP",
+            "author": "straylight_2022",
+            "body": "My TCL was great.....for four years until it up and died suddenly. ",
+            "score": 3,
+            "createdAt": "2026-02-07T21:44:04.000Z",
+            "sentimentScore": 0,
+            "isFlagged": false,
+            "flagReasons": [],
+            "permalink": "https://www.reddit.com/r/Costco/comments/1qynfli/thoughts_on_costcos_100_hisense_u6_miniled/o45eszj/",
+            "replies": [
+              {
+                "id": "o45l6s4",
+                "postId": "short_kqkKktPrlP",
+                "author": "old-new-programmer",
+                "body": "Mine did that last week. Just died. Had it for 3 years, spent $1700 on it as at the time mini-led was still expensive. Now I just bought the 65\" version of this Hisense TV for $530 form Costco and it works great/looks as good or better to me. I'm over TCL at this point. ",
+                "score": 4,
+                "createdAt": "2026-02-07T22:18:38.000Z",
+                "sentimentScore": 0,
+                "isFlagged": false,
+                "flagReasons": [],
+                "permalink": "https://www.reddit.com/r/Costco/comments/1qynfli/thoughts_on_costcos_100_hisense_u6_miniled/o45l6s4/",
+                "replies": []
+              }
+            ]
+          },
+          {
+            "id": "o453llj",
+            "postId": "short_kqkKktPrlP",
+            "author": "LouieVbbp",
+            "body": "If only it had Dolby vision.",
+            "score": 7,
+            "createdAt": "2026-02-07T20:43:51.000Z",
+            "sentimentScore": 0,
+            "isFlagged": false,
+            "flagReasons": [],
+            "permalink": "https://www.reddit.com/r/Costco/comments/1qynfli/thoughts_on_costcos_100_hisense_u6_miniled/o453llj/",
+            "replies": [
+              {
+                "id": "o46q6oo",
+                "postId": "short_kqkKktPrlP",
+                "author": "Gears6",
+                "body": "If only it had OLED panel.",
+                "score": 2,
+                "createdAt": "2026-02-08T02:28:12.000Z",
+                "sentimentScore": 0,
+                "isFlagged": false,
+                "flagReasons": [],
+                "permalink": "https://www.reddit.com/r/Costco/comments/1qynfli/thoughts_on_costcos_100_hisense_u6_miniled/o46q6oo/",
+                "replies": []
+              }
+            ]
+          },
+          {
+            "id": "o482ssi",
+            "postId": "short_kqkKktPrlP",
+            "author": "JoIIyRanter",
+            "body": "I have owned 2 TCL TVs, both died completely within 3 years of purchase.",
+            "score": 2,
+            "createdAt": "2026-02-08T08:51:19.000Z",
+            "sentimentScore": 0,
+            "isFlagged": false,
+            "flagReasons": [],
+            "permalink": "https://www.reddit.com/r/Costco/comments/1qynfli/thoughts_on_costcos_100_hisense_u6_miniled/o482ssi/",
+            "replies": []
+          }
+        ]
+      },
+      {
+        "id": "o456huj",
+        "postId": "short_kqkKktPrlP",
+        "author": "AggravatingExpert365",
+        "body": "Hisense is dogshit quality. I bought into all the “for the price their quality is great!” crap years ago, and it’s the worst tv I’ve ever owned. It glitches out frequently, and when it does work, it’s not impressive. Get a Sony",
+        "score": 35,
+        "createdAt": "2026-02-07T20:59:30.000Z",
+        "sentimentScore": -0.23399999999999999,
+        "isFlagged": true,
+        "flagReasons": [
+          "product_hate"
+        ],
+        "permalink": "https://www.reddit.com/r/Costco/comments/1qynfli/thoughts_on_costcos_100_hisense_u6_miniled/o456huj/",
+        "replies": [
+          {
+            "id": "o462h3x",
+            "postId": "short_kqkKktPrlP",
+            "author": "quesabirriatacos",
+            "body": "I got a Hisense and the screen cracked from a small tap from my lamp… called Hisense and they revoked the warranty. I know the warranty only covers the manufacturer defects, but the customer service showed me the company isn’t that great either. Surprised Costco sells them.",
+            "score": 4,
+            "createdAt": "2026-02-08T00:02:09.000Z",
+            "sentimentScore": 0,
+            "isFlagged": false,
+            "flagReasons": [],
+            "permalink": "https://www.reddit.com/r/Costco/comments/1qynfli/thoughts_on_costcos_100_hisense_u6_miniled/o462h3x/",
+            "replies": [
+              {
+                "id": "o46d5gm",
+                "postId": "short_kqkKktPrlP",
+                "author": "AggravatingExpert365",
+                "body": "I also had a little 43\" TCL that died after like 14 months and they also told me too bad. I do have an older TCL that has been working for 10 years though. Either way, I'm done with the \"bargain\" brands. Not worth it. ",
+                "score": 2,
+                "createdAt": "2026-02-08T01:06:00.000Z",
+                "sentimentScore": 0,
+                "isFlagged": false,
+                "flagReasons": [],
+                "permalink": "https://www.reddit.com/r/Costco/comments/1qynfli/thoughts_on_costcos_100_hisense_u6_miniled/o46d5gm/",
+                "replies": [
+                  {
+                    "id": "o46rnq5",
+                    "postId": "short_kqkKktPrlP",
+                    "author": "Feeling-Visit1472",
+                    "body": "The only people who seem to love TCL are on Reddit, and their comments are all so similar that I’m not convinced it isn’t paid marketing. I stick with the known brands, who all have pros/cons: LG, Samsung, Sony, possibly Toshiba/Panasonic. But they’re all well-known entities and their pros/cons are well and genuinely documents.",
+                    "score": 2,
+                    "createdAt": "2026-02-08T02:37:28.000Z",
+                    "sentimentScore": 0,
+                    "isFlagged": false,
+                    "flagReasons": [],
+                    "permalink": "https://www.reddit.com/r/Costco/comments/1qynfli/thoughts_on_costcos_100_hisense_u6_miniled/o46rnq5/"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "id": "o45cmzf",
+            "postId": "short_kqkKktPrlP",
+            "author": "rsshurtz",
+            "body": "Same here. I did my research a few years ago and got the Hisense, and apparently the picture quality is good for the money, but that does you no good when the TV is glitching all the time. I switched to a Sony and am sooo pleased with my decision.",
+            "score": 4,
+            "createdAt": "2026-02-07T21:32:28.000Z",
+            "sentimentScore": 0,
+            "isFlagged": false,
+            "flagReasons": [],
+            "permalink": "https://www.reddit.com/r/Costco/comments/1qynfli/thoughts_on_costcos_100_hisense_u6_miniled/o45cmzf/"
+          }
+        ]
+      },
+      {
+        "id": "o45oubf",
+        "postId": "short_kqkKktPrlP",
+        "author": "jackattack80808",
+        "body": "Do not buy Hisense products.  Got a Hisense chest freezer for my birthday from my wife.  Used it for six months and it stopped cooling.  Had about $500 in food spoil which thankfully was all bought at Costco.  Costco refunded the food tht was spoiled and their warranty department handled communications with Hisense who had been difficult for me to get in touch with.  Hisense sent someone out to service and they deemed it non repairable.  Costco ended up picking it up and refunding.  Not worth the headache.  Go with a reputable brand.",
+        "score": 6,
+        "createdAt": "2026-02-07T22:39:01.000Z",
+        "sentimentScore": -0.264,
+        "isFlagged": true,
+        "flagReasons": [
+          "brand_attack"
+        ],
+        "permalink": "https://www.reddit.com/r/Costco/comments/1qynfli/thoughts_on_costcos_100_hisense_u6_miniled/o45oubf/",
+        "replies": [
+          {
+            "id": "o47gftk",
+            "postId": "short_kqkKktPrlP",
+            "author": "Connect-Region-4258",
+            "body": "God, I love Costco. Like they really don’t need to do that. But they do it anyway. I wish more businesses still valued the customer experience like they do. Walmart would’ve told you to go F yourself, aka, you have to work with the manufacturer we can’t help you",
+            "score": 4,
+            "createdAt": "2026-02-08T05:29:38.000Z",
+            "sentimentScore": 0,
+            "isFlagged": false,
+            "flagReasons": [],
+            "permalink": "https://www.reddit.com/r/Costco/comments/1qynfli/thoughts_on_costcos_100_hisense_u6_miniled/o47gftk/",
+            "replies": []
+          }
+        ]
+      },
+      {
+        "id": "o4631b7",
+        "postId": "short_kqkKktPrlP",
+        "author": "quesabirriatacos",
+        "body": "Avoid Hisense if you can",
+        "score": 5,
+        "createdAt": "2026-02-08T00:05:34.000Z",
+        "sentimentScore": -0.4,
+        "isFlagged": true,
+        "flagReasons": [
+          "call_to_action_negative",
+          "competitor_push"
+        ],
+        "permalink": "https://www.reddit.com/r/Costco/comments/1qynfli/thoughts_on_costcos_100_hisense_u6_miniled/o4631b7/"
+      },
+      {
+        "id": "o48uvil",
+        "postId": "short_kqkKktPrlP",
+        "author": "Darrkman2",
+        "body": "Hisense does not make good tvs. I've had 4 Hisense tvs all bought from Costco.  None lasted more than 2.5 years.\n\nAvoid Hisense at all costs.",
+        "score": 2,
+        "createdAt": "2026-02-08T13:01:20.000Z",
+        "sentimentScore": -0.4,
+        "isFlagged": true,
+        "flagReasons": [
+          "call_to_action_negative",
+          "competitor_push"
+        ],
+        "permalink": "https://www.reddit.com/r/Costco/comments/1qynfli/thoughts_on_costcos_100_hisense_u6_miniled/o48uvil/"
+      }
+    ]
+  },
+  {
+    "postId": "short_d4hYNInjqw",
+    "scanTime": "2026-05-27T07:06:54.110Z",
+    "totalComments": 1,
+    "flaggedComments": 0,
+    "alertLevel": "safe",
+    "sentimentSummary": {
+      "positive": 0,
+      "neutral": 1,
+      "negative": 0
+    },
+    "topFlaggedComments": []
+  },
+  {
+    "postId": "1rq992x",
+    "scanTime": "2026-05-27T07:06:54.941Z",
+    "totalComments": 35,
+    "flaggedComments": 0,
+    "alertLevel": "safe",
+    "sentimentSummary": {
+      "positive": 19,
+      "neutral": 16,
+      "negative": 0
+    },
+    "topFlaggedComments": []
   }
 ]

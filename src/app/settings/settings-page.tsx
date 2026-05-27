@@ -11,9 +11,9 @@ export default function SettingsPage() {
   const [feishuConfig, setFeishuConfig] = useState({
     appId: '',
     appSecret: '',
-    appToken: '',
-    tableId: '',
-    urlFieldName: 'Reddit URL',
+    appToken: 'Ex9uwGiZLixftrkLoPmcae4Ynxg',
+    tableId: '9dRNBr',
+    urlFieldName: '发布完成后反链',
   });
   const [scanSchedule, setScanSchedule] = useState('0 9 * * *');
   const [sentimentThreshold, setSentimentThreshold] = useState(-0.3);
