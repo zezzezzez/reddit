@@ -225,7 +225,9 @@ export default function ComparePage() {
                               </span>
                             </div>
                             <div className="flex items-center gap-3 text-xs text-muted">
-                              <span>影响力: <span className="font-bold text-primary">{post.influenceScore}</span></span>
+                              <span className="px-2 py-0.5 rounded font-semibold bg-primary/20 text-primary" title="所有恶意评论影响力得分之和">
+                                ⚡ {post.influenceScore}
+                              </span>
                               <span>评论: {post.commentCount}</span>
                               <span>恶意评论: <span className="font-bold text-red-400">{post.flaggedCommentCount}</span></span>
                             </div>
@@ -242,7 +244,18 @@ export default function ComparePage() {
                                       <span className="text-xs font-medium text-foreground">@{comment.author}</span>
                                       <span className="text-xs text-muted">· {comment.score} 赞</span>
                                     </div>
-                                    <span className="text-xs font-bold text-red-400">影响力: {comment.influenceScore}</span>
+                                    <span 
+                                      className={`px-2 py-0.5 rounded font-semibold ${
+                                        comment.influenceScore >= 20
+                                          ? 'bg-red-500/25 text-red-300'
+                                          : comment.influenceScore >= 5
+                                          ? 'bg-yellow-500/25 text-yellow-300'
+                                          : 'bg-gray-500/25 text-gray-300'
+                                      }`}
+                                      title="影响力得分 = log₁₀(点赞数+1)×5+1 × |情感得分|"
+                                    >
+                                      ⚡ {comment.influenceScore}
+                                    </span>
                                   </div>
                                   <p className="text-xs text-foreground mb-1">{comment.body}</p>
                                   <div className="flex items-center gap-2">
