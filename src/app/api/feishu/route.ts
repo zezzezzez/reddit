@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 import { fetchAllBitableRecords, convertBitableRecordsToPosts, testFeishuConnection } from '@/lib/feishu';
 import { getPosts, savePosts, saveConfig, getConfig } from '@/lib/store';
 import { generatePostSummary } from '@/lib/summary';
-import { proxyFetch, initProxy } from '@/lib/proxy';
+import { proxyFetch } from '@/lib/proxy';
 import { FeishuConfig } from '@/lib/types';
 
 // POST: Sync data from Feishu Bitable
@@ -75,7 +75,6 @@ export async function POST(request: Request) {
     let autoScanStatus = 'pending';
     if (newCount > 0) {
       try {
-        await initProxy();
         const controller = new AbortController();
         const timeoutId = setTimeout(() => controller.abort(), 8000);
         await proxyFetch('https://www.reddit.com/.json?limit=1', {

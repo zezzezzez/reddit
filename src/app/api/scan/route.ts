@@ -3,7 +3,7 @@ import { getPosts, savePosts, getComments, saveComments, saveScanResult, getConf
 import { fetchRedditPost } from '@/lib/reddit';
 import { analyzeCommentSentiment, calculatePostAlertLevel } from '@/lib/sentiment';
 import { generateDetailedSummary } from '@/lib/summary';
-import { proxyFetch, initProxy } from '@/lib/proxy';
+import { proxyFetch } from '@/lib/proxy';
 import { analyzeSentimentWithLLM } from '@/lib/llm';
 import { RedditComment } from '@/lib/types';
 
@@ -21,24 +21,19 @@ let scanProgress = {
 export async function POST(request: Request) {
   try {
     // Connectivity check before scanning
-    // On Vercel: skip pre-check (servers in US can access Reddit directly)
-    // On local dev: verify proxy connectivity before starting scan
-    if (!isVercel) {
-      await initProxy();
-      try {
-        const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 10000);
-        await proxyFetch('https://www.reddit.com/.json?limit=1', {
-          signal: controller.signal,
-          headers: { 'User-Agent': 'HisenseRedditMonitor/1.0' },
-        });
-        clearTimeout(timeoutId);
-      } catch {
-        return NextResponse.json({
-          success: false,
-          message: '无法连接 Reddit，请在设置中配置外网代理后重试',
-        }, { status: 503 });
-      }
+    try {
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 10000);
+      await proxyFetch('https://www.reddit.com/.json?limit=1', {
+        signal: controller.signal,
+        headers: { 'User-Agent': 'HisenseRedditMonitor/1.0' },
+      });
+      clearTimeout(timeoutId);
+    } catch {
+      return NextResponse.json({
+        success: false,
+        message: '无法连接 Reddit，请检查网络连接',
+      }, { status: 503 });
     }
 
     const body = await request.json();

@@ -8,12 +8,6 @@ services:
     ports:
       - "3000:3000"
     environment:
-      # 企业代理配置
-      - PROXY_ENABLED=true
-      - PROXY_HOST=${PROXY_HOST:-10.19.193.99}
-      - PROXY_PORT=${PROXY_PORT:-443}
-      - PROXY_PROTOCOL=${PROXY_PROTOCOL:-http}
-      
       # 飞书配置
       - FEISHU_WEBHOOK_URL=${FEISHU_WEBHOOK_URL:-}
       

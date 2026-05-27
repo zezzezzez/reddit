@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 import { getPosts, savePosts } from '@/lib/store';
 import { RedditPost } from '@/lib/types';
 import { generatePostSummary } from '@/lib/summary';
-import { proxyFetch, initProxy } from '@/lib/proxy';
+import { proxyFetch } from '@/lib/proxy';
 import * as XLSX from 'xlsx';
 
 // Extract Reddit URL from a cell value
@@ -224,8 +224,6 @@ export async function POST(request: Request) {
 
     if (newPostIds.length > 0) {
       try {
-        // Initialize proxy and check connectivity
-        await initProxy();
         const controller = new AbortController();
         const timeoutId = setTimeout(() => controller.abort(), 8000);
         await proxyFetch('https://www.reddit.com/.json?limit=1', {
