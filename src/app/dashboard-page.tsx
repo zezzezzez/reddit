@@ -5,7 +5,7 @@ import Link from 'next/link';
 import {
   AlertTriangle, Shield, CheckCircle, MessageSquare,
   TrendingUp, TrendingDown, Clock, RefreshCw, ExternalLink,
-  Flame, Eye, ArrowUpRight, Wifi, WifiOff, Loader2, Bell, Send,
+  Flame, Eye, ArrowUpRight, Loader2, Bell, Send,
 } from 'lucide-react';
 import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
@@ -51,14 +51,12 @@ export default function DashboardPage() {
   const [loading, setLoading] = useState(true);
   const [scanning, setScanning] = useState(false);
   const [scanProgress, setScanProgress] = useState('');
-  const [networkStatus, setNetworkStatus] = useState<'checking' | 'connected' | 'disconnected' | 'rateLimited'>('checking');
   const [pushing, setPushing] = useState(false);
   const [pushResult, setPushResult] = useState<{ success: boolean; message: string } | null>(null);
   const [notifyScheduler, setNotifyScheduler] = useState<{ enabled: boolean; scheduledTime: string | null; lastPushTime: string | null; lastPushResult: { success: boolean; message: string; postCount: number } | null } | null>(null);
 
   useEffect(() => {
     fetchDashboard();
-    checkNetwork();
     fetchNotifyStatus();
   }, []);
 
@@ -68,21 +66,6 @@ export default function DashboardPage() {
       const json = await res.json();
       if (json.scheduler) setNotifyScheduler(json.scheduler);
     } catch {}
-  };
-
-  const checkNetwork = async () => {
-    setNetworkStatus('checking');
-    try {
-      const res = await fetch('/api/connectivity');
-      const json = await res.json();
-      if (json.rateLimited) {
-        setNetworkStatus('rateLimited');
-      } else {
-        setNetworkStatus(json.connected ? 'connected' : 'disconnected');
-      }
-    } catch {
-      setNetworkStatus('disconnected');
-    }
   };
 
   const fetchDashboard = async () => {
@@ -100,14 +83,6 @@ export default function DashboardPage() {
   const [isQuickScan, setIsQuickScan] = useState(false);
 
   const handleScan = async (quickScan = false) => {
-    if (networkStatus === 'disconnected') {
-      alert('无法连接 Reddit，请先开启外网代理/VPN');
-      return;
-    }
-    if (networkStatus === 'rateLimited') {
-      alert('Reddit 请求频率受限，请等待几分钟后再扫描');
-      return;
-    }
     setScanning(true);
     setIsQuickScan(quickScan);
     setScanProgress(quickScan ? '' : '准备扫描...');
@@ -170,26 +145,6 @@ export default function DashboardPage() {
           <p className="text-sm text-muted mt-1">Reddit 品牌声誉监控 · 海信(Hisense)</p>
         </div>
         <div className="flex items-center gap-3">
-          {/* Network Status */}
-          <button
-            onClick={checkNetwork}
-            className={`flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs border transition-colors ${
-              networkStatus === 'connected' ? 'bg-green-500/10 border-green-500/30 text-green-400' :
-              networkStatus === 'rateLimited' ? 'bg-yellow-500/10 border-yellow-500/30 text-yellow-400' :
-              networkStatus === 'disconnected' ? 'bg-red-500/10 border-red-500/30 text-red-400' :
-              'bg-gray-500/10 border-gray-500/30 text-gray-400'
-            }`
-          }
-            title="点击刷新网络状态"
-          >
-            {networkStatus === 'checking' ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> :
-             networkStatus === 'connected' ? <Wifi className="w-3.5 h-3.5" /> :
-             networkStatus === 'rateLimited' ? <Wifi className="w-3.5 h-3.5" /> :
-             <WifiOff className="w-3.5 h-3.5" />}
-            {networkStatus === 'connected' ? '网络正常' :
-             networkStatus === 'rateLimited' ? '限速中' :
-             networkStatus === 'disconnected' ? '无代理' : '检测中...'}
-          </button>
           <div className="flex items-center gap-2 text-sm text-muted bg-card px-3 py-2 rounded-lg border border-border">
             <Clock className="w-4 h-4" />
             <span>上次扫描: 09:00</span>

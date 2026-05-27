@@ -4,7 +4,7 @@ import { useState, useRef, useEffect } from 'react';
 import {
   Database, RefreshCw, Key, Clock, Shield, Save,
   CheckCircle, XCircle, Loader2, ExternalLink,
-  Upload, FileSpreadsheet, AlertCircle, Trash2, Wifi, Globe, BrainCircuit, Sparkles, Bell, Send,
+  Upload, FileSpreadsheet, AlertCircle, Trash2, BrainCircuit, Sparkles, Bell, Send,
 } from 'lucide-react';
 
 export default function SettingsPage() {
@@ -32,12 +32,6 @@ export default function SettingsPage() {
   const [uploadResult, setUploadResult] = useState<{ success: boolean; message: string; details?: any } | null>(null);
   const [dragActive, setDragActive] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
-
-  // Proxy state
-  const [proxyConfig, setProxyConfig] = useState({ enabled: false, host: '127.0.0.1', port: 7890, protocol: 'http' });
-  const [proxyTesting, setProxyTesting] = useState(false);
-  const [proxyTestResult, setProxyTestResult] = useState<{ success: boolean; message: string } | null>(null);
-  const [proxySaving, setProxySaving] = useState(false);
 
   // LLM state
   const [llmConfig, setLlmConfig] = useState({
@@ -82,11 +76,8 @@ export default function SettingsPage() {
   const [rulesSaving, setRulesSaving] = useState(false);
   const [rulesSaved, setRulesSaved] = useState(false);
 
-  // Load proxy, LLM, notify & detection rules config on mount
+  // Load LLM, notify & detection rules config on mount
   useEffect(() => {
-    fetch('/api/proxy').then(r => r.json()).then(data => {
-      if (data.proxy) setProxyConfig(data.proxy);
-    }).catch(() => {});
     fetch('/api/llm').then(r => r.json()).then(data => {
       if (data.llm) setLlmConfig(data.llm);
       if (data.presets) setLlmPresets(data.presets);
@@ -133,53 +124,6 @@ export default function SettingsPage() {
       setSyncResult({ success: false, message: e.message || '同步失败' });
     } finally {
       setSyncing(false);
-    }
-  };
-
-  const handleProxyTest = async () => {
-    setProxyTesting(true);
-    setProxyTestResult(null);
-    try {
-      const res = await fetch('/api/proxy', {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(proxyConfig),
-      });
-      const json = await res.json();
-      setProxyTestResult(json);
-      // If test succeeded, auto-save
-      if (json.success) {
-        await fetch('/api/proxy', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(proxyConfig),
-        });
-      }
-    } catch (e: any) {
-      setProxyTestResult({ success: false, message: e.message || '测试失败' });
-    } finally {
-      setProxyTesting(false);
-    }
-  };
-
-  const handleProxySave = async () => {
-    setProxySaving(true);
-    try {
-      const res = await fetch('/api/proxy', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(proxyConfig),
-      });
-      const json = await res.json();
-      if (!json.success) {
-        setProxyTestResult(json);
-      } else {
-        setProxyTestResult({ success: true, message: json.message });
-      }
-    } catch (e: any) {
-      setProxyTestResult({ success: false, message: e.message || '保存失败' });
-    } finally {
-      setProxySaving(false);
     }
   };
 
@@ -292,139 +236,6 @@ export default function SettingsPage() {
           )}
           {saving ? '保存中...' : saved ? '已保存' : '保存设置'}
         </button>
-      </div>
-
-      {/* Proxy Configuration Section */}
-      <div className="bg-card rounded-xl p-6 border border-border">
-        <div className="flex items-center gap-2 mb-4">
-          <Globe className="w-5 h-5 text-primary" />
-          <h2 className="text-base font-semibold text-foreground">外网代理配置</h2>
-          <span className="text-xs text-muted ml-2">配置代理后服务端才能访问 Reddit</span>
-        </div>
-
-        <div className="space-y-4">
-          {/* Proxy Enable Toggle */}
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <Wifi className={`w-4 h-4 ${proxyConfig.enabled ? 'text-green-400' : 'text-muted'}`} />
-              <span className="text-sm text-foreground">启用代理</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <button
-                onClick={async () => {
-                  try {
-                    const res = await fetch('/api/proxy?action=detect');
-                    const data = await res.json();
-                    if (data.proxy) {
-                      setProxyConfig(data.proxy);
-                      setProxyTestResult({ success: true, message: `已检测到系统代理: ${data.proxy.protocol}://${data.proxy.host}:${data.proxy.port}` });
-                    } else {
-                      setProxyTestResult({ success: false, message: '未检测到系统代理配置' });
-                    }
-                  } catch {
-                    setProxyTestResult({ success: false, message: '检测失败' });
-                  }
-                }}
-                className="text-xs text-primary hover:text-primary-hover transition-colors"
-              >
-                自动检测
-              </button>
-              <button
-                onClick={() => setProxyConfig({ ...proxyConfig, enabled: !proxyConfig.enabled })}
-                className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
-                  proxyConfig.enabled ? 'bg-primary' : 'bg-gray-600'
-                }`}
-              >
-                <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
-                  proxyConfig.enabled ? 'translate-x-6' : 'translate-x-1'
-                }`} />
-              </button>
-            </div>
-          </div>
-
-          {proxyConfig.enabled && (
-            <div className="space-y-3 pl-2 border-l-2 border-primary/30">
-              {/* Protocol */}
-              <div className="flex items-center gap-3">
-                <label className="text-sm text-muted w-20 shrink-0">协议</label>
-                <select
-                  value={proxyConfig.protocol}
-                  onChange={e => setProxyConfig({ ...proxyConfig, protocol: e.target.value as any })}
-                  className="flex-1 bg-background border border-border rounded-lg px-3 py-2 text-sm text-foreground focus:outline-none focus:border-primary"
-                >
-                  <option value="http">HTTP</option>
-                  <option value="https">HTTPS</option>
-                  <option value="socks5">SOCKS5</option>
-                </select>
-              </div>
-
-              {/* Host */}
-              <div className="flex items-center gap-3">
-                <label className="text-sm text-muted w-20 shrink-0">代理地址</label>
-                <input
-                  type="text"
-                  value={proxyConfig.host}
-                  onChange={e => setProxyConfig({ ...proxyConfig, host: e.target.value })}
-                  placeholder="127.0.0.1"
-                  className="flex-1 bg-background border border-border rounded-lg px-3 py-2 text-sm text-foreground focus:outline-none focus:border-primary"
-                />
-              </div>
-
-              {/* Port */}
-              <div className="flex items-center gap-3">
-                <label className="text-sm text-muted w-20 shrink-0">端口</label>
-                <input
-                  type="number"
-                  value={proxyConfig.port}
-                  onChange={e => setProxyConfig({ ...proxyConfig, port: parseInt(e.target.value) || 7890 })}
-                  placeholder="7890"
-                  className="flex-1 bg-background border border-border rounded-lg px-3 py-2 text-sm text-foreground focus:outline-none focus:border-primary"
-                />
-              </div>
-
-              {/* Preview */}
-              <div className="text-xs text-muted bg-background/50 rounded-lg px-3 py-2">
-                代理地址: <span className="text-foreground font-mono">{proxyConfig.protocol}://{proxyConfig.host}:{proxyConfig.port}</span>
-              </div>
-
-              {/* Test & Save Buttons */}
-              <div className="flex items-center gap-2">
-                <button
-                  onClick={handleProxyTest}
-                  disabled={proxyTesting}
-                  className="flex items-center gap-1.5 px-3 py-2 bg-background border border-border rounded-lg text-sm text-foreground hover:bg-card-hover transition-colors disabled:opacity-50"
-                >
-                  {proxyTesting ? <Loader2 className="w-4 h-4 animate-spin" /> : <RefreshCw className="w-4 h-4" />}
-                  测试连接
-                </button>
-                <button
-                  onClick={handleProxySave}
-                  disabled={proxySaving}
-                  className="flex items-center gap-1.5 px-3 py-2 bg-primary hover:bg-primary-hover text-white rounded-lg text-sm font-medium transition-colors disabled:opacity-50"
-                >
-                  {proxySaving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
-                  保存配置
-                </button>
-              </div>
-
-              {/* Test Result */}
-              {proxyTestResult && (
-                <div className={`flex items-center gap-2 p-3 rounded-lg text-sm ${
-                  proxyTestResult.success ? 'bg-green-500/10 text-green-400' : 'bg-red-500/10 text-red-400'
-                }`}>
-                  {proxyTestResult.success ? <CheckCircle className="w-4 h-4 shrink-0" /> : <XCircle className="w-4 h-4 shrink-0" />}
-                  {proxyTestResult.message}
-                </div>
-              )}
-
-              {/* Common proxy hints */}
-              <div className="text-xs text-muted/70 space-y-1">
-                <p>常见代理端口: Clash(7890), V2Ray(10809), Shadowsocks(1080)</p>
-                <p>提示: 浏览器能访问 Reddit 不代表服务器端也能访问，需要在此配置代理</p>
-              </div>
-            </div>
-          )}
-        </div>
       </div>
 
       {/* Data Import Section */}
