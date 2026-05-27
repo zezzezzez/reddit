@@ -66,11 +66,15 @@ export default function ComparePage() {
     setExpandedSubreddit(subreddit);
 
     try {
-      // Load posts with malicious comments and keywords for this subreddit
-      const res = await fetch(`/api/subreddit-detail?subreddit=${subreddit}`);
-      const json = await res.json();
-      setPosts(json.posts || []);
-      setKeywords(json.keywords || []);
+      // Load posts with malicious comments
+      const postsRes = await fetch(`/api/subreddit-detail?subreddit=${subreddit}`);
+      const postsJson = await postsRes.json();
+      setPosts(postsJson.posts || []);
+
+      // Load keywords using the same API as keywords page
+      const keywordsRes = await fetch(`/api/keywords?subreddit=${subreddit}`);
+      const keywordsJson = await keywordsRes.json();
+      setKeywords(keywordsJson.keywords || []);
     } catch (error) {
       console.error('Failed to load subreddit data:', error);
     } finally {
