@@ -5,8 +5,18 @@ import { analyzeCommentSentiment, calculatePostAlertLevel } from '@/lib/sentimen
 import { generateDetailedSummary } from '@/lib/summary';
 import { analyzeSentimentWithLLM } from '@/lib/llm';
 import { RedditComment } from '@/lib/types';
+import { configureProxy } from '@/lib/proxy';
 
 const isVercel = !!process.env.VERCEL;
+
+// Initialize proxy on first request
+let proxyInitialized = false;
+function ensureProxyInitialized() {
+  if (!proxyInitialized) {
+    configureProxy();
+    proxyInitialized = true;
+  }
+}
 
 // Global scan progress (in-memory, single-process only)
 let scanProgress = {
@@ -19,6 +29,9 @@ let scanProgress = {
 
 export async function POST(request: Request) {
   try {
+    // Ensure proxy is configured
+    ensureProxyInitialized();
+    
     const body = await request.json();
     const { postIds, scanAll, quickScan } = body;
 
