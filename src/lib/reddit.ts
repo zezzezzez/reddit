@@ -2,7 +2,6 @@
 // Fetches comments from Reddit posts
 
 import { RedditComment, RedditPost } from './types';
-import { proxyFetch } from './proxy';
 
 // Use public Reddit JSON API (no auth required, but rate limited)
 // For production, use Reddit API with OAuth
@@ -36,7 +35,7 @@ export async function resolveShortUrl(url: string): Promise<string> {
   if (!url.includes('/s/')) return url;
 
   try {
-    const response = await proxyFetch(url, {
+    const response = await fetch(url, {
       redirect: 'follow',
       headers: { 'User-Agent': REDDIT_USER_AGENT },
     });
@@ -61,7 +60,7 @@ export async function fetchRedditPost(url: string, ourPostId?: string): Promise<
     const jsonUrl = cleanUrl + '.json';
     console.log(`[Reddit] Fetching: ${jsonUrl}`);
 
-    const response = await proxyFetch(jsonUrl, {
+    const response = await fetch(jsonUrl, {
       headers: {
         'User-Agent': REDDIT_USER_AGENT,
         'Accept': 'application/json',
@@ -77,7 +76,7 @@ export async function fetchRedditPost(url: string, ourPostId?: string): Promise<
           const waitTime = (retries + 1) * 15000; // 15s, 30s, 45s
           console.warn(`[Reddit] Rate limited (429), waiting ${waitTime/1000}s before retry ${retries + 1}/${maxRetries}...`);
           await new Promise(resolve => setTimeout(resolve, waitTime));
-          const retryResponse = await proxyFetch(jsonUrl, {
+          const retryResponse = await fetch(jsonUrl, {
             headers: {
               'User-Agent': REDDIT_USER_AGENT,
               'Accept': 'application/json',

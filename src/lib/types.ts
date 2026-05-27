@@ -102,13 +102,6 @@ export interface LLMConfig {
   temperature: number; // 0-1
 }
 
-export interface ProxyConfig {
-  enabled: boolean;
-  host: string; // e.g. '127.0.0.1'
-  port: number; // e.g. 7890
-  protocol: 'http' | 'https' | 'socks5'; // default http
-}
-
 export interface FeishuNotifyConfig {
   enabled: boolean;
   mode: 'webhook' | 'app';       // webhook=群机器人, app=应用消息
@@ -135,7 +128,6 @@ export interface MonitorConfig {
   sentimentThreshold: number; // -1 to 1, threshold for flagging
   openaiApiKey?: string;
   openaiModel?: string;
-  proxy?: ProxyConfig;
   llm?: LLMConfig;
   feishuNotify?: FeishuNotifyConfig;
   detectionRules?: DetectionRules;

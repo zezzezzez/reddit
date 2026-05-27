@@ -150,12 +150,6 @@ const DEFAULT_CONFIG: MonitorConfig = {
   sentimentThreshold: -0.3,
   openaiApiKey: '',
   openaiModel: 'gpt-4o-mini',
-  proxy: {
-    enabled: false,
-    host: '127.0.0.1',
-    port: 7890,
-    protocol: 'http',
-  },
   llm: {
     enabled: false,
     provider: 'openai',
@@ -184,16 +178,6 @@ const DEFAULT_CONFIG: MonitorConfig = {
 // On Vercel, merge environment variables into config
 function applyEnvOverrides(config: MonitorConfig): MonitorConfig {
   if (!isVercel) return config;
-
-  // Proxy from env vars
-  if (process.env.PROXY_HOST) {
-    config.proxy = {
-      enabled: process.env.PROXY_ENABLED !== 'false',
-      host: process.env.PROXY_HOST,
-      port: parseInt(process.env.PROXY_PORT || '7890'),
-      protocol: (process.env.PROXY_PROTOCOL || 'http') as 'http' | 'https' | 'socks5',
-    };
-  }
 
   // Feishu webhook from env var
   if (process.env.FEISHU_WEBHOOK_URL) {

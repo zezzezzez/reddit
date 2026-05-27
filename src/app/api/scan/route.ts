@@ -3,7 +3,6 @@ import { getPosts, savePosts, getComments, saveComments, saveScanResult, getConf
 import { fetchRedditPost } from '@/lib/reddit';
 import { analyzeCommentSentiment, calculatePostAlertLevel } from '@/lib/sentiment';
 import { generateDetailedSummary } from '@/lib/summary';
-import { proxyFetch } from '@/lib/proxy';
 import { analyzeSentimentWithLLM } from '@/lib/llm';
 import { RedditComment } from '@/lib/types';
 

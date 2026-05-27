@@ -2,7 +2,6 @@ import { NextResponse } from 'next/server';
 import { getPosts, savePosts } from '@/lib/store';
 import { RedditPost } from '@/lib/types';
 import { generatePostSummary } from '@/lib/summary';
-import { proxyFetch } from '@/lib/proxy';
 import * as XLSX from 'xlsx';
 
 // Extract Reddit URL from a cell value

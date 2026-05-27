@@ -11,12 +11,6 @@
   "sentimentThreshold": -0.3,
   "openaiApiKey": "",
   "openaiModel": "gpt-4o-mini",
-  "proxy": {
-    "enabled": true,
-    "host": "10.19.193.99",
-    "port": 443,
-    "protocol": "http"
-  },
   "llm": {
     "enabled": true,
     "provider": "openai",

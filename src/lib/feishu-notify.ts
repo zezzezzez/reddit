@@ -1,7 +1,6 @@
 // Feishu Notification Module
 // Sends daily alert summaries to Feishu group/person via Webhook or App API
 
-import { proxyFetch } from './proxy';
 import { getPosts, getComments, getConfig } from './store';
 import { FeishuNotifyConfig, RedditPost, RedditComment, AlertLevel } from './types';
 
@@ -334,7 +333,7 @@ function buildFeishuCard(
 // Send notification via Webhook
 async function sendWebhook(webhookUrl: string, card: any): Promise<{ success: boolean; message: string }> {
   try {
-    const response = await proxyFetch(webhookUrl, {
+    const response = await fetch(webhookUrl, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(card),
@@ -361,7 +360,7 @@ async function sendAppMessage(config: FeishuNotifyConfig, text: string): Promise
 
   try {
     // 1. Get tenant access token
-    const tokenRes = await proxyFetch('https://open.feishu.cn/open-apis/auth/v3/tenant_access_token/internal', {
+    const tokenRes = await fetch('https://open.feishu.cn/open-apis/auth/v3/tenant_access_token/internal', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -392,7 +391,7 @@ async function sendAppMessage(config: FeishuNotifyConfig, text: string): Promise
     // If chat_id is provided, use chat type
     const idType = config.receiveChatId ? 'chat_id' : 'open_id';
 
-    const sendRes = await proxyFetch(
+    const sendRes = await fetch(
       `https://open.feishu.cn/open-apis/im/v1/messages?receive_id_type=${idType}`,
       {
         method: 'POST',
@@ -470,7 +469,7 @@ export async function testFeishuNotify(config: FeishuNotifyConfig): Promise<{ su
       return { success: false, message: '应用消息模式需要先配置飞书应用凭证' };
     }
     try {
-      const tokenRes = await proxyFetch('https://open.feishu.cn/open-apis/auth/v3/tenant_access_token/internal', {
+      const tokenRes = await fetch('https://open.feishu.cn/open-apis/auth/v3/tenant_access_token/internal', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ app_id: feishuConfig.appId, app_secret: feishuConfig.appSecret }),

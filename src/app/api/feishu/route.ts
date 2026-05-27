@@ -1,8 +1,6 @@
 import { NextResponse } from 'next/server';
 import { fetchAllBitableRecords, convertBitableRecordsToPosts, testFeishuConnection } from '@/lib/feishu';
 import { getPosts, savePosts, saveConfig, getConfig } from '@/lib/store';
-import { generatePostSummary } from '@/lib/summary';
-import { proxyFetch } from '@/lib/proxy';
 import { FeishuConfig } from '@/lib/types';
 
 // POST: Sync data from Feishu Bitable
@@ -71,35 +69,22 @@ export async function POST(request: Request) {
 
     savePosts(mergedPosts);
 
-    // Auto-scan: try to scan new posts in background
+    // Auto-scan: trigger scan for new posts in background
     let autoScanStatus = 'pending';
     if (newCount > 0) {
-      try {
-        const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 8000);
-        await proxyFetch('https://www.reddit.com/.json?limit=1', {
-          signal: controller.signal,
-          headers: { 'User-Agent': 'HisenseRedditMonitor/1.0' },
-        });
-        clearTimeout(timeoutId);
-
-        autoScanStatus = 'triggered';
-        const newPostIds = mergedPosts.filter(p => !p.lastScanned).map(p => p.id);
-        fetch('/api/scan', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ postIds: newPostIds }),
-        }).catch(() => {});
-      } catch {
-        autoScanStatus = 'no_proxy';
-      }
+      autoScanStatus = 'triggered';
+      const newPostIds = mergedPosts.filter(p => !p.lastScanned).map(p => p.id);
+      fetch('/api/scan', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ postIds: newPostIds }),
+      }).catch(() => {});
     }
 
     return NextResponse.json({
       success: true,
       message: `飞书数据同步成功${
-        autoScanStatus === 'triggered' ? '，已自动开始扫描评论' :
-        autoScanStatus === 'no_proxy' ? '，但无法连接Reddit，请开启代理后手动扫描' : ''
+        autoScanStatus === 'triggered' ? '，已自动开始扫描评论' : ''
       }`,
       syncedPosts: newPosts.length,
       newPosts: newCount,

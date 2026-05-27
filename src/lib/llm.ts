@@ -3,7 +3,6 @@
 // All providers use OpenAI-compatible chat completion format (most providers support it)
 
 import { LLMConfig, LLMProvider } from './types';
-import { proxyFetch } from './proxy';
 
 // Provider preset configurations
 export const PROVIDER_PRESETS: Record<LLMProvider, {
@@ -200,7 +199,7 @@ export async function callLLM(
   const timeoutId = setTimeout(() => controller.abort(), 30000);
 
   try {
-    const response = await proxyFetch(url, {
+    const response = await fetch(url, {
       method: 'POST',
       headers,
       body,
