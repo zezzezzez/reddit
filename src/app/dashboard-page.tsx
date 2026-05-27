@@ -30,11 +30,11 @@ interface DashboardData {
 }
 
 const ALERT_STYLES = {
-  critical: { bg: 'bg-red-500/15', border: 'border-red-500/40', text: 'text-red-400', badge: 'bg-red-500', label: '严重' },
-  high:     { bg: 'bg-red-500/15', border: 'border-red-500/40', text: 'text-red-400', badge: 'bg-red-500', label: '严重' },  // 兼容旧数据
-  medium:   { bg: 'bg-yellow-500/15', border: 'border-yellow-500/40', text: 'text-yellow-400', badge: 'bg-yellow-500', label: '中等' },
-  low:      { bg: 'bg-green-500/15', border: 'border-green-500/40', text: 'text-green-400', badge: 'bg-green-500', label: '安全' }, // 兼容旧数据
-  safe:     { bg: 'bg-green-500/15', border: 'border-green-500/40', text: 'text-green-400', badge: 'bg-green-500', label: '安全' },
+  critical: { bg: 'bg-red-50', border: 'border-red-200', text: 'text-red-600', badge: 'bg-red-500', label: '严重' },
+  high:     { bg: 'bg-red-50', border: 'border-red-200', text: 'text-red-600', badge: 'bg-red-500', label: '严重' },
+  medium:   { bg: 'bg-yellow-50', border: 'border-yellow-200', text: 'text-yellow-600', badge: 'bg-yellow-500', label: '中等' },
+  low:      { bg: 'bg-green-50', border: 'border-green-200', text: 'text-green-600', badge: 'bg-green-500', label: '安全' },
+  safe:     { bg: 'bg-green-50', border: 'border-green-200', text: 'text-green-600', badge: 'bg-green-500', label: '安全' },
 };
 
 const PIE_COLORS = ['#10b981', '#64748b', '#ef4444'];
@@ -137,23 +137,23 @@ export default function DashboardPage() {
   }));
 
   return (
-    <div className="p-6 space-y-6 max-w-[1600px] mx-auto">
+    <div className="p-6 space-y-6 max-w-[1600px] mx-auto bg-[#f5f7fa] min-h-screen">
       {/* Header */}
-      <div className="bg-gradient-to-r from-blue-600 to-blue-500 rounded-2xl p-6 text-white shadow-lg">
+      <div className="bg-white rounded-lg p-6 shadow-sm border border-gray-100">
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-3xl font-bold mb-1">📊 监控面板</h1>
-            <p className="text-sm text-blue-100">Reddit 品牌声誉监控 · 海信 (Hisense)</p>
+            <h1 className="text-2xl font-semibold text-gray-900 mb-1">📊 监控面板</h1>
+            <p className="text-sm text-gray-500">Reddit 品牌声誉监控 · 海信 (Hisense)</p>
           </div>
           <div className="flex items-center gap-3">
-            <div className="flex items-center gap-2 text-sm text-blue-100 bg-white/10 backdrop-blur-sm px-4 py-2.5 rounded-xl border border-white/20">
+            <div className="flex items-center gap-2 text-sm text-gray-500 bg-gray-50 px-4 py-2 rounded-lg border border-gray-200">
               <Clock className="w-4 h-4" />
               <span>上次扫描: 09:00</span>
             </div>
             <button
               onClick={() => handleScan(false)}
               disabled={scanning}
-              className="flex items-center gap-2 px-5 py-2.5 bg-white hover:bg-blue-50 text-blue-600 rounded-xl text-sm font-semibold transition-all duration-200 disabled:opacity-50 shadow-md hover:shadow-lg"
+              className="flex items-center gap-2 px-5 py-2.5 bg-primary hover:bg-primary-hover text-white rounded-lg text-sm font-medium transition-colors disabled:opacity-50 shadow-sm"
             >
               <RefreshCw className={`w-4 h-4 ${scanning ? 'animate-spin' : ''}`} />
               {scanning ? (isQuickScan ? '扫描中...' : (scanProgress || '扫描中...')) : '立即扫描'}
@@ -161,7 +161,7 @@ export default function DashboardPage() {
             <button
               onClick={() => handleScan(true)}
               disabled={scanning}
-              className="flex items-center gap-2 px-5 py-2.5 bg-green-500 hover:bg-green-600 text-white rounded-xl text-sm font-semibold transition-all duration-200 disabled:opacity-50 shadow-md hover:shadow-lg"
+              className="flex items-center gap-2 px-5 py-2.5 bg-green-600 hover:bg-green-700 text-white rounded-lg text-sm font-medium transition-colors disabled:opacity-50 shadow-sm"
             >
               <RefreshCw className={`w-4 h-4 ${scanning ? 'animate-spin' : ''}`} />
               {scanning ? (scanProgress || '扫描中...') : '快速扫描'}
@@ -182,7 +182,7 @@ export default function DashboardPage() {
                 }
               }}
               disabled={pushing}
-              className="flex items-center gap-2 px-5 py-2.5 bg-orange-500 hover:bg-orange-600 text-white rounded-xl text-sm font-semibold transition-all duration-200 disabled:opacity-50 shadow-md hover:shadow-lg"
+              className="flex items-center gap-2 px-5 py-2.5 bg-orange-500 hover:bg-orange-600 text-white rounded-lg text-sm font-medium transition-colors disabled:opacity-50 shadow-sm"
             >
               {pushing ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
               {pushing ? '推送中...' : '推送预警'}
@@ -194,7 +194,7 @@ export default function DashboardPage() {
       {/* Push Result Toast */}
       {pushResult && (
         <div className={`flex items-center gap-2 p-3 rounded-lg text-sm ${
-          pushResult.success ? 'bg-green-500/10 border border-green-500/30 text-green-400' : 'bg-red-500/10 border border-red-500/30 text-red-400'
+          pushResult.success ? 'bg-green-50 border border-green-200 text-green-700' : 'bg-red-50 border border-red-200 text-red-700'
         }`}>
           {pushResult.success ? <CheckCircle className="w-4 h-4 shrink-0" /> : <AlertTriangle className="w-4 h-4 shrink-0" />}
           {pushResult.message}
@@ -204,20 +204,20 @@ export default function DashboardPage() {
 
       {/* Feishu Notify Status Bar */}
       {notifyScheduler && (
-        <div className="flex items-center justify-between bg-card rounded-xl p-4 border border-border">
+        <div className="flex items-center justify-between bg-white rounded-lg p-4 border border-gray-100 shadow-sm">
           <div className="flex items-center gap-3">
-            <Bell className={`w-5 h-5 ${notifyScheduler.enabled ? 'text-green-400' : 'text-muted'}`} />
+            <Bell className={`w-5 h-5 ${notifyScheduler.enabled ? 'text-green-600' : 'text-gray-400'}`} />
             <div>
-              <span className="text-sm text-foreground">
+              <span className="text-sm text-gray-900">
                 {notifyScheduler.enabled
                   ? `飞书预警推送已开启，每日 ${notifyScheduler.scheduledTime || '09:00'} 自动推送`
                   : '飞书预警推送未开启'}
               </span>
               {notifyScheduler.lastPushTime && (
-                <span className="text-xs text-muted ml-3">
+                <span className="text-xs text-gray-500 ml-3">
                   上次推送: {new Date(notifyScheduler.lastPushTime).toLocaleString('zh-CN')}
                   {notifyScheduler.lastPushResult && (
-                    <span className={notifyScheduler.lastPushResult.success ? 'text-green-400' : 'text-red-400'}>
+                    <span className={notifyScheduler.lastPushResult.success ? 'text-green-600' : 'text-red-600'}>
                       {' '}({notifyScheduler.lastPushResult.success ? '成功' : '失败'})
                     </span>
                   )}
@@ -251,25 +251,27 @@ export default function DashboardPage() {
         let healthScore = Math.max(0, Math.round(100 - Math.min(criticalPenalty, 60) - Math.min(mediumPenalty, 25) - Math.min(flaggedPenalty, 15)));
         healthScore = Math.min(100, Math.max(0, healthScore));
         const healthLabel = healthScore >= 80 ? '健康' : healthScore >= 60 ? '一般' : healthScore >= 40 ? '预警' : '高危';
-        const borderColor = healthScore >= 80 ? 'border-green-500/40' : healthScore >= 60 ? 'border-yellow-500/40' : healthScore >= 40 ? 'border-orange-500/40' : 'border-red-500/40';
-        const scoreColor = healthScore >= 80 ? 'text-green-400' : healthScore >= 60 ? 'text-yellow-400' : healthScore >= 40 ? 'text-orange-400' : 'text-red-400';
-        const badgeColor = healthScore >= 80 ? 'bg-green-500/20 text-green-400' : healthScore >= 60 ? 'bg-yellow-500/20 text-yellow-400' : healthScore >= 40 ? 'bg-orange-500/20 text-orange-400' : 'bg-red-500/20 text-red-400';
+        const borderColor = healthScore >= 80 ? 'border-green-200' : healthScore >= 60 ? 'border-yellow-200' : healthScore >= 40 ? 'border-orange-200' : 'border-red-200';
+        const scoreColor = healthScore >= 80 ? 'text-green-600' : healthScore >= 60 ? 'text-yellow-600' : healthScore >= 40 ? 'text-orange-600' : 'text-red-600';
+        const badgeColor = healthScore >= 80 ? 'bg-green-50 text-green-700' : healthScore >= 60 ? 'bg-yellow-50 text-yellow-700' : healthScore >= 40 ? 'bg-orange-50 text-orange-700' : 'bg-red-50 text-red-700';
         const barColor = healthScore >= 80 ? 'bg-green-500' : healthScore >= 60 ? 'bg-yellow-500' : healthScore >= 40 ? 'bg-orange-500' : 'bg-red-500';
         const posPct = total > 0 ? (data.sentimentDistribution.positive / total * 100) : 0;
         const neuPct = total > 0 ? (data.sentimentDistribution.neutral / total * 100) : 0;
         const negPct = total > 0 ? (data.sentimentDistribution.negative / total * 100) : 0;
         return (
-          <div className={`bg-card rounded-xl p-5 border ${borderColor}`}>
+          <div className={`bg-white rounded-lg p-5 border ${borderColor} shadow-sm`}>
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-muted mb-1">舆情健康度</p>
+                <p className="text-sm text-gray-500 mb-1">舆情健康度</p>
                 <div className="flex items-baseline gap-2">
                   <span className={`text-5xl font-bold ${scoreColor}`}>{healthScore}</span>
-                  <span className="text-lg text-muted">/100</span>
-                  <span className={`text-sm font-medium px-2 py-0.5 rounded-full ${badgeColor}`}>{healthLabel}</span>
+                  <span className="text-lg text-gray-500">/100</span>
+                  <span className={`text-sm font-medium px-2 py-0.5 rounded-full ${badgeColor}`}>
+                    {healthLabel}
+                  </span>
                 </div>
                 {/* Progress bar */}
-                <div className="w-64 h-3 bg-muted/30 rounded-full mt-3 overflow-hidden">
+                <div className="w-64 h-3 bg-gray-100 rounded-full mt-3 overflow-hidden">
                   <div
                     className={`h-full rounded-full ${barColor} transition-all duration-500`}
                     style={{ width: `${healthScore}%` }}
@@ -279,27 +281,27 @@ export default function DashboardPage() {
               <div className="text-right space-y-2">
                 <div className="flex items-center gap-2">
                   <span className="w-2 h-2 rounded-full bg-green-500"/>
-                  <span className="text-xs text-muted">正面</span>
-                  <div className="w-24 h-2 bg-muted/30 rounded-full overflow-hidden">
+                  <span className="text-xs text-gray-500">正面</span>
+                  <div className="w-24 h-2 bg-gray-100 rounded-full overflow-hidden">
                     <div className="h-full bg-green-500 rounded-full" style={{ width: `${posPct}%` }}/>
                   </div>
-                  <span className="text-xs text-foreground w-12 text-right">{posPct.toFixed(1)}%</span>
+                  <span className="text-xs text-gray-900 w-12 text-right">{posPct.toFixed(1)}%</span>
                 </div>
                 <div className="flex items-center gap-2">
-                  <span className="w-2 h-2 rounded-full bg-slate-500"/>
-                  <span className="text-xs text-muted">中性</span>
-                  <div className="w-24 h-2 bg-muted/30 rounded-full overflow-hidden">
-                    <div className="h-full bg-slate-500 rounded-full" style={{ width: `${neuPct}%` }}/>
+                  <span className="w-2 h-2 rounded-full bg-gray-400"/>
+                  <span className="text-xs text-gray-500">中性</span>
+                  <div className="w-24 h-2 bg-gray-100 rounded-full overflow-hidden">
+                    <div className="h-full bg-gray-400 rounded-full" style={{ width: `${neuPct}%` }}/>
                   </div>
-                  <span className="text-xs text-foreground w-12 text-right">{neuPct.toFixed(1)}%</span>
+                  <span className="text-xs text-gray-900 w-12 text-right">{neuPct.toFixed(1)}%</span>
                 </div>
                 <div className="flex items-center gap-2">
                   <span className="w-2 h-2 rounded-full bg-red-500"/>
-                  <span className="text-xs text-muted">负面</span>
-                  <div className="w-24 h-2 bg-muted/30 rounded-full overflow-hidden">
+                  <span className="text-xs text-gray-500">负面</span>
+                  <div className="w-24 h-2 bg-gray-100 rounded-full overflow-hidden">
                     <div className="h-full bg-red-500 rounded-full" style={{ width: `${negPct}%` }}/>
                   </div>
-                  <span className="text-xs text-foreground w-12 text-right">{negPct.toFixed(1)}%</span>
+                  <span className="text-xs text-gray-900 w-12 text-right">{negPct.toFixed(1)}%</span>
                 </div>
               </div>
             </div>
@@ -309,53 +311,53 @@ export default function DashboardPage() {
 
       {/* Stats Cards */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        <div className="bg-gradient-to-br from-blue-500 to-blue-600 rounded-2xl p-5 text-white shadow-lg hover:shadow-xl transition-all duration-300 hover:-translate-y-1">
+        <div className="bg-white rounded-lg p-5 shadow-sm border border-gray-100 hover:shadow-md transition-shadow">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm text-blue-100 mb-1">监控帖子</p>
-              <p className="text-4xl font-bold">{data.stats.totalPosts}</p>
+              <p className="text-sm text-gray-500 mb-1">监控帖子</p>
+              <p className="text-3xl font-semibold text-gray-900">{data.stats.totalPosts}</p>
             </div>
-            <div className="w-14 h-14 rounded-xl bg-white/20 backdrop-blur-sm flex items-center justify-center">
-              <MessageSquare className="w-7 h-7" />
+            <div className="w-12 h-12 rounded-lg bg-blue-50 flex items-center justify-center">
+              <MessageSquare className="w-6 h-6 text-primary" />
             </div>
           </div>
         </div>
 
-        <div className="bg-gradient-to-br from-red-500 to-red-600 rounded-2xl p-5 text-white shadow-lg hover:shadow-xl transition-all duration-300 hover:-translate-y-1">
+        <div className="bg-white rounded-lg p-5 shadow-sm border border-gray-100 hover:shadow-md transition-shadow">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm text-red-100 mb-1">严重预警</p>
-              <p className="text-4xl font-bold">{data.stats.criticalAlerts}</p>
+              <p className="text-sm text-gray-500 mb-1">严重预警</p>
+              <p className="text-3xl font-semibold text-danger">{data.stats.criticalAlerts}</p>
             </div>
-            <div className="w-14 h-14 rounded-xl bg-white/20 backdrop-blur-sm flex items-center justify-center">
-              <Flame className="w-7 h-7 animate-pulse-alert" />
+            <div className="w-12 h-12 rounded-lg bg-red-50 flex items-center justify-center">
+              <Flame className="w-6 h-6 text-danger animate-pulse-alert" />
             </div>
           </div>
         </div>
 
-        <div className="bg-gradient-to-br from-orange-500 to-orange-600 rounded-2xl p-5 text-white shadow-lg hover:shadow-xl transition-all duration-300 hover:-translate-y-1">
+        <div className="bg-white rounded-lg p-5 shadow-sm border border-gray-100 hover:shadow-md transition-shadow">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm text-orange-100 mb-1">中等预警</p>
-              <p className="text-4xl font-bold">{data.stats.mediumAlerts}</p>
+              <p className="text-sm text-gray-500 mb-1">中等预警</p>
+              <p className="text-3xl font-semibold text-warning">{data.stats.mediumAlerts}</p>
             </div>
-            <div className="w-14 h-14 rounded-xl bg-white/20 backdrop-blur-sm flex items-center justify-center">
-              <AlertTriangle className="w-7 h-7" />
+            <div className="w-12 h-12 rounded-lg bg-orange-50 flex items-center justify-center">
+              <AlertTriangle className="w-6 h-6 text-warning" />
             </div>
           </div>
         </div>
 
-        <div className="bg-gradient-to-br from-slate-600 to-slate-700 rounded-2xl p-5 text-white shadow-lg hover:shadow-xl transition-all duration-300 hover:-translate-y-1">
+        <div className="bg-white rounded-lg p-5 shadow-sm border border-gray-100 hover:shadow-md transition-shadow">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm text-slate-200 mb-1">恶意评论率</p>
-              <p className="text-4xl font-bold">{data.stats.flaggedRatio}%</p>
+              <p className="text-sm text-gray-500 mb-1">恶意评论率</p>
+              <p className="text-3xl font-semibold text-gray-900">{data.stats.flaggedRatio}%</p>
             </div>
-            <div className="w-14 h-14 rounded-xl bg-white/20 backdrop-blur-sm flex items-center justify-center">
-              <Shield className="w-7 h-7" />
+            <div className="w-12 h-12 rounded-lg bg-yellow-50 flex items-center justify-center">
+              <Shield className="w-6 h-6 text-warning" />
             </div>
           </div>
-          <p className="text-xs text-slate-200 mt-3">
+          <p className="text-xs text-gray-500 mt-2">
             {data.stats.flaggedComments} / {data.stats.totalComments} 条评论
           </p>
         </div>
@@ -364,40 +366,40 @@ export default function DashboardPage() {
       {/* Charts Row */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
         {/* Trend Chart */}
-        <div className="lg:col-span-2 bg-card rounded-xl p-5 border border-border">
+        <div className="lg:col-span-2 bg-white rounded-lg p-5 border border-gray-100 shadow-sm">
           <div className="flex items-center justify-between mb-1">
-            <h3 className="text-sm font-semibold text-foreground">评论情感趋势 (7天)</h3>
-            <div className="flex items-center gap-3 text-xs text-muted">
+            <h3 className="text-sm font-semibold text-gray-900">评论情感趋势 (7天)</h3>
+            <div className="flex items-center gap-3 text-xs text-gray-500">
               <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-green-500 inline-block"></span>正面: 情感分数 &gt; 0.1</span>
-              <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-slate-500 inline-block"></span>中性: -0.1 ~ 0.1</span>
+              <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-gray-400 inline-block"></span>中性: -0.1 ~ 0.1</span>
               <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-red-500 inline-block"></span>负面: 情感分数 &lt; -0.1</span>
             </div>
           </div>
-          <p className="text-xs text-muted mb-3">纵轴表示对应情感类别的评论数量</p>
+          <p className="text-xs text-gray-500 mb-3">纵轴表示对应情感类别的评论数量</p>
           <ResponsiveContainer width="100%" height={260}>
             <AreaChart data={data.trendData}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#334155" />
-              <XAxis dataKey="date" stroke="#94a3b8" fontSize={12} tickFormatter={(v) => v.slice(5)} />
-              <YAxis stroke="#94a3b8" fontSize={12} />
+              <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
+              <XAxis dataKey="date" stroke="#9ca3af" fontSize={12} tickFormatter={(v) => v.slice(5)} />
+              <YAxis stroke="#9ca3af" fontSize={12} />
               <Tooltip
-                contentStyle={{ backgroundColor: '#1e293b', border: '1px solid #334155', borderRadius: '8px' }}
-                labelStyle={{ color: '#e2e8f0' }}
+                contentStyle={{ backgroundColor: '#fff', border: '1px solid #e5e7eb', borderRadius: '8px', boxShadow: '0 2px 8px rgba(0,0,0,0.1)' }}
+                labelStyle={{ color: '#111827' }}
                 formatter={(value, name) => [`${value} 条评论`, name]}
               />
-              <Legend formatter={(value) => <span style={{ color: '#e2e8f0', fontSize: '12px' }}>{value}</span>} />
+              <Legend formatter={(value) => <span style={{ color: '#6b7280', fontSize: '12px' }}>{value}</span>} />
               <Area type="monotone" dataKey="positive" stroke="#10b981" fill="#10b981" fillOpacity={0.15} name="正面" />
-              <Area type="monotone" dataKey="neutral" stroke="#64748b" fill="#64748b" fillOpacity={0.15} name="中性" />
+              <Area type="monotone" dataKey="neutral" stroke="#9ca3af" fill="#9ca3af" fillOpacity={0.15} name="中性" />
               <Area type="monotone" dataKey="negative" stroke="#ef4444" fill="#ef4444" fillOpacity={0.15} name="负面" />
             </AreaChart>
           </ResponsiveContainer>
         </div>
 
         {/* Sentiment Pie */}
-        <div className="bg-card rounded-xl p-5 border border-border">
-          <h3 className="text-sm font-semibold text-foreground mb-1">评论情感分布</h3>
-          <div className="flex items-center gap-2 text-xs text-muted mb-3">
+        <div className="bg-white rounded-lg p-5 border border-gray-100 shadow-sm">
+          <h3 className="text-sm font-semibold text-gray-900 mb-1">评论情感分布</h3>
+          <div className="flex items-center gap-2 text-xs text-gray-500 mb-3">
             <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-green-500 inline-block"></span>正面 &gt;0.1</span>
-            <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-slate-500 inline-block"></span>中性</span>
+            <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-gray-400 inline-block"></span>中性</span>
             <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-red-500 inline-block"></span>负面 &lt;-0.1</span>
           </div>
           <ResponsiveContainer width="100%" height={260}>
@@ -416,10 +418,10 @@ export default function DashboardPage() {
                 ))}
               </Pie>
               <Tooltip
-                contentStyle={{ backgroundColor: '#1e293b', border: '1px solid #334155', borderRadius: '8px' }}
+                contentStyle={{ backgroundColor: '#fff', border: '1px solid #e5e7eb', borderRadius: '8px', boxShadow: '0 2px 8px rgba(0,0,0,0.1)' }}
               />
               <Legend
-                formatter={(value) => <span style={{ color: '#e2e8f0', fontSize: '12px' }}>{value}</span>}
+                formatter={(value) => <span style={{ color: '#6b7280', fontSize: '12px' }}>{value}</span>}
               />
             </PieChart>
           </ResponsiveContainer>
@@ -429,15 +431,15 @@ export default function DashboardPage() {
       {/* Category + Top Posts */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
         {/* Category Breakdown */}
-        <div className="bg-card rounded-xl p-5 border border-border">
-          <h3 className="text-sm font-semibold text-foreground mb-4">恶意类型分布</h3>
+        <div className="bg-white rounded-lg p-5 border border-gray-100 shadow-sm">
+          <h3 className="text-sm font-semibold text-gray-900 mb-4">恶意类型分布</h3>
           <ResponsiveContainer width="100%" height={220}>
             <BarChart data={categoryBarData} layout="vertical">
-              <CartesianGrid strokeDasharray="3 3" stroke="#334155" />
-              <XAxis type="number" stroke="#94a3b8" fontSize={12} />
-              <YAxis type="category" dataKey="name" stroke="#94a3b8" fontSize={11} width={70} />
+              <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
+              <XAxis type="number" stroke="#9ca3af" fontSize={12} />
+              <YAxis type="category" dataKey="name" stroke="#9ca3af" fontSize={11} width={70} />
               <Tooltip
-                contentStyle={{ backgroundColor: '#1e293b', border: '1px solid #334155', borderRadius: '8px' }}
+                contentStyle={{ backgroundColor: '#fff', border: '1px solid #e5e7eb', borderRadius: '8px', boxShadow: '0 2px 8px rgba(0,0,0,0.1)' }}
               />
               <Bar dataKey="count" fill="#ef4444" radius={[0, 4, 4, 0]} />
             </BarChart>
@@ -445,9 +447,9 @@ export default function DashboardPage() {
         </div>
 
         {/* Top Flagged Posts */}
-        <div className="lg:col-span-2 bg-card rounded-xl p-5 border border-border">
+        <div className="lg:col-span-2 bg-white rounded-lg p-5 border border-gray-100 shadow-sm">
           <div className="flex items-center justify-between mb-4">
-            <h3 className="text-sm font-semibold text-foreground">高风险帖子</h3>
+            <h3 className="text-sm font-semibold text-gray-900">高风险帖子</h3>
             <Link href="/posts" className="text-xs text-primary hover:text-primary-hover flex items-center gap-1">
               查看全部 <ArrowUpRight className="w-3 h-3" />
             </Link>
@@ -459,7 +461,7 @@ export default function DashboardPage() {
                 <Link
                   key={post.id}
                   href={`/posts/${post.id}`}
-                  className={`block p-3 rounded-lg border ${style.bg} ${style.border} hover:opacity-80 transition-opacity`}
+                  className={`block p-3 rounded-lg border ${style.bg} ${style.border} hover:shadow-md transition-all`}
                 >
                   <div className="flex items-start justify-between gap-3">
                     <div className="flex-1 min-w-0">
@@ -467,16 +469,16 @@ export default function DashboardPage() {
                         <span className={`px-1.5 py-0.5 text-[10px] font-bold rounded ${style.badge} text-white`}>
                           {style.label}
                         </span>
-                        <span className="text-xs text-muted">r/{post.subreddit}</span>
+                        <span className="text-xs text-gray-500">r/{post.subreddit}</span>
                       </div>
-                      <p className="text-sm text-foreground truncate">{post.title}</p>
-                      <div className="flex items-center gap-3 mt-1 text-xs text-muted">
+                      <p className="text-sm text-gray-900 truncate">{post.title}</p>
+                      <div className="flex items-center gap-3 mt-1 text-xs text-gray-500">
                         <span>{post.commentCount} 评论</span>
                         <span>·</span>
                         <span>{post.alertReasons.map((r: string) => CATEGORY_LABELS[r] || r).join(', ')}</span>
                       </div>
                     </div>
-                    <ExternalLink className="w-4 h-4 text-muted flex-shrink-0 mt-1" />
+                    <ExternalLink className="w-4 h-4 text-gray-400 flex-shrink-0 mt-1" />
                   </div>
                 </Link>
               );
@@ -486,31 +488,31 @@ export default function DashboardPage() {
       </div>
 
       {/* Recent Flagged Comments */}
-      <div className="bg-card rounded-xl p-5 border border-border">
-        <h3 className="text-sm font-semibold text-foreground mb-4">最新恶意评论</h3>
+      <div className="bg-white rounded-lg p-5 border border-gray-100 shadow-sm">
+        <h3 className="text-sm font-semibold text-gray-900 mb-4">最新恶意评论</h3>
         <div className="space-y-3">
           {data.recentFlagged.map((comment: any) => (
             <div
               key={comment.id}
-              className="p-3 rounded-lg bg-red-500/5 border border-red-500/20 animate-slide-in"
+              className="p-3 rounded-lg bg-red-50 border border-red-200 animate-slide-in"
             >
               <div className="flex items-center justify-between mb-2">
                 <div className="flex items-center gap-2">
-                  <span className="text-sm font-medium text-foreground">u/{comment.author}</span>
-                  <span className="text-xs text-muted">
+                  <span className="text-sm font-medium text-gray-900">u/{comment.author}</span>
+                  <span className="text-xs text-gray-500">
                     {new Date(comment.createdAt).toLocaleDateString('zh-CN', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}
                   </span>
                 </div>
                 <div className="flex items-center gap-1">
                   {comment.flagReasons.map((r: string) => (
-                    <span key={r} className="px-1.5 py-0.5 text-[10px] bg-red-500/20 text-red-300 rounded">
+                    <span key={r} className="px-1.5 py-0.5 text-[10px] bg-red-100 text-red-700 rounded">
                       {CATEGORY_LABELS[r] || r}
                     </span>
                   ))}
                 </div>
               </div>
-              <p className="text-sm text-foreground/90 line-clamp-2">{comment.body}</p>
-              <div className="flex items-center gap-3 mt-2 text-xs text-muted">
+              <p className="text-sm text-gray-900 line-clamp-2">{comment.body}</p>
+              <div className="flex items-center gap-3 mt-2 text-xs text-gray-500">
                 <span>👍 {comment.score}</span>
                 <span>情感分数: {comment.sentimentScore.toFixed(2)}</span>
                 <a href={comment.permalink} target="_blank" rel="noopener noreferrer" className="text-primary hover:text-primary-hover flex items-center gap-1">

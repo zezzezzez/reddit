@@ -141,9 +141,9 @@ export default function KeywordsPage() {
     const someSelected = selected.size > 0 && selected.size < categoryKeywords.length;
     
     return (
-      <div className="bg-background rounded-lg p-3 border border-border">
+      <div className="bg-white rounded-lg p-3 border border-gray-200">
         <div className="flex items-center justify-between mb-2">
-          <h4 className="text-sm font-semibold text-foreground">{CATEGORY_LABELS[categoryKey] || categoryKey}</h4>
+          <h4 className="text-sm font-semibold text-gray-900">{CATEGORY_LABELS[categoryKey] || categoryKey}</h4>
           <div className="flex gap-2 text-xs">
             <button
               onClick={() => selectAllCategory(categoryKey)}
@@ -153,7 +153,7 @@ export default function KeywordsPage() {
             </button>
             <button
               onClick={() => clearCategory(categoryKey)}
-              className="text-muted hover:text-foreground"
+              className="text-gray-500 hover:text-gray-700"
             >
               清空
             </button>
@@ -166,7 +166,7 @@ export default function KeywordsPage() {
               <label
                 key={kw}
                 className={`flex items-center gap-1.5 px-2 py-1.5 rounded cursor-pointer transition-colors text-xs ${
-                  isChecked ? 'bg-primary/10 text-primary' : 'hover:bg-card'
+                  isChecked ? 'bg-primary/10 text-primary' : 'hover:bg-gray-50'
                 }`}
               >
                 <input
@@ -178,7 +178,7 @@ export default function KeywordsPage() {
                 {isChecked ? (
                   <CheckSquare className="w-3.5 h-3.5 flex-shrink-0" />
                 ) : (
-                  <Square className="w-3.5 h-3.5 flex-shrink-0 text-muted" />
+                  <Square className="w-3.5 h-3.5 flex-shrink-0 text-gray-400" />
                 )}
                 <span className="truncate">{kw}</span>
               </label>
@@ -192,22 +192,24 @@ export default function KeywordsPage() {
   return (
     <div className="p-6 space-y-6 max-w-[1600px] mx-auto">
       {/* Header */}
-      <div>
-        <h1 className="text-2xl font-bold text-foreground">关键词热度追踪</h1>
-        <p className="text-sm text-muted mt-1">基于场景关键词的出现频率分析热门话题</p>
+      <div className="bg-white rounded-lg p-6 shadow-sm border border-gray-100">
+        <div>
+          <h1 className="text-2xl font-semibold text-gray-900">关键词热度追踪</h1>
+          <p className="text-sm text-gray-500 mt-1">基于场景关键词的出现频率分析热门话题</p>
+        </div>
       </div>
 
       {/* Bar Chart */}
-      <div className="bg-card rounded-xl p-5 border border-border">
-        <h3 className="text-sm font-semibold text-foreground mb-3">Top 20 场景关键词</h3>
+      <div className="bg-white rounded-lg p-5 border border-gray-100 shadow-sm">
+        <h3 className="text-sm font-semibold text-gray-900 mb-3">Top 20 场景关键词</h3>
         <ResponsiveContainer width="100%" height={300}>
           <BarChart data={chartData} layout="vertical">
-            <CartesianGrid strokeDasharray="3 3" stroke="#334155" />
-            <XAxis type="number" stroke="#64748b" fontSize={12} />
-            <YAxis dataKey="keyword" type="category" width={100} stroke="#64748b" fontSize={11} />
+            <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
+            <XAxis type="number" stroke="#9ca3af" fontSize={12} />
+            <YAxis dataKey="keyword" type="category" width={100} stroke="#9ca3af" fontSize={11} />
             <Tooltip
-              contentStyle={{ backgroundColor: '#1e293b', border: '1px solid #334155', borderRadius: '8px' }}
-              labelStyle={{ color: '#f1f5f9' }}
+              contentStyle={{ backgroundColor: '#fff', border: '1px solid #e5e7eb', borderRadius: '8px', boxShadow: '0 2px 8px rgba(0,0,0,0.1)' }}
+              labelStyle={{ color: '#111827' }}
             />
             <Bar dataKey="count" fill="#3b82f6" radius={[0, 4, 4, 0]} />
           </BarChart>
@@ -215,24 +217,24 @@ export default function KeywordsPage() {
       </div>
 
       {/* Filters */}
-      <div className="bg-card border border-border rounded-xl p-4 space-y-4">
+      <div className="bg-white border border-gray-100 rounded-lg p-4 space-y-4 shadow-sm">
         {/* Row 1: Basic Filters */}
         <div className="flex items-center gap-3 flex-wrap">
           {/* Subreddit Filter */}
           <div className="relative">
             <button
               onClick={() => setShowSubredditMenu(!showSubredditMenu)}
-              className="flex items-center gap-2 px-3 py-2 bg-background border border-border rounded-lg text-sm text-foreground hover:bg-card-hover min-w-[160px]"
+              className="flex items-center gap-2 px-3 py-2 bg-white border border-gray-200 rounded-lg text-sm text-gray-700 hover:bg-gray-50 min-w-[160px]"
             >
-              <span className="text-muted">板块:</span>
+              <span className="text-gray-500">板块:</span>
               {subreddit || '全部'}
               <ChevronDown className="w-3 h-3 ml-auto" />
             </button>
             {showSubredditMenu && (
-              <div className="absolute top-full mt-1 left-0 bg-card border border-border rounded-lg shadow-lg z-10 py-1 min-w-[160px] max-h-60 overflow-y-auto">
+              <div className="absolute top-full mt-1 left-0 bg-white border border-gray-200 rounded-lg shadow-lg z-10 py-1 min-w-[160px] max-h-60 overflow-y-auto">
                 <button
                   onClick={() => { setSubreddit(''); setShowSubredditMenu(false); }}
-                  className={`w-full text-left px-3 py-1.5 text-sm hover:bg-card-hover ${!subreddit ? 'text-primary' : 'text-foreground'}`}
+                  className={`w-full text-left px-3 py-1.5 text-sm hover:bg-gray-50 ${!subreddit ? 'text-primary font-medium' : 'text-gray-700'}`}
                 >
                   全部板块
                 </button>
@@ -240,7 +242,7 @@ export default function KeywordsPage() {
                   <button
                     key={s}
                     onClick={() => { setSubreddit(s); setShowSubredditMenu(false); }}
-                    className={`w-full text-left px-3 py-1.5 text-sm hover:bg-card-hover ${subreddit === s ? 'text-primary' : 'text-foreground'}`}
+                    className={`w-full text-left px-3 py-1.5 text-sm hover:bg-gray-50 ${subreddit === s ? 'text-primary font-medium' : 'text-gray-700'}`}
                   >
                     r/{s}
                   </button>
@@ -251,13 +253,13 @@ export default function KeywordsPage() {
 
           {/* Keyword Search */}
           <div className="relative flex-1 max-w-sm">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted" />
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
             <input
               type="text"
               placeholder="搜索场景关键词..."
               value={keyword}
               onChange={(e) => setKeyword(e.target.value)}
-              className="w-full pl-9 pr-4 py-2 bg-background border border-border rounded-lg text-sm text-foreground placeholder:text-muted focus:outline-none focus:border-primary"
+              className="w-full pl-9 pr-4 py-2 bg-white border border-gray-200 rounded-lg text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none focus:border-primary"
             />
           </div>
 
@@ -265,7 +267,7 @@ export default function KeywordsPage() {
           {hasFilters && (
             <button
               onClick={clearFilters}
-              className="flex items-center gap-1 px-3 py-2 text-sm text-muted hover:text-foreground"
+              className="flex items-center gap-1 px-3 py-2 text-sm text-gray-500 hover:text-gray-700"
             >
               <X className="w-4 h-4" />
               清除筛选
@@ -275,42 +277,42 @@ export default function KeywordsPage() {
 
         {/* Row 2: Date Filters */}
         <div className="flex items-center gap-3 flex-wrap text-sm">
-          <span className="text-muted">评论时间:</span>
-          <div className="flex items-center gap-1.5 bg-background border border-border rounded-lg px-3 py-1.5">
-            <Calendar className="w-4 h-4 text-muted flex-shrink-0" />
+          <span className="text-gray-500">评论时间:</span>
+          <div className="flex items-center gap-1.5 bg-white border border-gray-200 rounded-lg px-3 py-1.5">
+            <Calendar className="w-4 h-4 text-gray-400 flex-shrink-0" />
             <input
               type="date"
               value={commentDateFrom}
               onChange={(e) => setCommentDateFrom(e.target.value)}
-              className="bg-transparent text-foreground focus:outline-none w-[130px]"
+              className="bg-transparent text-gray-700 focus:outline-none w-[130px]"
               title="评论开始日期"
             />
-            <span className="text-muted text-xs">—</span>
+            <span className="text-gray-400 text-xs">—</span>
             <input
               type="date"
               value={commentDateTo}
               onChange={(e) => setCommentDateTo(e.target.value)}
-              className="bg-transparent text-foreground focus:outline-none w-[130px]"
+              className="bg-transparent text-gray-700 focus:outline-none w-[130px]"
               title="评论结束日期"
             />
           </div>
 
-          <span className="text-muted ml-2">发帖时间:</span>
-          <div className="flex items-center gap-1.5 bg-background border border-border rounded-lg px-3 py-1.5">
-            <Calendar className="w-4 h-4 text-muted flex-shrink-0" />
+          <span className="text-gray-500 ml-2">发帖时间:</span>
+          <div className="flex items-center gap-1.5 bg-white border border-gray-200 rounded-lg px-3 py-1.5">
+            <Calendar className="w-4 h-4 text-gray-400 flex-shrink-0" />
             <input
               type="date"
               value={postDateFrom}
               onChange={(e) => setPostDateFrom(e.target.value)}
-              className="bg-transparent text-foreground focus:outline-none w-[130px]"
+              className="bg-transparent text-gray-700 focus:outline-none w-[130px]"
               title="发帖开始日期"
             />
-            <span className="text-muted text-xs">—</span>
+            <span className="text-gray-400 text-xs">—</span>
             <input
               type="date"
               value={postDateTo}
               onChange={(e) => setPostDateTo(e.target.value)}
-              className="bg-transparent text-foreground focus:outline-none w-[130px]"
+              className="bg-transparent text-gray-700 focus:outline-none w-[130px]"
               title="发帖结束日期"
             />
           </div>
@@ -318,7 +320,7 @@ export default function KeywordsPage() {
 
         {/* Row 3: Category Filters */}
         <div className="space-y-3">
-          <h4 className="text-sm font-semibold text-foreground">关键词分类筛选</h4>
+          <h4 className="text-sm font-semibold text-gray-900">关键词分类筛选</h4>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3">
             {Object.entries(categories).map(([key, catKeywords]) => {
               const selectedMap: Record<string, Set<string>> = {
@@ -343,7 +345,7 @@ export default function KeywordsPage() {
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
         </div>
       ) : keywords.length === 0 ? (
-        <div className="text-center py-20 text-muted bg-card border border-border rounded-xl">
+        <div className="text-center py-20 text-gray-500 bg-white border border-gray-100 rounded-lg shadow-sm">
           <Hash className="w-12 h-12 mx-auto mb-3 opacity-50" />
           <p>没有找到匹配的关键词数据</p>
         </div>
@@ -352,16 +354,16 @@ export default function KeywordsPage() {
           {keywords.map(k => (
             <div
               key={k.word}
-              className="bg-card rounded-lg p-4 border border-border hover:border-primary/40 transition-colors"
+              className="bg-white rounded-lg p-4 border border-gray-100 hover:border-primary/50 transition-colors shadow-sm hover:shadow-md"
             >
               <div className="flex items-center justify-between mb-2">
-                <span className="text-sm font-medium text-foreground truncate" title={k.word}>
+                <span className="text-sm font-medium text-gray-900 truncate" title={k.word}>
                   {k.word}
                 </span>
               </div>
               <div className="flex items-baseline gap-1">
                 <span className="text-2xl font-bold text-primary">{k.count}</span>
-                <span className="text-xs text-muted">次</span>
+                <span className="text-xs text-gray-500">次</span>
               </div>
             </div>
           ))}

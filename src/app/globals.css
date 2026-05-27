@@ -1,23 +1,23 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #1e293b;
+  --background: #f5f7fa;
+  --foreground: #1a1a1a;
   --card: #ffffff;
-  --card-hover: #f8fafc;
-  --border: #bfdbfe;
-  --primary: #0066cc;
-  --primary-hover: #0052a3;
-  --danger: #ef4444;
-  --danger-light: #fef2f2;
-  --danger-bg: #fee2e2;
-  --warning: #f59e0b;
-  --warning-light: #fffbeb;
-  --warning-bg: #fef3c7;
-  --success: #10b981;
-  --success-light: #ecfdf5;
+  --card-hover: #fafbfc;
+  --border: #e8ecf1;
+  --primary: #00b4b4;
+  --primary-hover: #009a9a;
+  --danger: #ff4757;
+  --danger-light: #fff0f0;
+  --danger-bg: #ffe0e0;
+  --warning: #ffa502;
+  --warning-light: #fff8e6;
+  --warning-bg: #ffedcc;
+  --success: #2ed573;
+  --success-light: #e8faf0;
   --success-bg: #d1fae5;
-  --muted: #64748b;
+  --muted: #8c8c8c;
 }
 
 @theme inline {
@@ -45,14 +45,14 @@ body {
   width: 6px;
 }
 ::-webkit-scrollbar-track {
-  background: #f1f5f9;
+  background: #f5f7fa;
 }
 ::-webkit-scrollbar-thumb {
-  background: #cbd5e1;
+  background: #d0d5dd;
   border-radius: 3px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: #94a3b8;
+  background: #a0a8b4;
 }
 
 /* Animation */
