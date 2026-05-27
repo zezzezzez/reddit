@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, Radar } from 'recharts';
+import { ChevronDown, ChevronUp, TrendingUp, MessageSquare } from 'lucide-react';
 
 interface SubredditStats {
   subreddit: string;
@@ -13,8 +14,27 @@ interface SubredditStats {
   healthScore: number;
 }
 
+interface Post {
+  id: string;
+  title: string;
+  influenceScore: number;
+  alertLevel: string;
+  commentCount: number;
+  redditUrl: string;
+}
+
+interface KeywordStats {
+  keyword: string;
+  count: number;
+  category: string;
+}
+
 export default function ComparePage() {
   const [subreddits, setSubreddits] = useState<SubredditStats[]>([]);
+  const [expandedSubreddit, setExpandedSubreddit] = useState<string | null>(null);
+  const [posts, setPosts] = useState<Post[]>([]);
+  const [keywords, setKeywords] = useState<KeywordStats[]>([]);
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     fetch('/api/compare')
@@ -22,6 +42,32 @@ export default function ComparePage() {
       .then(json => setSubreddits(json.subreddits || []))
       .catch(console.error);
   }, []);
+
+  const loadSubredditData = async (subreddit: string) => {
+    if (expandedSubreddit === subreddit) {
+      setExpandedSubreddit(null);
+      return;
+    }
+
+    setLoading(true);
+    setExpandedSubreddit(subreddit);
+
+    try {
+      // Load posts for this subreddit
+      const postsRes = await fetch(`/api/posts?subreddit=${subreddit}&sort=influence`);
+      const postsJson = await postsRes.json();
+      setPosts(postsJson.posts || []);
+
+      // Load keywords for this subreddit
+      const keywordsRes = await fetch(`/api/keywords?subreddit=${subreddit}`);
+      const keywordsJson = await keywordsRes.json();
+      setKeywords(keywordsJson.keywords || []);
+    } catch (error) {
+      console.error('Failed to load subreddit data:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   // Health score color
   const healthColor = (score: number) =>
@@ -61,31 +107,120 @@ export default function ComparePage() {
       </div>
 
       {/* Subreddit Cards */}
-      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+      <div className="space-y-4">
         {subreddits.map(s => (
-          <div key={s.subreddit} className={`bg-card rounded-xl p-4 border ${healthBg(s.healthScore)}`}>
-            <div className="flex items-center justify-between mb-3">
-              <p className="text-sm font-bold text-foreground">r/{s.subreddit}</p>
-              <span className={`text-lg font-bold ${healthColor(s.healthScore)}`}>{s.healthScore}</span>
-            </div>
-            {/* Health bar */}
-            <div className="w-full h-2 bg-muted/30 rounded-full overflow-hidden mb-3">
-              <div className={`h-full rounded-full ${healthBar(s.healthScore)}`} style={{ width: `${s.healthScore}%` }} />
-            </div>
-            <div className="grid grid-cols-3 gap-2 text-center">
-              <div>
-                <p className="text-sm font-bold text-green-400">{s.positiveRate}%</p>
-                <p className="text-xs text-muted">正面</p>
+          <div key={s.subreddit} className={`bg-card rounded-xl border ${healthBg(s.healthScore)} overflow-hidden`}>
+            {/* Card Header - Clickable */}
+            <div 
+              onClick={() => loadSubredditData(s.subreddit)}
+              className="p-4 cursor-pointer hover:bg-white/5 transition-colors"
+            >
+              <div className="flex items-center justify-between mb-3">
+                <div className="flex items-center gap-2">
+                  <p className="text-sm font-bold text-foreground">r/{s.subreddit}</p>
+                  <span className="text-xs text-muted">{s.totalPosts} 帖子 · {s.totalComments} 评论</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className={`text-lg font-bold ${healthColor(s.healthScore)}`}>{s.healthScore}</span>
+                  {expandedSubreddit === s.subreddit ? (
+                    <ChevronUp className="w-5 h-5 text-muted" />
+                  ) : (
+                    <ChevronDown className="w-5 h-5 text-muted" />
+                  )}
+                </div>
               </div>
-              <div>
-                <p className="text-sm font-bold text-slate-400">{s.neutralRate}%</p>
-                <p className="text-xs text-muted">中性</p>
+              {/* Health bar */}
+              <div className="w-full h-2 bg-muted/30 rounded-full overflow-hidden mb-3">
+                <div className={`h-full rounded-full ${healthBar(s.healthScore)}`} style={{ width: `${s.healthScore}%` }} />
               </div>
-              <div>
-                <p className="text-sm font-bold text-red-400">{s.negativeRate}%</p>
-                <p className="text-xs text-muted">负面</p>
+              <div className="grid grid-cols-3 gap-2 text-center">
+                <div>
+                  <p className="text-sm font-bold text-green-400">{s.positiveRate}%</p>
+                  <p className="text-xs text-muted">正面</p>
+                </div>
+                <div>
+                  <p className="text-sm font-bold text-slate-400">{s.neutralRate}%</p>
+                  <p className="text-xs text-muted">中性</p>
+                </div>
+                <div>
+                  <p className="text-sm font-bold text-red-400">{s.negativeRate}%</p>
+                  <p className="text-xs text-muted">负面</p>
+                </div>
               </div>
             </div>
+
+            {/* Expanded Content */}
+            {expandedSubreddit === s.subreddit && (
+              <div className="border-t border-border p-4 space-y-4 bg-black/20">
+                {/* Keywords Section */}
+                {keywords.length > 0 && (
+                  <div>
+                    <h4 className="text-sm font-semibold text-foreground mb-2 flex items-center gap-2">
+                      <TrendingUp className="w-4 h-4" />
+                      关键词统计
+                    </h4>
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
+                      {keywords.map(kw => (
+                        <div key={kw.keyword} className="bg-card rounded-lg p-2 border border-border">
+                          <p className="text-xs text-muted truncate">{kw.keyword}</p>
+                          <p className="text-lg font-bold text-foreground">{kw.count}</p>
+                          <p className="text-xs text-muted">{kw.category}</p>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Posts Section */}
+                <div>
+                  <h4 className="text-sm font-semibold text-foreground mb-2 flex items-center gap-2">
+                    <MessageSquare className="w-4 h-4" />
+                    帖子列表（按影响力排序）
+                  </h4>
+                  {loading ? (
+                    <div className="text-center py-4 text-muted">加载中...</div>
+                  ) : posts.length > 0 ? (
+                    <div className="space-y-2 max-h-96 overflow-y-auto">
+                      {posts.map((post, idx) => (
+                        <div key={post.id} className="bg-card rounded-lg p-3 border border-border hover:border-primary/50 transition-colors">
+                          <div className="flex items-start justify-between gap-2">
+                            <div className="flex-1 min-w-0">
+                              <div className="flex items-center gap-2 mb-1">
+                                <span className="text-xs font-bold text-primary">#{idx + 1}</span>
+                                <a 
+                                  href={post.redditUrl}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="text-sm font-medium text-foreground hover:text-primary truncate"
+                                >
+                                  {post.title}
+                                </a>
+                              </div>
+                              <div className="flex items-center gap-3 text-xs text-muted">
+                                <span>影响力: {post.influenceScore}</span>
+                                <span>评论: {post.commentCount}</span>
+                                <span className={`px-2 py-0.5 rounded ${
+                                  post.alertLevel === 'critical' ? 'bg-red-500/20 text-red-400' :
+                                  post.alertLevel === 'high' ? 'bg-orange-500/20 text-orange-400' :
+                                  post.alertLevel === 'medium' ? 'bg-yellow-500/20 text-yellow-400' :
+                                  'bg-green-500/20 text-green-400'
+                                }`}>
+                                  {post.alertLevel === 'critical' ? '严重' :
+                                   post.alertLevel === 'high' ? '高危' :
+                                   post.alertLevel === 'medium' ? '中等' : '安全'}
+                                </span>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="text-center py-4 text-muted">暂无帖子数据</div>
+                  )}
+                </div>
+              </div>
+            )}
           </div>
         ))}
       </div>

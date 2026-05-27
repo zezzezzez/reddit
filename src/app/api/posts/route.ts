@@ -18,6 +18,7 @@ export async function GET(request: Request) {
     const sort = searchParams.get('sort') || 'alert';
     const dateFrom = searchParams.get('dateFrom');
     const dateTo = searchParams.get('dateTo');
+    const subreddit = searchParams.get('subreddit');
 
     const { posts: allPosts, useMock } = getDataSources();
     let posts = [...allPosts];
@@ -57,6 +58,11 @@ export async function GET(request: Request) {
       const to = new Date(dateTo);
       to.setHours(23, 59, 59, 999);
       posts = posts.filter(p => new Date(p.createdAt) <= to);
+    }
+
+    // Filter by subreddit
+    if (subreddit) {
+      posts = posts.filter(p => p.subreddit === subreddit);
     }
 
     // Search
