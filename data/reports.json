@@ -57,17 +57,17 @@
     "date": "2026-05-28",
     "totalPosts": 78,
     "totalComments": 1067,
-    "flaggedComments": 20,
+    "flaggedComments": 19,
     "criticalAlerts": 4,
     "highAlerts": 0,
-    "mediumAlerts": 6,
-    "safePosts": 68,
+    "mediumAlerts": 5,
+    "safePosts": 69,
     "sentimentTrend": [
       {
         "date": "2026-05-28",
-        "positive": 342,
+        "positive": 343,
         "neutral": 705,
-        "negative": 20
+        "negative": 19
       }
     ]
   }
