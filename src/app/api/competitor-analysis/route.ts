@@ -77,7 +77,10 @@ export async function GET(request: Request) {
     }
 
     console.log(`[Competitor Analysis] Starting analysis for r/${subreddit}, brands: ${selectedBrands.join(', ')}`);
+    console.log(`[Competitor Analysis] NODE_ENV: ${process.env.NODE_ENV}`);
     console.log(`[Competitor Analysis] isLocalDevelopment: ${isLocalDevelopment()}`);
+    const proxyConfig = getLocalProxyConfig();
+    console.log(`[Competitor Analysis] proxyConfig: ${JSON.stringify(proxyConfig)}`);
 
     // 1. 获取板块最新帖子（抓取更多以确保有足够的数据）
     const allPosts = await fetchSubredditPosts(subreddit, 500, 'new');

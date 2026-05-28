@@ -244,38 +244,63 @@ export async function fetchSubredditPosts(
   sort: 'hot' | 'new' | 'top' = 'hot'
 ): Promise<SubredditPost[]> {
   try {
-    // 本地开发环境配置代理
+    const url = `https://www.reddit.com/r/${subreddit}/${sort}.json?limit=${limit}`;
+    console.log(`[Reddit] Fetching ${sort} posts from r/${subreddit}: ${url}`);
+
+    let response: any;
+    
+    // 本地开发环境配置代理（使用 undici.fetch）
     if (isLocalDevelopment()) {
       const proxyConfig = getLocalProxyConfig();
       if (proxyConfig) {
         try {
-          const undici = await import('undici');
+          const { fetch: undiciFetch, ProxyAgent } = await import('undici');
           const proxyUrl = `${proxyConfig.protocol}://${proxyConfig.host}:${proxyConfig.port}`;
-          const proxyAgent = new undici.ProxyAgent(proxyUrl);
-          undici.setGlobalDispatcher(proxyAgent);
-          console.log(`[Reddit] Proxy configured: ${proxyUrl}`);
+          const proxyAgent = new ProxyAgent(proxyUrl);
+          console.log(`[Reddit] Using undici fetch with proxy: ${proxyUrl}`);
+          
+          response = await undiciFetch(url, {
+            headers: {
+              'User-Agent': REDDIT_USER_AGENT,
+              'Accept': 'application/json',
+            },
+            dispatcher: proxyAgent,
+          });
         } catch (error) {
-          console.error('[Reddit] Failed to configure proxy:', error);
+          console.error('[Reddit] Failed to use undici proxy, falling back:', error);
+          // 回退到普通 fetch
+          response = await fetch(url, {
+            headers: {
+              'User-Agent': REDDIT_USER_AGENT,
+              'Accept': 'application/json',
+            },
+          });
         }
+      } else {
+        // 无代理配置，使用普通 fetch
+        response = await fetch(url, {
+          headers: {
+            'User-Agent': REDDIT_USER_AGENT,
+            'Accept': 'application/json',
+          },
+        });
       }
+    } else {
+      // 非本地环境，直接 fetch
+      response = await fetch(url, {
+        headers: {
+          'User-Agent': REDDIT_USER_AGENT,
+          'Accept': 'application/json',
+        },
+      });
     }
-
-    const url = `https://www.reddit.com/r/${subreddit}/${sort}.json?limit=${limit}`;
-    console.log(`[Reddit] Fetching ${sort} posts from r/${subreddit}: ${url}`);
-
-    const response = await fetch(url, {
-      headers: {
-        'User-Agent': REDDIT_USER_AGENT,
-        'Accept': 'application/json',
-      },
-    });
 
     if (!response.ok) {
       console.error(`[Reddit] Failed to fetch subreddit posts: ${response.status}`);
       return [];
     }
 
-    const data = await response.json();
+    const data = await response.json() as any;
     const posts: SubredditPost[] = [];
 
     if (data?.data?.children) {
