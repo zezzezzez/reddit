@@ -116,67 +116,73 @@ export default function CompetitorPage() {
 
       {/* Input Section */}
       <div className="bg-white rounded-lg p-5 border border-gray-100 shadow-sm">
-        <div className="flex gap-3">
-          <div className="relative">
-            <button
-              onClick={() => setShowSubredditMenu(!showSubredditMenu)}
-              className="flex-1 px-4 py-2.5 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary text-sm flex items-center justify-between"
-            >
-              {selectedSubreddit || '选择板块'}
-              <ChevronDown className="w-4 h-4" />
-            </button>
-            {showSubredditMenu && (
-              <div className="absolute top-full left-0 right-0 bg-white border border-gray-200 rounded-lg shadow-lg z-10">
-                {subreddits.map(subreddit => (
-                  <button
-                    key={subreddit}
-                    onClick={() => {
-                      setSelectedSubreddit(subreddit);
-                      setShowSubredditMenu(false);
-                    }}
-                    className="w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-                  >
-                    {subreddit}
-                  </button>
-                ))}
-              </div>
-            )}
+        <div className="flex gap-3 items-center">
+          <div className="flex items-center gap-2">
+            <span className="text-xs text-gray-500 whitespace-nowrap">板块</span>
+            <div className="relative">
+              <button
+                onClick={() => setShowSubredditMenu(!showSubredditMenu)}
+                className="px-4 py-2.5 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary text-sm flex items-center justify-between min-w-[140px]"
+              >
+                {selectedSubreddit || '选择板块'}
+                <ChevronDown className="w-4 h-4" />
+              </button>
+              {showSubredditMenu && (
+                <div className="absolute top-full left-0 right-0 bg-white border border-gray-200 rounded-lg shadow-lg z-10 max-h-60 overflow-y-auto">
+                  {subreddits.map(subreddit => (
+                    <button
+                      key={subreddit}
+                      onClick={() => {
+                        setSelectedSubreddit(subreddit);
+                        setShowSubredditMenu(false);
+                      }}
+                      className="w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                    >
+                      {subreddit}
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
           </div>
-          <div className="relative">
-            <button
-              onClick={() => setShowBrandMenu(!showBrandMenu)}
-              className="flex-1 px-4 py-2.5 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary text-sm flex items-center justify-between"
-            >
-              {selectedBrands.map(brand => COMPETITOR_BRANDS.find(b => b.value === brand)?.name).join(', ') || '选择品牌'}
-              <ChevronDown className="w-4 h-4" />
-            </button>
-            {showBrandMenu && (
-              <div className="absolute top-full left-0 right-0 bg-white border border-gray-200 rounded-lg shadow-lg z-10">
-                {COMPETITOR_BRANDS.map(brand => (
-                  <button
-                    key={brand.value}
-                    onClick={() => {
-                      setSelectedBrands(prev => {
-                        if (prev.includes(brand.value)) {
-                          return prev.filter(b => b !== brand.value);
-                        } else {
-                          return [...prev, brand.value];
-                        }
-                      });
-                    }}
-                    className="w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 flex items-center justify-between"
-                  >
-                    {brand.name}
-                    {selectedBrands.includes(brand.value) && <Check className="w-4 h-4" />}
-                  </button>
-                ))}
-              </div>
-            )}
+          <div className="flex items-center gap-2">
+            <span className="text-xs text-gray-500 whitespace-nowrap">竞品</span>
+            <div className="relative">
+              <button
+                onClick={() => setShowBrandMenu(!showBrandMenu)}
+                className="px-4 py-2.5 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary text-sm flex items-center justify-between min-w-[180px]"
+              >
+                {selectedBrands.map(brand => COMPETITOR_BRANDS.find(b => b.value === brand)?.name).join(', ') || '选择品牌'}
+                <ChevronDown className="w-4 h-4" />
+              </button>
+              {showBrandMenu && (
+                <div className="absolute top-full left-0 right-0 bg-white border border-gray-200 rounded-lg shadow-lg z-10">
+                  {COMPETITOR_BRANDS.map(brand => (
+                    <button
+                      key={brand.value}
+                      onClick={() => {
+                        setSelectedBrands(prev => {
+                          if (prev.includes(brand.value)) {
+                            return prev.filter(b => b !== brand.value);
+                          } else {
+                            return [...prev, brand.value];
+                          }
+                        });
+                      }}
+                      className="w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 flex items-center justify-between"
+                    >
+                      {brand.name}
+                      {selectedBrands.includes(brand.value) && <Check className="w-4 h-4" />}
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
           </div>
           <button
             onClick={handleAnalyze}
             disabled={loading || !selectedSubreddit}
-            className="px-6 py-2.5 bg-primary text-white rounded-lg hover:bg-primary-hover disabled:opacity-50 disabled:cursor-not-allowed font-medium text-sm flex items-center gap-2 transition-colors"
+            className="px-6 py-2.5 bg-primary text-white rounded-lg hover:bg-primary-hover disabled:opacity-50 disabled:cursor-not-allowed font-medium text-sm flex items-center gap-2 transition-colors ml-auto"
           >
             {loading ? (
               <>
