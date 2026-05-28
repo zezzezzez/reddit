@@ -2,6 +2,36 @@ import { NextResponse } from 'next/server';
 import { fetchSubredditPosts, selectRandomPosts, fetchRedditPost } from '@/lib/reddit';
 import { analyzeCommentSentiment, calcCommentInfluenceScore } from '@/lib/sentiment';
 import { getPosts } from '@/lib/store';
+import { getLocalProxyConfig, isLocalDevelopment } from '@/lib/local-proxy';
+
+const isVercel = !!process.env.VERCEL;
+
+// 初始化本地代理
+let proxyInitialized = false;
+async function ensureLocalProxyInitialized() {
+  if (proxyInitialized || !isLocalDevelopment()) {
+    return;
+  }
+  
+  const proxyConfig = getLocalProxyConfig();
+  if (!proxyConfig) {
+    proxyInitialized = true;
+    return;
+  }
+
+  try {
+    console.log('[Competitor Analysis] Initializing local proxy:', `${proxyConfig.protocol}://${proxyConfig.host}:${proxyConfig.port}`);
+    const undici = await import('undici');
+    const proxyUrl = `${proxyConfig.protocol}://${proxyConfig.host}:${proxyConfig.port}`;
+    const proxyAgent = new undici.ProxyAgent(proxyUrl);
+    undici.setGlobalDispatcher(proxyAgent);
+    console.log('[Competitor Analysis] Local proxy configured successfully');
+  } catch (error) {
+    console.error('[Competitor Analysis] Failed to configure local proxy:', error);
+  } finally {
+    proxyInitialized = true;
+  }
+}
 
 interface CompetitorBrand {
   name: string;
@@ -33,6 +63,9 @@ const HISENSE_KEYWORDS = ['Hisense', 'hisense', '海信'];
 
 export async function GET(request: Request) {
   try {
+    // 初始化本地代理
+    await ensureLocalProxyInitialized();
+    
     const { searchParams } = new URL(request.url);
     const subreddit = searchParams.get('subreddit');
     const postsPerBrand = parseInt(searchParams.get('postsPerBrand') || '5');
@@ -44,7 +77,7 @@ export async function GET(request: Request) {
     console.log(`[Competitor Analysis] Starting analysis for r/${subreddit}`);
 
     // 1. 获取板块最新帖子（抓取更多以确保有足够的数据）
-    const allPosts = await fetchSubredditPosts(subreddit, 200, 'new');
+    const allPosts = await fetchSubredditPosts(subreddit, 500, 'new');
     
     if (allPosts.length === 0) {
       return NextResponse.json({ error: 'Failed to fetch posts from subreddit' }, { status: 500 });
@@ -56,16 +89,16 @@ export async function GET(request: Request) {
     const managedPosts = getPosts().filter(p => p.subreddit === subreddit);
     console.log(`[Competitor Analysis] Found ${managedPosts.length} managed Hisense posts`);
 
-    // 3. 过滤竞品帖子：最近 3 天 且 评论数 > 5
-    const threeDaysAgo = new Date();
-    threeDaysAgo.setDate(threeDaysAgo.getDate() - 3);
+    // 3. 过滤竞品帖子：最近 3 个月 且 评论数 > 0
+    const threeMonthsAgo = new Date();
+    threeMonthsAgo.setMonth(threeMonthsAgo.getMonth() - 3);
     
     const competitorCandidatePosts = allPosts.filter(post => {
       const postDate = new Date(post.createdAt);
-      return postDate >= threeDaysAgo && post.commentCount > 5;
+      return postDate >= threeMonthsAgo && post.commentCount > 0;
     });
 
-    console.log(`[Competitor Analysis] Filtered to ${competitorCandidatePosts.length} competitor posts (recent 3 days, comments > 5)`);
+    console.log(`[Competitor Analysis] Filtered to ${competitorCandidatePosts.length} competitor posts (recent 3 months, comments > 0)`);
 
     // 4. 按品牌分类帖子
     const brandPosts: Record<string, typeof allPosts> = {

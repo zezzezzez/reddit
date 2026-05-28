@@ -8,6 +8,9 @@ import { RedditComment, RedditPost } from './types';
 
 const REDDIT_USER_AGENT = 'HisenseRedditMonitor/1.0';
 
+// 配置代理（从环境变量读取）
+const PROXY_URL = process.env.HTTP_PROXY || process.env.HTTPS_PROXY;
+
 interface RedditPostData {
   title: string;
   author: string;
