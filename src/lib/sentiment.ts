@@ -23,7 +23,8 @@ export const KEYWORD_CATEGORIES = {
   product_hate: [
     'worst tv', 'terrible tv', 'horrible tv', 'awful tv', 'pathetic tv', 'garbage tv', 'trash tv',
     'junk tv', 'useless tv', 'broken out of box', 'defective tv', 'piece of crap', 'piece of shit',
-    ' POS ', 'lemon tv', 'nightmare tv', 'complete disaster', 'total fail', 'total failure',
+    'hisense pos', 'hisense piece of crap', 'hisense piece of shit', // 必须绑定品牌前缀
+    'lemon tv', 'nightmare tv', 'complete disaster', 'total fail', 'total failure',
     'regret buying this tv', 'waste of money', 'returning this', 'sent it back',
   ],
   negative_sentiment: [
@@ -118,9 +119,12 @@ const POSITIVE_PATTERNS = [
   // === 对比其他品牌中推荐海信 ===
   { pattern: /hisense (?:over|instead of|rather than|vs|versus|compared to) (?:samsung|lg|sony|tcl|vizio)/i, weight: 0.4 },
   { pattern: /(?:switched?|changed?) (?:from|to) hisense/i, weight: 0.3 },
-  { pattern: /hisense (?:beats?|wins?|is better than|outperforms?) /i, weight: 0.45 },
+  { pattern: /hisense (?:beats?|wins?|is better than|outperforms?|worked better|lasted longer) /i, weight: 0.45 },
   { pattern: /picked hisense (?:over|instead)/i, weight: 0.4 },
   { pattern: /chose hisense/i, weight: 0.35 },
+  { pattern: /(?:go with|would choose|would pick|r'd go with) hisense/i, weight: 0.5 }, // "I'd go with them"
+  { pattern: /hisense (?:worked|works) (?:better|well|great|perfectly)/i, weight: 0.45 },
+  { pattern: /(?:better|more reliable|superior) (?:than|to) (?:my |their |)*(?:tcl|samsung|lg|sony|vizio)/i, weight: 0.35 },
 ];
 
 // Intensity modifiers that amplify negativity

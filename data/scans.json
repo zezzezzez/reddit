@@ -37337,5 +37337,127 @@
       "negative": 0
     },
     "topFlaggedComments": []
+  },
+  {
+    "postId": "short_zSirDzGGlD",
+    "scanTime": "2026-05-28T01:58:45.698Z",
+    "totalComments": 8,
+    "flaggedComments": 1,
+    "alertLevel": "critical",
+    "sentimentSummary": {
+      "positive": 2,
+      "neutral": 5,
+      "negative": 1
+    },
+    "topFlaggedComments": [
+      {
+        "id": "nml7qhx",
+        "postId": "short_zSirDzGGlD",
+        "author": "Bill_Money",
+        "body": "Your use case SCREAMS Bravia 9 or QN90F budget dictates QM7K maybe QM8K\n\navoid Hisense",
+        "score": 2,
+        "createdAt": "2025-11-01T20:15:09.000Z",
+        "sentimentScore": -0.4,
+        "isFlagged": true,
+        "flagReasons": [
+          "call_to_action_negative",
+          "competitor_push"
+        ],
+        "permalink": "https://www.reddit.com/r/4kTV/comments/1olxqvj/used_our_summer_gig_money_to_finally_upgrade_our/nml7qhx/",
+        "replies": [
+          {
+            "id": "nmmd0ww",
+            "postId": "short_zSirDzGGlD",
+            "author": "yourunclegord",
+            "body": "Avoid what models ?I know some Lower models are shit but i always see this on here But they never say a model are people haVing trouble with the u78 and the u88 models because those are the 2 people always suggest.  I got mom a u78 2years ago and it is sweet and still going hard.  I would assume the 2top models should be built a little better than the ones that cost a third of the price.",
+            "score": 0,
+            "createdAt": "2025-11-02T00:05:55.000Z",
+            "sentimentScore": 0,
+            "isFlagged": false,
+            "flagReasons": [],
+            "permalink": "https://www.reddit.com/r/4kTV/comments/1olxqvj/used_our_summer_gig_money_to_finally_upgrade_our/nmmd0ww/",
+            "replies": [
+              {
+                "id": "nmme4fp",
+                "postId": "short_zSirDzGGlD",
+                "author": "Bill_Money",
+                "body": "Hisense has bad QA/QC, Motion Handling, &amp; Processing/Upscaling",
+                "score": 1,
+                "createdAt": "2025-11-02T00:12:22.000Z",
+                "sentimentScore": 0,
+                "isFlagged": false,
+                "flagReasons": [],
+                "permalink": "https://www.reddit.com/r/4kTV/comments/1olxqvj/used_our_summer_gig_money_to_finally_upgrade_our/nmme4fp/"
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "postId": "short_g57xi5WZOO",
+    "scanTime": "2026-05-28T01:58:51.883Z",
+    "totalComments": 11,
+    "flaggedComments": 0,
+    "alertLevel": "safe",
+    "sentimentSummary": {
+      "positive": 10,
+      "neutral": 1,
+      "negative": 0
+    },
+    "topFlaggedComments": []
+  },
+  {
+    "postId": "short_rWwExhw36l",
+    "scanTime": "2026-05-28T01:58:56.941Z",
+    "totalComments": 9,
+    "flaggedComments": 0,
+    "alertLevel": "safe",
+    "sentimentSummary": {
+      "positive": 0,
+      "neutral": 9,
+      "negative": 0
+    },
+    "topFlaggedComments": []
+  },
+  {
+    "postId": "short_z17NKsTpIQ",
+    "scanTime": "2026-05-28T01:59:01.980Z",
+    "totalComments": 17,
+    "flaggedComments": 0,
+    "alertLevel": "safe",
+    "sentimentSummary": {
+      "positive": 9,
+      "neutral": 8,
+      "negative": 0
+    },
+    "topFlaggedComments": []
+  },
+  {
+    "postId": "short_96n5B4JULj",
+    "scanTime": "2026-05-28T01:59:06.927Z",
+    "totalComments": 11,
+    "flaggedComments": 0,
+    "alertLevel": "safe",
+    "sentimentSummary": {
+      "positive": 8,
+      "neutral": 3,
+      "negative": 0
+    },
+    "topFlaggedComments": []
+  },
+  {
+    "postId": "short_HHeJGvZZqO",
+    "scanTime": "2026-05-28T01:59:11.775Z",
+    "totalComments": 6,
+    "flaggedComments": 0,
+    "alertLevel": "safe",
+    "sentimentSummary": {
+      "positive": 5,
+      "neutral": 1,
+      "negative": 0
+    },
+    "topFlaggedComments": []
   }
 ]
