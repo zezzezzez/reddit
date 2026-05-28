@@ -123,7 +123,7 @@ export default function CompetitorPage() {
       </div>
 
       {/* Input Section with glassmorphism */}
-      <div className="relative group">
+      <div className="relative z-50 group">
         <div className="absolute inset-0 bg-gradient-to-r from-cyan-500/20 via-blue-500/20 to-indigo-500/20 rounded-2xl blur-xl group-hover:blur-2xl transition-all"></div>
         <div className="relative bg-white/80 backdrop-blur-xl rounded-2xl p-6 border border-white/50 shadow-xl shadow-cyan-500/10">
           <div className="flex flex-wrap gap-4 items-end">
