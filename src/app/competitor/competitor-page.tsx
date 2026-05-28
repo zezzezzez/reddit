@@ -1,7 +1,7 @@
 'use client';
 
-import { useState } from 'react';
-import { TrendingUp, AlertTriangle, BarChart3, ExternalLink } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { TrendingUp, AlertTriangle, BarChart3, ExternalLink, ChevronDown, Check } from 'lucide-react';
 
 interface BrandData {
   brand: string;
@@ -23,8 +23,19 @@ const BRAND_COLORS: Record<string, { bg: string; text: string; border: string; b
   Sony: { bg: 'bg-purple-50', text: 'text-purple-700', border: 'border-purple-200', badge: 'bg-purple-500' },
 };
 
+// 可选竞品品牌
+const COMPETITOR_BRANDS = [
+  { name: 'TCL', value: 'tcl' },
+  { name: 'Samsung', value: 'samsung' },
+  { name: 'Sony', value: 'sony' },
+];
+
 export default function CompetitorPage() {
-  const [subreddit, setSubreddit] = useState('');
+  const [subreddits, setSubreddits] = useState<string[]>([]);
+  const [selectedSubreddit, setSelectedSubreddit] = useState('');
+  const [selectedBrands, setSelectedBrands] = useState<string[]>(['tcl', 'samsung', 'sony']);
+  const [showSubredditMenu, setShowSubredditMenu] = useState(false);
+  const [showBrandMenu, setShowBrandMenu] = useState(false);
   const [loading, setLoading] = useState(false);
   const [progress, setProgress] = useState('');
   const [data, setData] = useState<{
@@ -34,16 +45,33 @@ export default function CompetitorPage() {
     timestamp: string;
   } | null>(null);
 
+  // 加载板块列表
+  useEffect(() => {
+    fetch('/api/subreddits')
+      .then(res => res.json())
+      .then(json => {
+        if (json.subreddits) {
+          setSubreddits(json.subreddits);
+          if (json.subreddits.length > 0) {
+            setSelectedSubreddit(json.subreddits[0]);
+          }
+        }
+      })
+      .catch(console.error);
+  }, []);
+
   const handleAnalyze = async () => {
-    if (!subreddit) return;
+    if (!selectedSubreddit) return;
 
     setLoading(true);
     setProgress('正在获取板块帖子...');
     setData(null);
 
     try {
+      // 构建品牌参数
+      const brandsParam = selectedBrands.join(',');
       const response = await fetch(
-        `/api/competitor-analysis?subreddit=${subreddit}&postsPerBrand=5`
+        `/api/competitor-analysis?subreddit=${selectedSubreddit}&postsPerBrand=5&brands=${brandsParam}`
       );
       const result = await response.json();
 
@@ -89,17 +117,65 @@ export default function CompetitorPage() {
       {/* Input Section */}
       <div className="bg-white rounded-lg p-5 border border-gray-100 shadow-sm">
         <div className="flex gap-3">
-          <input
-            type="text"
-            value={subreddit}
-            onChange={(e) => setSubreddit(e.target.value)}
-            placeholder="输入 Reddit 板块名称（如 costco）"
-            className="flex-1 px-4 py-2.5 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary text-sm"
-            onKeyDown={(e) => e.key === 'Enter' && handleAnalyze()}
-          />
+          <div className="relative">
+            <button
+              onClick={() => setShowSubredditMenu(!showSubredditMenu)}
+              className="flex-1 px-4 py-2.5 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary text-sm flex items-center justify-between"
+            >
+              {selectedSubreddit || '选择板块'}
+              <ChevronDown className="w-4 h-4" />
+            </button>
+            {showSubredditMenu && (
+              <div className="absolute top-full left-0 right-0 bg-white border border-gray-200 rounded-lg shadow-lg z-10">
+                {subreddits.map(subreddit => (
+                  <button
+                    key={subreddit}
+                    onClick={() => {
+                      setSelectedSubreddit(subreddit);
+                      setShowSubredditMenu(false);
+                    }}
+                    className="w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                  >
+                    {subreddit}
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+          <div className="relative">
+            <button
+              onClick={() => setShowBrandMenu(!showBrandMenu)}
+              className="flex-1 px-4 py-2.5 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary text-sm flex items-center justify-between"
+            >
+              {selectedBrands.map(brand => COMPETITOR_BRANDS.find(b => b.value === brand)?.name).join(', ') || '选择品牌'}
+              <ChevronDown className="w-4 h-4" />
+            </button>
+            {showBrandMenu && (
+              <div className="absolute top-full left-0 right-0 bg-white border border-gray-200 rounded-lg shadow-lg z-10">
+                {COMPETITOR_BRANDS.map(brand => (
+                  <button
+                    key={brand.value}
+                    onClick={() => {
+                      setSelectedBrands(prev => {
+                        if (prev.includes(brand.value)) {
+                          return prev.filter(b => b !== brand.value);
+                        } else {
+                          return [...prev, brand.value];
+                        }
+                      });
+                    }}
+                    className="w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 flex items-center justify-between"
+                  >
+                    {brand.name}
+                    {selectedBrands.includes(brand.value) && <Check className="w-4 h-4" />}
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
           <button
             onClick={handleAnalyze}
-            disabled={loading || !subreddit}
+            disabled={loading || !selectedSubreddit}
             className="px-6 py-2.5 bg-primary text-white rounded-lg hover:bg-primary-hover disabled:opacity-50 disabled:cursor-not-allowed font-medium text-sm flex items-center gap-2 transition-colors"
           >
             {loading ? (

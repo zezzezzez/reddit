@@ -51,13 +51,6 @@ interface BrandAnalysis {
   keywords: Record<string, number>;
 }
 
-// 竞品品牌配置
-const COMPETITOR_BRANDS: CompetitorBrand[] = [
-  { name: 'TCL', keywords: ['TCL', 'tcl'] },
-  { name: 'Samsung', keywords: ['Samsung', 'samsung', '三星'] },
-  { name: 'Sony', keywords: ['Sony', 'sony', '索尼'] },
-];
-
 // 海信品牌关键词
 const HISENSE_KEYWORDS = ['Hisense', 'hisense', '海信'];
 
@@ -69,12 +62,21 @@ export async function GET(request: Request) {
     const { searchParams } = new URL(request.url);
     const subreddit = searchParams.get('subreddit');
     const postsPerBrand = parseInt(searchParams.get('postsPerBrand') || '5');
+    const brandsParam = searchParams.get('brands') || 'tcl,samsung,sony';
+    const selectedBrands = brandsParam.split(',').filter(b => b);
+
+    // 构建竞品品牌列表
+    const COMPETITOR_BRANDS = [
+      { name: 'TCL', keywords: ['tcl'] },
+      { name: 'Samsung', keywords: ['samsung', '三星'] },
+      { name: 'Sony', keywords: ['sony', '索尼'] },
+    ].filter(b => selectedBrands.includes(b.name.toLowerCase()));
 
     if (!subreddit) {
       return NextResponse.json({ error: 'Missing subreddit parameter' }, { status: 400 });
     }
 
-    console.log(`[Competitor Analysis] Starting analysis for r/${subreddit}`);
+    console.log(`[Competitor Analysis] Starting analysis for r/${subreddit}, brands: ${selectedBrands.join(', ')}`);
 
     // 1. 获取板块最新帖子（抓取更多以确保有足够的数据）
     const allPosts = await fetchSubredditPosts(subreddit, 500, 'new');
