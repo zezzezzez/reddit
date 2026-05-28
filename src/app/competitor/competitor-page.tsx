@@ -30,6 +30,7 @@ export default function CompetitorPage() {
   const [data, setData] = useState<{
     subreddit: string;
     brands: Record<string, BrandData>;
+    hisenseFlaggedPosts: any[];
     timestamp: string;
   } | null>(null);
 
@@ -195,6 +196,95 @@ export default function CompetitorPage() {
               );
             })}
           </div>
+
+          {/* Hisense Flagged Posts Section */}
+          {data.hisenseFlaggedPosts && data.hisenseFlaggedPosts.length > 0 && (
+            <div className="bg-white rounded-lg p-5 border border-red-200 shadow-sm">
+              <h3 className="text-lg font-semibold text-red-600 mb-4">
+                海信帖子中的恶意评论（共 {data.hisenseFlaggedPosts.length} 条帖子）
+              </h3>
+              <div className="space-y-4">
+                {data.hisenseFlaggedPosts.map((post: any) => (
+                  <div 
+                    key={post.id} 
+                    className="p-4 rounded-lg bg-red-50 border border-red-200"
+                  >
+                    <div className="flex items-start justify-between mb-3">
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2 mb-1">
+                          <span className={`px-2 py-0.5 text-[10px] font-bold rounded ${
+                            post.alertLevel === 'critical' || post.alertLevel === 'high' 
+                              ? 'bg-red-500 text-white' 
+                              : 'bg-yellow-500 text-white'
+                          }`}>
+                            {post.alertLevel === 'critical' || post.alertLevel === 'high' ? '严重' : '中等'}
+                          </span>
+                          <span className="text-xs text-gray-500">r/{post.subreddit}</span>
+                        </div>
+                        <h4 className="text-sm font-semibold text-gray-900 truncate">
+                          {post.title}
+                        </h4>
+                        <div className="flex items-center gap-3 text-xs text-gray-500 mt-1">
+                          <span>💬 {post.commentCount} 评论</span>
+                          <span className="text-red-600">🚨 {post.flaggedCommentCount} 恶意</span>
+                        </div>
+                      </div>
+                      <a
+                        href={post.redditUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-xs text-primary hover:text-primary-hover flex items-center gap-1 flex-shrink-0"
+                      >
+                        查看 <ExternalLink className="w-3 h-3" />
+                      </a>
+                    </div>
+
+                    {/* Flagged Comments */}
+                    <div className="space-y-2">
+                      {post.flaggedComments.map((comment: any, idx: number) => (
+                        <div 
+                          key={comment.id || idx}
+                          className="p-3 rounded bg-white border border-red-100"
+                        >
+                          <div className="flex items-center justify-between mb-1">
+                            <span className="text-xs font-medium text-gray-900">
+                              u/{comment.author}
+                            </span>
+                            <div className="flex items-center gap-2">
+                              <span className="text-xs text-gray-500">👍 {comment.score}</span>
+                              <span className={`px-2 py-0.5 rounded text-[10px] font-semibold ${
+                                comment.influenceScore >= 20 
+                                  ? 'bg-red-100 text-red-700' 
+                                  : comment.influenceScore >= 5 
+                                  ? 'bg-yellow-100 text-yellow-700' 
+                                  : 'bg-gray-100 text-gray-700'
+                              }`}>
+                                ⚡ {comment.influenceScore?.toFixed(1) || '0'}
+                              </span>
+                            </div>
+                          </div>
+                          <p className="text-xs text-gray-700 leading-relaxed line-clamp-2">
+                            {comment.body}
+                          </p>
+                          <div className="flex flex-wrap gap-1 mt-2">
+                            {(comment.flagReasons || []).map((reason: string, i: number) => (
+                              <span 
+                                key={i} 
+                                className="px-1.5 py-0.5 text-[10px] bg-red-100 text-red-700 rounded"
+                              >
+                                {reason}
+                              </span>
+                            ))}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
 
           {/* Posts Detail */}
           {Object.entries(data.brands).map(([brandName, brandData]) => {

@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { fetchSubredditPosts, selectRandomPosts, fetchRedditPost } from '@/lib/reddit';
 import { analyzeCommentSentiment, calcCommentInfluenceScore } from '@/lib/sentiment';
-import { getPosts } from '@/lib/store';
+import { getPosts, getComments } from '@/lib/store';
 import { getLocalProxyConfig, isLocalDevelopment } from '@/lib/local-proxy';
 
 const isVercel = !!process.env.VERCEL;
@@ -88,6 +88,42 @@ export async function GET(request: Request) {
     // 2. 获取已管理的海信帖子（不限制时间和评论数）
     const managedPosts = getPosts().filter(p => p.subreddit === subreddit);
     console.log(`[Competitor Analysis] Found ${managedPosts.length} managed Hisense posts`);
+
+    // 2.5 获取已管理海信帖子中有恶意评论的帖子
+    const hisenseFlaggedPosts = [];
+    for (const post of managedPosts) {
+      if (post.lastScanned && post.alertLevel && post.alertLevel !== 'safe' && post.alertLevel !== 'low') {
+        // 获取该帖子的恶意评论
+        const comments = getComments(post.id);
+        const flaggedComments = comments.filter(c => c.isFlagged);
+        
+        if (flaggedComments.length > 0) {
+          hisenseFlaggedPosts.push({
+            id: post.id,
+            title: post.title,
+            subreddit: post.subreddit,
+            alertLevel: post.alertLevel,
+            alertReasons: post.alertReasons || [],
+            commentCount: post.commentCount || 0,
+            flaggedCommentCount: flaggedComments.length,
+            totalInfluenceScore: post.totalInfluenceScore || 0,
+            redditUrl: post.redditUrl,
+            createdAt: post.createdAt,
+            flaggedComments: flaggedComments.map(c => ({
+              id: c.id,
+              author: c.author,
+              body: c.body,
+              score: c.score,
+              sentimentScore: c.sentimentScore,
+              isFlagged: c.isFlagged,
+              flagReasons: c.flagReasons || [],
+              influenceScore: c.influenceScore,
+            })),
+          });
+        }
+      }
+    }
+    console.log(`[Competitor Analysis] Found ${hisenseFlaggedPosts.length} Hisense posts with flagged comments`);
 
     // 3. 过滤竞品帖子：最近 3 个月 且 评论数 > 0
     const threeMonthsAgo = new Date();
@@ -251,6 +287,7 @@ export async function GET(request: Request) {
     return NextResponse.json({
       subreddit,
       brands: brandAnalysis,
+      hisenseFlaggedPosts,
       timestamp: new Date().toISOString(),
     });
   } catch (error) {
