@@ -63,12 +63,19 @@ export async function fetchRedditPost(url: string, ourPostId?: string): Promise<
     const jsonUrl = cleanUrl + '.json';
     console.log(`[Reddit] Fetching: ${jsonUrl}`);
 
+    // 添加超时控制（30秒）
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 30000);
+
     const response = await fetch(jsonUrl, {
       headers: {
         'User-Agent': REDDIT_USER_AGENT,
         'Accept': 'application/json',
       },
+      signal: controller.signal,
     });
+
+    clearTimeout(timeoutId);
 
     if (!response.ok) {
       // If rate limited (429), wait longer and retry up to 3 times
@@ -116,8 +123,13 @@ export async function fetchRedditPost(url: string, ourPostId?: string): Promise<
     const comments = extractComments(commentListing, ourPostId || postData.id || '');
 
     return { postData, comments };
-  } catch (error) {
-    console.error(`Error fetching Reddit post ${url}:`, error);
+  } catch (error: any) {
+    // 处理超时错误
+    if (error.name === 'AbortError') {
+      console.error(`[Reddit] Timeout fetching post ${url} (30s)`);
+    } else {
+      console.error(`Error fetching Reddit post ${url}:`, error);
+    }
     return null;
   }
 }
