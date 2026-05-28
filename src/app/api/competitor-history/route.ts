@@ -1,10 +1,22 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getCompetitorHistory, deleteCompetitorRecord, saveCompetitorRecord } from '@/lib/store';
 
-// GET /api/competitor-history - 获取历史记录列表
+// GET /api/competitor-history - 获取历史记录列表或单条详情
 export async function GET(request: NextRequest) {
+  const { searchParams } = new URL(request.url);
+  const id = searchParams.get('id');
   const history = getCompetitorHistory();
   
+  // 如果指定了 id，返回完整记录
+  if (id) {
+    const record = history.find(r => r.id === id);
+    if (!record) {
+      return NextResponse.json({ error: 'Record not found' }, { status: 404 });
+    }
+    return NextResponse.json({ record });
+  }
+  
+  // 否则返回摘要列表
   return NextResponse.json({ 
     history: history.map(record => ({
       id: record.id,

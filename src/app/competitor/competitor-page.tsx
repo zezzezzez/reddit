@@ -84,17 +84,21 @@ export default function CompetitorPage() {
 
   const handleViewHistory = async (id: string) => {
     try {
-      const res = await fetch('/api/competitor-history');
+      // 获取完整记录
+      const res = await fetch(`/api/competitor-history?id=${id}`);
       const json = await res.json();
-      const record = json.history.find((r: any) => r.id === id);
       
-      if (record && record.data) {
-        setData(record.data);
+      if (json.record && json.record.data) {
+        setData(json.record.data);
         setSelectedHistoryId(id);
         setShowHistoryDetail(true);
+        
+        // 滚动到顶部查看分析结果
+        window.scrollTo({ top: 0, behavior: 'smooth' });
       }
     } catch (error) {
       console.error('Failed to load history detail:', error);
+      alert('加载历史记录失败');
     }
   };
 
@@ -630,7 +634,21 @@ export default function CompetitorPage() {
               <BarChart3 className="w-5 h-5 text-cyan-600" />
               历史分析记录
             </h2>
-            <span className="text-xs text-gray-500">共 {history.length} 条</span>
+            <div className="flex items-center gap-3">
+              {showHistoryDetail && (
+                <button
+                  onClick={() => {
+                    setShowHistoryDetail(false);
+                    setSelectedHistoryId(null);
+                    setData(null);
+                  }}
+                  className="px-3 py-1.5 text-xs text-cyan-600 hover:bg-cyan-50 rounded-lg transition-all font-medium"
+                >
+                  + 新分析
+                </button>
+              )}
+              <span className="text-xs text-gray-500">共 {history.length} 条</span>
+            </div>
           </div>
 
           <div className="space-y-2">
@@ -647,8 +665,15 @@ export default function CompetitorPage() {
                 <div
                   key={record.id}
                   onClick={() => handleViewHistory(record.id)}
-                  className="p-4 rounded-lg border border-gray-200 hover:border-cyan-300 hover:bg-cyan-50/50 transition-all cursor-pointer group"
+                  className="p-4 rounded-lg border-2 border-gray-200 hover:border-cyan-400 hover:bg-cyan-50/50 transition-all cursor-pointer group relative"
                 >
+                  {/* 查看提示 */}
+                  <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                    <span className="text-xs text-cyan-600 bg-cyan-100 px-2 py-1 rounded-full font-medium">
+                      点击查看详情 →
+                    </span>
+                  </div>
+                  
                   <div className="flex items-center justify-between">
                     <div className="flex-1">
                       <div className="flex items-center gap-3 mb-1">
