@@ -114,7 +114,7 @@ export async function GET(request: Request) {
             alertReasons: post.alertReasons || [],
             commentCount: post.commentCount || 0,
             flaggedCommentCount: flaggedComments.length,
-            totalInfluenceScore: post.totalInfluenceScore || 0,
+            totalInfluenceScore: (post as any)._totalInfluenceScore || 0,
             redditUrl: post.redditUrl,
             createdAt: post.createdAt,
             flaggedComments: flaggedComments.map(c => ({
