@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { fetchSubredditPosts, selectRandomPosts, fetchRedditPost } from '@/lib/reddit';
 import { analyzeCommentSentiment, calcCommentInfluenceScore } from '@/lib/sentiment';
-import { getPosts, getComments } from '@/lib/store';
+import { getPosts, getComments, saveCompetitorRecord } from '@/lib/store';
 import { getLocalProxyConfig, isLocalDevelopment } from '@/lib/local-proxy';
 
 const isVercel = !!process.env.VERCEL;
@@ -355,12 +355,30 @@ export async function GET(request: Request) {
       };
     }
 
-    return NextResponse.json({
+    const result = {
       subreddit,
       brands: brandAnalysis,
       hisenseFlaggedPosts,
       timestamp: new Date().toISOString(),
-    });
+    };
+
+    // 自动保存分析记录
+    try {
+      const recordId = `comp_${Date.now()}`;
+      saveCompetitorRecord({
+        id: recordId,
+        subreddit,
+        brands: selectedBrands,
+        timeRange,
+        timestamp: result.timestamp,
+        data: result,
+      });
+      console.log(`[Competitor Analysis] Record saved: ${recordId}`);
+    } catch (error) {
+      console.error('[Competitor Analysis] Failed to save record:', error);
+    }
+
+    return NextResponse.json(result);
   } catch (error) {
     console.error('[Competitor Analysis] Error:', error);
     return NextResponse.json({ error: 'Failed to perform competitor analysis' }, { status: 500 });

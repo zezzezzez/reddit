@@ -15,6 +15,7 @@ const COMMENTS_FILE = join(DATA_DIR, 'comments.json');
 const SCANS_FILE = join(DATA_DIR, 'scans.json');
 const CONFIG_FILE = join(DATA_DIR, 'config.json');
 const REPORTS_FILE = join(DATA_DIR, 'reports.json');
+const COMPETITOR_HISTORY_FILE = join(DATA_DIR, 'competitor-history.json');
 
 function ensureDataDir() {
   try {
@@ -56,6 +57,7 @@ const memoryStore: Record<string, any> = {
   scans: [],
   reports: [],
   config: null,
+  competitorHistory: [],
 };
 
 // ─── Posts ───────────────────────────────────────────────────
@@ -238,4 +240,48 @@ export function getConfig(): MonitorConfig {
 export function saveConfig(config: MonitorConfig) {
   if (isVercel) { memoryStore.config = config; return; }
   writeJsonFile(CONFIG_FILE, config);
+}
+
+// ─── Competitor Analysis History ─────────────────────────
+export interface CompetitorAnalysisRecord {
+  id: string;
+  subreddit: string;
+  brands: string[];
+  timeRange: string;
+  timestamp: string;
+  data: any; // 完整的分析结果
+}
+
+export function getCompetitorHistory(): CompetitorAnalysisRecord[] {
+  if (isVercel) {
+    return memoryStore.competitorHistory || [];
+  }
+  return readJsonFile<CompetitorAnalysisRecord[]>(COMPETITOR_HISTORY_FILE, []);
+}
+
+export function saveCompetitorRecord(record: CompetitorAnalysisRecord) {
+  const history = getCompetitorHistory();
+  history.unshift(record); // 最新的在前面
+  
+  // 限制最多保存 50 条记录
+  if (history.length > 50) {
+    history.length = 50;
+  }
+  
+  if (isVercel) {
+    memoryStore.competitorHistory = history;
+    return;
+  }
+  writeJsonFile(COMPETITOR_HISTORY_FILE, history);
+}
+
+export function deleteCompetitorRecord(id: string) {
+  const history = getCompetitorHistory();
+  const filtered = history.filter(r => r.id !== id);
+  
+  if (isVercel) {
+    memoryStore.competitorHistory = filtered;
+    return;
+  }
+  writeJsonFile(COMPETITOR_HISTORY_FILE, filtered);
 }

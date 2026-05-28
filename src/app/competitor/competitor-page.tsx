@@ -45,6 +45,11 @@ export default function CompetitorPage() {
     hisenseFlaggedPosts: any[];
     timestamp: string;
   } | null>(null);
+  
+  // 历史记录相关状态
+  const [history, setHistory] = useState<any[]>([]);
+  const [selectedHistoryId, setSelectedHistoryId] = useState<string | null>(null);
+  const [showHistoryDetail, setShowHistoryDetail] = useState(false);
 
   // 加载板块列表
   useEffect(() => {
@@ -59,7 +64,62 @@ export default function CompetitorPage() {
         }
       })
       .catch(console.error);
+    
+    // 加载历史记录
+    loadHistory();
   }, []);
+
+  const loadHistory = async () => {
+    try {
+      const res = await fetch('/api/competitor-history');
+      const json = await res.json();
+      if (json.history) {
+        setHistory(json.history);
+      }
+    } catch (error) {
+      console.error('Failed to load history:', error);
+    }
+  };
+
+  const handleViewHistory = async (id: string) => {
+    try {
+      const res = await fetch('/api/competitor-history');
+      const json = await res.json();
+      const record = json.history.find((r: any) => r.id === id);
+      
+      if (record && record.data) {
+        setData(record.data);
+        setSelectedHistoryId(id);
+        setShowHistoryDetail(true);
+      }
+    } catch (error) {
+      console.error('Failed to load history detail:', error);
+    }
+  };
+
+  const handleDeleteHistory = async (id: string, e: React.MouseEvent) => {
+    e.stopPropagation();
+    
+    if (!confirm('确定要删除这条分析记录吗？')) return;
+    
+    try {
+      const res = await fetch(`/api/competitor-history?id=${id}`, { method: 'DELETE' });
+      const json = await res.json();
+      
+      if (json.success) {
+        loadHistory(); // 重新加载列表
+        
+        // 如果删除的是当前查看的记录，关闭详情
+        if (selectedHistoryId === id) {
+          setShowHistoryDetail(false);
+          setSelectedHistoryId(null);
+          setData(null);
+        }
+      }
+    } catch (error) {
+      console.error('Failed to delete history:', error);
+    }
+  };
 
   const handleAnalyze = async () => {
     if (!selectedSubreddit) return;
@@ -551,6 +611,73 @@ export default function CompetitorPage() {
               </div>
             );
           })}
+        </div>
+      )}
+
+      {/* History Section */}
+      {history.length > 0 && (
+        <div className="bg-white rounded-lg p-6 shadow-sm border border-gray-100">
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-lg font-bold text-gray-900 flex items-center gap-2">
+              <BarChart3 className="w-5 h-5 text-cyan-600" />
+              历史分析记录
+            </h2>
+            <span className="text-xs text-gray-500">共 {history.length} 条</span>
+          </div>
+
+          <div className="space-y-2">
+            {history.map((record) => {
+              const date = new Date(record.timestamp);
+              const timeStr = date.toLocaleString('zh-CN', {
+                month: '2-digit',
+                day: '2-digit',
+                hour: '2-digit',
+                minute: '2-digit',
+              });
+
+              return (
+                <div
+                  key={record.id}
+                  onClick={() => handleViewHistory(record.id)}
+                  className="p-4 rounded-lg border border-gray-200 hover:border-cyan-300 hover:bg-cyan-50/50 transition-all cursor-pointer group"
+                >
+                  <div className="flex items-center justify-between">
+                    <div className="flex-1">
+                      <div className="flex items-center gap-3 mb-1">
+                        <span className="text-sm font-semibold text-gray-900">
+                          r/{record.subreddit}
+                        </span>
+                        <div className="flex gap-1">
+                          {record.brands.map((brand: string) => (
+                            <span
+                              key={brand}
+                              className="px-2 py-0.5 bg-cyan-100 text-cyan-700 rounded text-xs font-medium"
+                            >
+                              {brand}
+                            </span>
+                          ))}
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-4 text-xs text-gray-500">
+                        <span>🕒 {timeStr}</span>
+                        <span>📊 {record.summary.brandCount} 个品牌</span>
+                        <span>🚨 {record.summary.hisenseFlaggedCount} 恶意帖子</span>
+                        {record.timeRange !== 'all' && (
+                          <span>⏱ {record.timeRange}</span>
+                        )}
+                      </div>
+                    </div>
+                    <button
+                      onClick={(e) => handleDeleteHistory(record.id, e)}
+                      className="px-3 py-1.5 text-xs text-red-600 hover:bg-red-50 rounded-lg opacity-0 group-hover:opacity-100 transition-all"
+                    >
+                      删除
+                    </button>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
         </div>
       )}
 
