@@ -3,8 +3,8 @@
 
 import { RedditComment, RedditPost } from './types';
 
-// Use public Reddit JSON API (no auth required, but rate limited)
-// For production, use Reddit API with OAuth
+// 配置代理
+import { getLocalProxyConfig, isLocalDevelopment } from './local-proxy';
 
 const REDDIT_USER_AGENT = 'HisenseRedditMonitor/1.0';
 
@@ -244,6 +244,22 @@ export async function fetchSubredditPosts(
   sort: 'hot' | 'new' | 'top' = 'hot'
 ): Promise<SubredditPost[]> {
   try {
+    // 本地开发环境配置代理
+    if (isLocalDevelopment()) {
+      const proxyConfig = getLocalProxyConfig();
+      if (proxyConfig) {
+        try {
+          const undici = await import('undici');
+          const proxyUrl = `${proxyConfig.protocol}://${proxyConfig.host}:${proxyConfig.port}`;
+          const proxyAgent = new undici.ProxyAgent(proxyUrl);
+          undici.setGlobalDispatcher(proxyAgent);
+          console.log(`[Reddit] Proxy configured: ${proxyUrl}`);
+        } catch (error) {
+          console.error('[Reddit] Failed to configure proxy:', error);
+        }
+      }
+    }
+
     const url = `https://www.reddit.com/r/${subreddit}/${sort}.json?limit=${limit}`;
     console.log(`[Reddit] Fetching ${sort} posts from r/${subreddit}: ${url}`);
 
