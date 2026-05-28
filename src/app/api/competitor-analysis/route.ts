@@ -77,9 +77,12 @@ export async function GET(request: Request) {
     }
 
     console.log(`[Competitor Analysis] Starting analysis for r/${subreddit}, brands: ${selectedBrands.join(', ')}`);
+    console.log(`[Competitor Analysis] isLocalDevelopment: ${isLocalDevelopment()}`);
 
     // 1. 获取板块最新帖子（抓取更多以确保有足够的数据）
     const allPosts = await fetchSubredditPosts(subreddit, 500, 'new');
+    
+    console.log(`[Competitor Analysis] Fetched ${allPosts.length} posts from Reddit`);
     
     if (allPosts.length === 0) {
       return NextResponse.json({ error: 'Failed to fetch posts from subreddit' }, { status: 500 });
@@ -189,6 +192,17 @@ export async function GET(request: Request) {
       Samsung: brandPosts['Samsung'].length,
       Sony: brandPosts['Sony'].length,
       Other: brandPosts['Other'].length,
+    });
+
+    // 打印前几条竞品帖子标题用于调试
+    const allCompetitorPosts = [
+      ...brandPosts['TCL'],
+      ...brandPosts['Samsung'],
+      ...brandPosts['Sony'],
+    ];
+    console.log('[Competitor Analysis] First 5 competitor post titles:');
+    allCompetitorPosts.slice(0, 5).forEach((p, i) => {
+      console.log(`  ${i + 1}. ${p.title}`);
     });
 
     // 5. 对每个品牌选择帖子（竞品数量 = 海信帖子数量）
