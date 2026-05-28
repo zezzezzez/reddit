@@ -17,6 +17,8 @@ interface AlertPost {
 
 interface AlertStats {
   pending: number;
+  pendingCritical: number;
+  pendingMedium: number;
   processing: number;
   resolved: number;
   ignored: number;
@@ -36,7 +38,7 @@ const LEVEL_STYLES: Record<string, { text: string; label: string }> = {
 
 export default function AlertsPage() {
   const [posts, setPosts] = useState<AlertPost[]>([]);
-  const [stats, setStats] = useState<AlertStats>({ pending: 0, processing: 0, resolved: 0, ignored: 0 });
+  const [stats, setStats] = useState<AlertStats>({ pending: 0, pendingCritical: 0, pendingMedium: 0, processing: 0, resolved: 0, ignored: 0 });
   const [filter, setFilter] = useState('pending');
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [note, setNote] = useState('');
@@ -90,10 +92,14 @@ export default function AlertsPage() {
       </div>
 
       {/* Stats Cards */}
-      <div className="grid grid-cols-4 gap-4">
+      <div className="grid grid-cols-5 gap-4">
+        <div className="bg-white rounded-lg p-5 border border-red-200 shadow-sm hover:shadow-md transition-shadow">
+          <p className="text-sm text-gray-500">待处理-严重</p>
+          <p className="text-3xl font-semibold text-red-600 mt-1">{stats.pendingCritical}</p>
+        </div>
         <div className="bg-white rounded-lg p-5 border border-yellow-200 shadow-sm hover:shadow-md transition-shadow">
-          <p className="text-sm text-gray-500">待处理</p>
-          <p className="text-3xl font-semibold text-yellow-600 mt-1">{stats.pending}</p>
+          <p className="text-sm text-gray-500">待处理-中等</p>
+          <p className="text-3xl font-semibold text-yellow-600 mt-1">{stats.pendingMedium}</p>
         </div>
         <div className="bg-white rounded-lg p-5 border border-blue-200 shadow-sm hover:shadow-md transition-shadow">
           <p className="text-sm text-gray-500">处理中</p>

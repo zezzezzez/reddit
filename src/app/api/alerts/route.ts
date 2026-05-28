@@ -6,7 +6,8 @@ export async function GET(request: Request) {
   const status = searchParams.get('status');
 
   const posts = getPosts();
-  const alertPosts = posts.filter(p => p.lastScanned && p.alertLevel === 'critical');
+  // 包含严重和中等预警
+  const alertPosts = posts.filter(p => p.lastScanned && (p.alertLevel === 'critical' || p.alertLevel === 'medium'));
 
   let filtered = alertPosts;
   if (status && status !== 'all') {
@@ -20,8 +21,11 @@ export async function GET(request: Request) {
   }));
 
   // Stats
+  const pendingPosts = alertPosts.filter(p => (p.alertStatus || 'pending') === 'pending');
   const stats = {
-    pending: alertPosts.filter(p => (p.alertStatus || 'pending') === 'pending').length,
+    pending: pendingPosts.length,
+    pendingCritical: pendingPosts.filter(p => p.alertLevel === 'critical').length,
+    pendingMedium: pendingPosts.filter(p => p.alertLevel === 'medium').length,
     processing: alertPosts.filter(p => p.alertStatus === 'processing').length,
     resolved: alertPosts.filter(p => p.alertStatus === 'resolved').length,
     ignored: alertPosts.filter(p => p.alertStatus === 'ignored').length,
