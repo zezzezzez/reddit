@@ -144,7 +144,7 @@ export default function CompetitorPage() {
                   <ChevronDown className={`w-5 h-5 text-gray-400 transition-transform ${showSubredditMenu ? 'rotate-180' : ''}`} />
                 </button>
                 {showSubredditMenu && (
-                  <div className="absolute top-full left-0 right-0 mt-2 bg-white border border-gray-200 rounded-xl shadow-xl z-20 max-h-64 overflow-y-auto">
+                  <div className="absolute top-full left-0 right-0 mt-2 bg-white border border-gray-200 rounded-xl shadow-xl z-50 max-h-64 overflow-y-auto">
                     {subreddits.map(subreddit => (
                       <button
                         key={subreddit}
@@ -182,7 +182,7 @@ export default function CompetitorPage() {
                   <ChevronDown className={`w-5 h-5 text-gray-400 transition-transform ${showBrandMenu ? 'rotate-180' : ''}`} />
                 </button>
                 {showBrandMenu && (
-                  <div className="absolute top-full left-0 right-0 mt-2 bg-white border border-gray-200 rounded-xl shadow-xl z-20">
+                  <div className="absolute top-full left-0 right-0 mt-2 bg-white border border-gray-200 rounded-xl shadow-xl z-50">
                     {COMPETITOR_BRANDS.map(brand => (
                       <button
                         key={brand.value}
