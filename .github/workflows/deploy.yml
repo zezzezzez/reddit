@@ -20,7 +20,8 @@ jobs:
             cd ~/reddit-monitor && git pull origin main
 
             echo "重新构建镜像..."
-            cd ~/reddit-monitor && sudo docker build -t reddit-monitor .
+            cd ~/reddit-monitor
+            sudo docker build -t reddit-monitor -f Dockerfile .
 
             echo "重启容器（使用 Git 中的数据，不保留 Docker volume）..."
             sudo docker stop reddit-monitor || true
@@ -36,3 +37,4 @@ jobs:
 
             echo "部署完成！"
             sudo docker ps
+            sudo docker logs reddit-monitor --tail 20
