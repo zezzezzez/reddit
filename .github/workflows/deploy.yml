@@ -30,7 +30,6 @@ jobs:
               --restart unless-stopped \
               -p 3000:3000 \
               -e NODE_ENV=production \
-              -v reddit-data:/app/data \
               reddit-monitor
 
             echo "部署完成！"
