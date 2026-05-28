@@ -249,42 +249,20 @@ export async function fetchSubredditPosts(
 
     let response: any;
     
-    // 本地开发环境配置代理（使用 undici.fetch）
+    // 本地开发环境：使用 undici setGlobalDispatcher 设置的全局代理
     if (isLocalDevelopment()) {
       const proxyConfig = getLocalProxyConfig();
       if (proxyConfig) {
-        try {
-          const { fetch: undiciFetch, ProxyAgent } = await import('undici');
-          const proxyUrl = `${proxyConfig.protocol}://${proxyConfig.host}:${proxyConfig.port}`;
-          const proxyAgent = new ProxyAgent(proxyUrl);
-          console.log(`[Reddit] Using undici fetch with proxy: ${proxyUrl}`);
-          
-          response = await undiciFetch(url, {
-            headers: {
-              'User-Agent': REDDIT_USER_AGENT,
-              'Accept': 'application/json',
-            },
-            dispatcher: proxyAgent,
-          });
-        } catch (error) {
-          console.error('[Reddit] Failed to use undici proxy, falling back:', error);
-          // 回退到普通 fetch
-          response = await fetch(url, {
-            headers: {
-              'User-Agent': REDDIT_USER_AGENT,
-              'Accept': 'application/json',
-            },
-          });
-        }
-      } else {
-        // 无代理配置，使用普通 fetch
-        response = await fetch(url, {
-          headers: {
-            'User-Agent': REDDIT_USER_AGENT,
-            'Accept': 'application/json',
-          },
-        });
+        console.log(`[Reddit] Using global proxy: ${proxyConfig.protocol}://${proxyConfig.host}:${proxyConfig.port}`);
       }
+      
+      // 直接使用 fetch，会使用 undici.setGlobalDispatcher 设置的全局代理
+      response = await fetch(url, {
+        headers: {
+          'User-Agent': REDDIT_USER_AGENT,
+          'Accept': 'application/json',
+        },
+      });
     } else {
       // 非本地环境，直接 fetch
       response = await fetch(url, {
@@ -296,7 +274,7 @@ export async function fetchSubredditPosts(
     }
 
     if (!response.ok) {
-      console.error(`[Reddit] Failed to fetch subreddit posts: ${response.status}`);
+      console.error(`[Reddit] Failed to fetch subreddit posts: ${response.status} ${response.statusText}`);
       return [];
     }
 
