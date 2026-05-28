@@ -82,16 +82,38 @@ export async function GET(request: Request) {
     const proxyConfig = getLocalProxyConfig();
     console.log(`[Competitor Analysis] proxyConfig: ${JSON.stringify(proxyConfig)}`);
 
-    // 1. 获取板块最新帖子（抓取更多以确保有足够的数据）
-    const allPosts = await fetchSubredditPosts(subreddit, 500, 'new');
+    // 1. 获取板块最新帖子（优先从 Reddit 抓取，失败则使用本地数据）
+    let allPosts = await fetchSubredditPosts(subreddit, 500, 'new');
     
     console.log(`[Competitor Analysis] Fetched ${allPosts.length} posts from Reddit`);
     
+    // 如果从 Reddit 抓取失败，使用本地已导入的帖子
     if (allPosts.length === 0) {
-      return NextResponse.json({ error: 'Failed to fetch posts from subreddit' }, { status: 500 });
+      console.log('[Competitor Analysis] Reddit fetch failed, using local posts instead');
+      const localPosts = getPosts().filter(p => p.subreddit === subreddit);
+      
+      if (localPosts.length === 0) {
+        return NextResponse.json({ 
+          error: `板块 r/${subreddit} 中没有帖子数据`,
+          hint: '请先在帖子管理中导入并扫描帖子，或检查代理配置' 
+        }, { status: 400 });
+      }
+      
+      // 将本地数据转换为 allPosts 格式
+      allPosts = localPosts.map(p => ({
+        id: p.id,
+        title: p.title,
+        author: p.author || 'unknown',
+        score: p.score || 0,
+        commentCount: p.commentCount || 0,
+        subreddit: p.subreddit,
+        createdAt: p.createdAt,
+        permalink: p.redditUrl,
+        selftext: '',
+      }));
+      
+      console.log(`[Competitor Analysis] Using ${allPosts.length} local posts`);
     }
-
-    console.log(`[Competitor Analysis] Fetched ${allPosts.length} posts from r/${subreddit}`);
 
     // 2. 获取已管理的海信帖子（不限制时间和评论数）
     const managedPosts = getPosts().filter(p => p.subreddit === subreddit);
