@@ -127,16 +127,20 @@ export async function GET(request: Request) {
     }
     console.log(`[Competitor Analysis] Found ${hisenseFlaggedPosts.length} Hisense posts with flagged comments`);
 
-    // 3. 过滤竞品帖子：最近 3 个月 且 评论数 > 0
-    const threeMonthsAgo = new Date();
-    threeMonthsAgo.setMonth(threeMonthsAgo.getMonth() - 3);
+    // 3. 过滤竞品帖子：只看标题是否包含品牌关键词
+    // 竞品数量 = 海信帖子数量
+    const hisenseCount = managedPosts.length;
     
     const competitorCandidatePosts = allPosts.filter(post => {
-      const postDate = new Date(post.createdAt);
-      return postDate >= threeMonthsAgo && post.commentCount > 0;
+      const titleLower = post.title.toLowerCase();
+      // 只看标题
+      return COMPETITOR_BRANDS.some(brand => 
+        brand.keywords.some(kw => titleLower.includes(kw.toLowerCase()))
+      );
     });
 
-    console.log(`[Competitor Analysis] Filtered to ${competitorCandidatePosts.length} competitor posts (recent 3 months, comments > 0)`);
+
+    console.log(`[Competitor Analysis] Found ${competitorCandidatePosts.length} competitor posts (title match)`);
 
     // 4. 按品牌分类帖子
     const brandPosts: Record<string, typeof allPosts> = {
@@ -162,27 +166,21 @@ export async function GET(request: Request) {
       });
     }
 
-    // 对 Reddit API 获取的帖子进行品牌分类（仅用于竞品）
+    // 对 Reddit API 获取的帖子进行品牌分类（仅用于竞品，只看标题）
     for (const post of competitorCandidatePosts) {
       const titleLower = post.title.toLowerCase();
-      const textLower = post.selftext.toLowerCase();
-      const content = `${titleLower} ${textLower}`;
 
       // 跳过已管理的帖子（避免重复）
       const isManaged = managedPosts.some(mp => mp.redditUrl.includes(post.id) || mp.id === post.id);
       if (isManaged) continue;
 
-      // 检查是否提到竞品品牌
-      let matched = false;
+      // 只看标题是否包含品牌关键词
       for (const brand of COMPETITOR_BRANDS) {
-        if (brand.keywords.some(kw => content.includes(kw.toLowerCase()))) {
+        if (brand.keywords.some(kw => titleLower.includes(kw.toLowerCase()))) {
           brandPosts[brand.name].push(post);
-          matched = true;
           break;
         }
       }
-
-      // 其他帖子（不统计）
     }
 
     console.log('[Competitor Analysis] Brand distribution:', {
@@ -193,14 +191,15 @@ export async function GET(request: Request) {
       Other: brandPosts['Other'].length,
     });
 
-    // 5. 对每个品牌随机选择 N 个帖子并分析
+    // 5. 对每个品牌选择帖子（竞品数量 = 海信帖子数量）
     const brandAnalysis: Record<string, BrandAnalysis> = {};
 
     for (const [brand, posts] of Object.entries(brandPosts)) {
       if (brand === 'Other' || posts.length === 0) continue;
 
-      // 随机选择帖子
-      const selectedPosts = selectRandomPosts(posts, postsPerBrand);
+      // 竞品品牌：数量 = 海信帖子数量；海信品牌：使用全部已管理帖子
+      const numToSelect = brand === 'Hisense' ? posts.length : Math.min(hisenseCount, posts.length);
+      const selectedPosts = selectRandomPosts(posts, numToSelect);
       
       console.log(`[Competitor Analysis] Analyzing ${selectedPosts.length} posts for ${brand}`);
 
