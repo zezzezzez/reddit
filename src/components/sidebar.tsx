@@ -15,6 +15,7 @@ import {
   Hash,
   BarChart3,
   Target,
+  Tv,
 } from 'lucide-react';
 
 const navItems = [
@@ -38,15 +39,23 @@ export default function Sidebar() {
         collapsed ? 'w-16' : 'w-56'
       } h-screen bg-card border-r border-border flex flex-col transition-all duration-300 sticky top-0`}
     >
-      {/* Logo */}
-      <div className="p-4 border-b border-border flex items-center gap-3">
-        <div className="w-8 h-8 rounded-lg bg-red-500 flex items-center justify-center flex-shrink-0">
-          <Bell className="w-4 h-4 text-white" />
+      {/* Logo with Hisense Icon */}
+      <div className="p-4 border-b border-border">
+        <div className="flex items-center gap-3 mb-2">
+          <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-cyan-500 to-blue-600 flex items-center justify-center flex-shrink-0 shadow-lg shadow-cyan-500/30">
+            <Tv className="w-5 h-5 text-white" />
+          </div>
+          {!collapsed && (
+            <div className="overflow-hidden">
+              <h1 className="text-sm font-bold text-foreground leading-tight">Hisense</h1>
+              <p className="text-xs text-cyan-600 font-medium leading-tight">海信舆情监控</p>
+            </div>
+          )}
         </div>
         {!collapsed && (
-          <div className="overflow-hidden">
-            <h1 className="text-sm font-bold text-foreground leading-tight">Reddit</h1>
-            <p className="text-xs text-muted leading-tight">评论监控预警</p>
+          <div className="flex items-center gap-2 px-1 py-1.5 bg-gradient-to-r from-cyan-50 to-blue-50 rounded-lg border border-cyan-100">
+            <Bell className="w-3.5 h-3.5 text-cyan-600" />
+            <span className="text-xs text-cyan-700 font-medium">评论监控预警</span>
           </div>
         )}
       </div>
