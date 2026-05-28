@@ -90,6 +90,16 @@ export async function GET(request: Request) {
       case 'influence':
         posts.sort((a, b) => ((b as any)._totalInfluenceScore || 0) - ((a as any)._totalInfluenceScore || 0));
         break;
+      case 'negative':
+        // 按负面占比排序（恶意评论数 / 总评论数）
+        posts.sort((a, b) => {
+          const aComments = useMock ? mockComments[a.id] || [] : getComments(a.id);
+          const bComments = useMock ? mockComments[b.id] || [] : getComments(b.id);
+          const aNegativeRatio = aComments.length > 0 ? aComments.filter(c => c.isFlagged).length / aComments.length : 0;
+          const bNegativeRatio = bComments.length > 0 ? bComments.filter(c => c.isFlagged).length / bComments.length : 0;
+          return bNegativeRatio - aNegativeRatio; // 负面占比高的排前面
+        });
+        break;
     }
 
     // Add comment stats for each post

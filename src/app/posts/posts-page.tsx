@@ -35,6 +35,7 @@ const FILTER_OPTIONS = [
 const SORT_OPTIONS = [
   { value: 'influence', label: '按影响力得分' },
   { value: 'alert', label: '按预警等级' },
+  { value: 'negative', label: '按负面占比' },
   { value: 'date', label: '按发布时间' },
   { value: 'comments', label: '按评论数' },
 ];

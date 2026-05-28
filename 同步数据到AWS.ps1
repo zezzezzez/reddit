@@ -1,9 +1,15 @@
 # Reddit 监控 - 本地扫描并同步到 AWS
 # 用法：在本地完成扫描后，运行此脚本同步数据到 AWS
+# 注意：此脚本会将本地数据同步到 Git，AWS 会通过代理继续扫描
 
 Write-Host "================================" -ForegroundColor Cyan
 Write-Host "  数据同步工具" -ForegroundColor Cyan
 Write-Host "================================" -ForegroundColor Cyan
+Write-Host ""
+Write-Host "说明：" -ForegroundColor Yellow
+Write-Host "  1. 本地数据将同步到 GitHub" -ForegroundColor Gray
+Write-Host "  2. AWS 保留 Docker volume 数据卷" -ForegroundColor Gray
+Write-Host "  3. AWS 可通过代理自主扫描 Reddit" -ForegroundColor Gray
 Write-Host ""
 
 # 检查 Git
@@ -74,6 +80,12 @@ if ($gitStatus -match "data/") {
         Write-Host "================================" -ForegroundColor Green
         Write-Host ""
         Write-Host "数据已推送到 GitHub，AWS 将在 1-2 分钟内自动部署更新。" -ForegroundColor Cyan
+        Write-Host ""
+        Write-Host "数据模式：" -ForegroundColor Yellow
+        Write-Host "  ✓ AWS 可以使用代理自主扫描 Reddit" -ForegroundColor Green
+        Write-Host "  ✓ AWS 可以读取 Git 中的历史数据" -ForegroundColor Green
+        Write-Host "  ✓ 本地数据通过 Git 同步到 AWS" -ForegroundColor Green
+        Write-Host ""
         Write-Host "访问地址: http://63.183.212.153:3000" -ForegroundColor Cyan
     } else {
         Write-Host ""

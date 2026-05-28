@@ -209,3 +209,75 @@ export async function fetchMultiplePosts(
 
   return results;
 }
+
+// Fetch posts from a subreddit (using public API)
+export interface SubredditPost {
+  id: string;
+  title: string;
+  author: string;
+  score: number;
+  commentCount: number;
+  subreddit: string;
+  createdAt: string;
+  permalink: string;
+  selftext: string;
+}
+
+export async function fetchSubredditPosts(
+  subreddit: string,
+  limit: number = 100,
+  sort: 'hot' | 'new' | 'top' = 'hot'
+): Promise<SubredditPost[]> {
+  try {
+    const url = `https://www.reddit.com/r/${subreddit}/${sort}.json?limit=${limit}`;
+    console.log(`[Reddit] Fetching ${sort} posts from r/${subreddit}: ${url}`);
+
+    const response = await fetch(url, {
+      headers: {
+        'User-Agent': REDDIT_USER_AGENT,
+        'Accept': 'application/json',
+      },
+    });
+
+    if (!response.ok) {
+      console.error(`[Reddit] Failed to fetch subreddit posts: ${response.status}`);
+      return [];
+    }
+
+    const data = await response.json();
+    const posts: SubredditPost[] = [];
+
+    if (data?.data?.children) {
+      for (const child of data.data.children) {
+        if (child.kind === 't3') { // t3 = post
+          const post = child.data;
+          posts.push({
+            id: post.id,
+            title: post.title || '',
+            author: post.author || '[deleted]',
+            score: post.score || 0,
+            commentCount: post.num_comments || 0,
+            subreddit: post.subreddit || subreddit,
+            createdAt: new Date(post.created_utc * 1000).toISOString(),
+            permalink: `https://www.reddit.com${post.permalink}`,
+            selftext: post.selftext || '',
+          });
+        }
+      }
+    }
+
+    console.log(`[Reddit] Fetched ${posts.length} posts from r/${subreddit}`);
+    return posts;
+  } catch (error) {
+    console.error(`[Reddit] Error fetching subreddit posts:`, error);
+    return [];
+  }
+}
+
+// Randomly select N posts from array
+export function selectRandomPosts<T>(posts: T[], count: number): T[] {
+  if (posts.length <= count) return posts;
+  
+  const shuffled = [...posts].sort(() => 0.5 - Math.random());
+  return shuffled.slice(0, count);
+}

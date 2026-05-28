@@ -22,7 +22,7 @@ jobs:
             echo "重新构建镜像..."
             sudo docker build -t reddit-monitor .
 
-            echo "重启容器..."
+            echo "重启容器（保留数据卷和代理配置）..."
             sudo docker stop reddit-monitor || true
             sudo docker rm reddit-monitor || true
             sudo docker run -d \
@@ -30,6 +30,9 @@ jobs:
               --restart unless-stopped \
               -p 3000:3000 \
               -e NODE_ENV=production \
+              -e HTTP_PROXY=http://10.19.193.99:443 \
+              -e HTTPS_PROXY=http://10.19.193.99:443 \
+              -v reddit-data:/app/data \
               reddit-monitor
 
             echo "部署完成！"
