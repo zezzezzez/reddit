@@ -54,6 +54,7 @@ export default function PostsPage() {
 
   const [scanResult, setScanResult] = useState<{success: boolean; message: string} | null>(null);
   const [showSortMenu, setShowSortMenu] = useState(false);
+  const [deletingPostId, setDeletingPostId] = useState<string | null>(null);
 
   useEffect(() => {
     fetchPosts();
@@ -116,6 +117,36 @@ export default function PostsPage() {
     } finally {
       setScanning(false);
       setScanProgress('');
+    }
+  };
+
+  const handleDeletePost = async (postId: string, postTitle: string, e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+
+    if (!confirm(`确定要删除帖子 "${postTitle.substring(0, 30)}${postTitle.length > 30 ? '...' : ''}" 吗？`)) {
+      return;
+    }
+
+    setDeletingPostId(postId);
+    try {
+      const res = await fetch('/api/posts', {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ postId }),
+      });
+      const json = await res.json();
+      
+      if (json.success) {
+        // 从列表中移除
+        setPosts(prev => prev.filter(p => p.id !== postId));
+      } else {
+        alert('删除失败：' + json.message);
+      }
+    } catch (error: any) {
+      alert('删除失败：' + error.message);
+    } finally {
+      setDeletingPostId(null);
     }
   };
 
@@ -335,12 +366,27 @@ export default function PostsPage() {
                     )}
                     <span className="text-xs text-gray-500">r/{post.subreddit}</span>
                   </div>
-                  <button
-                    onClick={(e) => { e.preventDefault(); e.stopPropagation(); window.open(post.redditUrl, '_blank'); }}
-                    className="text-gray-400 hover:text-primary"
-                  >
-                    <ExternalLink className="w-4 h-4" />
-                  </button>
+                  <div className="flex items-center gap-1">
+                    <button
+                      onClick={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        handleDeletePost(post.id, post.title, e);
+                      }}
+                      disabled={deletingPostId === post.id}
+                      className="p-1 text-gray-300 hover:text-red-500 transition-colors disabled:opacity-50"
+                      title="删除此帖子"
+                    >
+                      <Trash2 className="w-3 h-3" />
+                    </button>
+                    <button
+                      onClick={(e) => { e.preventDefault(); e.stopPropagation(); window.open(post.redditUrl, '_blank'); }}
+                      className="p-1 text-gray-400 hover:text-primary transition-colors"
+                      title="在Reddit中打开"
+                    >
+                      <ExternalLink className="w-3.5 h-3.5" />
+                    </button>
+                  </div>
                 </div>
 
                 {/* Title */}

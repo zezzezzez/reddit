@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { getPosts, getComments } from '@/lib/store';
+import { getPosts, getComments, savePosts, deletePost, deleteComments, deleteScanResults } from '@/lib/store';
 import { mockPosts, mockComments } from '@/lib/mock-data';
 import { calcCommentInfluenceScore } from '@/lib/sentiment';
 
@@ -123,5 +123,29 @@ export async function GET(request: Request) {
     return NextResponse.json({ posts: postsWithStats, total: postsWithStats.length });
   } catch (error) {
     return NextResponse.json({ error: 'Failed to fetch posts' }, { status: 500 });
+  }
+}
+
+export async function DELETE(request: Request) {
+  try {
+    const body = await request.json();
+    const { postId } = body;
+
+    if (!postId) {
+      return NextResponse.json({ success: false, message: '缺少帖子 ID' }, { status: 400 });
+    }
+
+    // 删除帖子
+    deletePost(postId);
+    
+    // 删除相关评论
+    deleteComments(postId);
+    
+    // 删除相关扫描记录
+    deleteScanResults(postId);
+
+    return NextResponse.json({ success: true, message: '帖子已删除' });
+  } catch (error: any) {
+    return NextResponse.json({ success: false, message: error.message || '删除失败' }, { status: 500 });
   }
 }

@@ -55,19 +55,19 @@
   },
   {
     "date": "2026-05-28",
-    "totalPosts": 36,
-    "totalComments": 533,
-    "flaggedComments": 17,
+    "totalPosts": 78,
+    "totalComments": 1067,
+    "flaggedComments": 20,
     "criticalAlerts": 4,
     "highAlerts": 0,
-    "mediumAlerts": 3,
-    "safePosts": 29,
+    "mediumAlerts": 6,
+    "safePosts": 68,
     "sentimentTrend": [
       {
         "date": "2026-05-28",
-        "positive": 197,
-        "neutral": 319,
-        "negative": 17
+        "positive": 342,
+        "neutral": 705,
+        "negative": 20
       }
     ]
   }

@@ -104,6 +104,13 @@ export function saveComments(postId: string, comments: RedditComment[]) {
   writeJsonFile(COMMENTS_FILE, filtered);
 }
 
+export function deleteComments(postId: string) {
+  const all = getComments();
+  const filtered = all.filter(c => c.postId !== postId);
+  if (isVercel) { memoryStore.comments = filtered; return; }
+  writeJsonFile(COMMENTS_FILE, filtered);
+}
+
 // ─── Scan Results ────────────────────────────────────────────
 export function getScanResults(postId?: string): ScanResult[] {
   const all = isVercel ? (memoryStore.scans as ScanResult[]) : readJsonFile<ScanResult[]>(SCANS_FILE, []);
@@ -116,6 +123,13 @@ export function saveScanResult(result: ScanResult) {
   all.push(result);
   if (isVercel) { memoryStore.scans = all; return; }
   writeJsonFile(SCANS_FILE, all);
+}
+
+export function deleteScanResults(postId: string) {
+  const all = getScanResults();
+  const filtered = all.filter(s => s.postId !== postId);
+  if (isVercel) { memoryStore.scans = filtered; return; }
+  writeJsonFile(SCANS_FILE, filtered);
 }
 
 // ─── Daily Reports ───────────────────────────────────────────
