@@ -267,18 +267,57 @@ export default function CompetitorPage() {
                   </div>
 
                   <div className="space-y-3">
-                    {/* Sentiment */}
-                    <div className="flex items-center justify-between p-2 bg-gray-50 rounded-xl">
-                      <span className="text-xs text-gray-500">平均情感</span>
-                      <div className="flex items-center gap-1">
-                        {brandData.avgSentiment > 0.1 ? (
-                          <TrendingUp className="w-4 h-4 text-green-500" />
-                        ) : brandData.avgSentiment < -0.1 ? (
-                          <TrendingDown className="w-4 h-4 text-red-500" />
-                        ) : null}
-                        <span className={`text-sm font-bold ${getSentimentColor(brandData.avgSentiment)}`}>
-                          {brandData.avgSentiment.toFixed(2)}
-                        </span>
+                    {/* 舆情健康度 */}
+                    <div className="p-3 bg-gray-50 rounded-xl">
+                      <div className="flex items-center justify-between mb-2">
+                        <span className="text-xs text-gray-500">舆情健康度</span>
+                        {(() => {
+                          // 使用与监控面板相同的计算逻辑
+                          const criticalPenalty = (brandData as any).criticalPosts * 4;
+                          const mediumPenalty = (brandData as any).mediumPosts * 1.5;
+                          const flaggedRatioNum = totalComments > 0 ? (brandData.flaggedComments / totalComments * 100) : 0;
+                          const flaggedPenalty = flaggedRatioNum * 0.5;
+                          
+                          let healthScore = Math.max(0, Math.round(100 - Math.min(criticalPenalty, 60) - Math.min(mediumPenalty, 25) - Math.min(flaggedPenalty, 15)));
+                          healthScore = Math.min(100, Math.max(0, healthScore));
+                          const healthLabel = healthScore >= 80 ? '健康' : healthScore >= 60 ? '一般' : healthScore >= 40 ? '预警' : '高危';
+                          const scoreColor = healthScore >= 80 ? 'text-green-600' : healthScore >= 60 ? 'text-yellow-600' : healthScore >= 40 ? 'text-orange-600' : 'text-red-600';
+                          const barColor = healthScore >= 80 ? 'bg-green-500' : healthScore >= 60 ? 'bg-yellow-500' : healthScore >= 40 ? 'bg-orange-500' : 'bg-red-500';
+                          
+                          return (
+                            <>
+                              <span className={`text-lg font-bold ${scoreColor}`}>{healthScore}</span>
+                              <span className="text-xs text-gray-400 ml-1">{healthLabel}</span>
+                            </>
+                          );
+                        })()}
+                      </div>
+                      <div className="w-full h-2 bg-gray-200 rounded-full overflow-hidden">
+                        <div 
+                          className={`h-full rounded-full transition-all duration-500 ${
+                            (() => {
+                              const criticalPenalty = (brandData as any).criticalPosts * 4;
+                              const mediumPenalty = (brandData as any).mediumPosts * 1.5;
+                              const flaggedRatioNum = totalComments > 0 ? (brandData.flaggedComments / totalComments * 100) : 0;
+                              const flaggedPenalty = flaggedRatioNum * 0.5;
+                              let healthScore = Math.max(0, Math.round(100 - Math.min(criticalPenalty, 60) - Math.min(mediumPenalty, 25) - Math.min(flaggedPenalty, 15)));
+                              healthScore = Math.min(100, Math.max(0, healthScore));
+                              return healthScore >= 80 ? 'bg-green-500' : healthScore >= 60 ? 'bg-yellow-500' : healthScore >= 40 ? 'bg-orange-500' : 'bg-red-500';
+                            })()
+                          }`} 
+                          style={{ 
+                            width: `${
+                              (() => {
+                                const criticalPenalty = (brandData as any).criticalPosts * 4;
+                                const mediumPenalty = (brandData as any).mediumPosts * 1.5;
+                                const flaggedRatioNum = totalComments > 0 ? (brandData.flaggedComments / totalComments * 100) : 0;
+                                const flaggedPenalty = flaggedRatioNum * 0.5;
+                                let healthScore = Math.max(0, Math.round(100 - Math.min(criticalPenalty, 60) - Math.min(mediumPenalty, 25) - Math.min(flaggedPenalty, 15)));
+                                return Math.min(100, Math.max(0, healthScore));
+                              })()
+                            }%` 
+                          }} 
+                        />
                       </div>
                     </div>
 

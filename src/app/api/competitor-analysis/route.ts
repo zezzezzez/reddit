@@ -49,6 +49,8 @@ interface BrandAnalysis {
   negativeCount: number;
   totalInfluenceScore: number;
   keywords: Record<string, number>;
+  criticalPosts: number;  // 严重等级帖子数
+  mediumPosts: number;    // 中等等级帖子数
 }
 
 // 海信品牌关键词
@@ -321,6 +323,9 @@ export async function GET(request: Request) {
         negativeCount,
         totalInfluenceScore,
         keywords: keywordCount,
+        // 新增：帖子等级统计（用于计算健康度）
+        criticalPosts: analyzedPosts.filter(p => p.alertLevel === 'critical').length,
+        mediumPosts: analyzedPosts.filter(p => p.alertLevel === 'medium').length,
       };
     }
 
