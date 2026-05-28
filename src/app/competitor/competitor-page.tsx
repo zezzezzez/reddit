@@ -36,6 +36,7 @@ export default function CompetitorPage() {
   const [selectedBrands, setSelectedBrands] = useState<string[]>(['tcl', 'samsung', 'sony']);
   const [showSubredditMenu, setShowSubredditMenu] = useState(false);
   const [showBrandMenu, setShowBrandMenu] = useState(false);
+  const [timeRange, setTimeRange] = useState<string>('all'); // all, 7d, 30d, 90d
   const [loading, setLoading] = useState(false);
   const [progress, setProgress] = useState('');
   const [data, setData] = useState<{
@@ -71,7 +72,7 @@ export default function CompetitorPage() {
       // 构建品牌参数
       const brandsParam = selectedBrands.join(',');
       const response = await fetch(
-        `/api/competitor-analysis?subreddit=${selectedSubreddit}&postsPerBrand=5&brands=${brandsParam}`
+        `/api/competitor-analysis?subreddit=${selectedSubreddit}&postsPerBrand=5&brands=${brandsParam}&timeRange=${timeRange}`
       );
       const result = await response.json();
 
@@ -207,6 +208,46 @@ export default function CompetitorPage() {
                     ))}
                   </div>
                 )}
+              </div>
+            </div>
+
+            {/* Time Range */}
+            <div className="relative">
+              <label className="block text-xs text-gray-500 mb-1.5 font-medium">时间范围</label>
+              <button
+                onClick={() => setShowSubredditMenu(false)}
+                className="w-full px-4 py-3 bg-white border border-gray-200 rounded-xl hover:border-cyan-300 focus:border-cyan-500 focus:ring-2 focus:ring-cyan-500/20 text-sm text-gray-700 flex items-center justify-between transition-all"
+              >
+                <span>{
+                  timeRange === 'all' ? '全部时间' :
+                  timeRange === '7d' ? '近 7 天' :
+                  timeRange === '30d' ? '近 30 天' :
+                  timeRange === '90d' ? '近 90 天' : '全部时间'
+                }</span>
+                <ChevronDown className="w-5 h-5 text-gray-400" />
+              </button>
+              <div className="absolute top-full left-0 right-0 mt-2 bg-white border border-gray-200 rounded-xl shadow-xl z-40">
+                {[
+                  { value: 'all', label: '全部时间' },
+                  { value: '7d', label: '近 7 天' },
+                  { value: '30d', label: '近 30 天' },
+                  { value: '90d', label: '近 90 天' },
+                ].map(option => (
+                  <button
+                    key={option.value}
+                    onClick={() => {
+                      setTimeRange(option.value);
+                    }}
+                    className={`w-full px-4 py-3 text-sm text-left hover:bg-cyan-50 flex items-center justify-between transition-colors ${timeRange === option.value ? 'bg-cyan-50 text-cyan-700' : 'text-gray-700'}`}
+                  >
+                    <span>{option.label}</span>
+                    {timeRange === option.value && (
+                      <div className="w-5 h-5 bg-cyan-500 rounded-full flex items-center justify-center">
+                        <Check className="w-3 h-3 text-white" />
+                      </div>
+                    )}
+                  </button>
+                ))}
               </div>
             </div>
 

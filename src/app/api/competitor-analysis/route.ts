@@ -65,6 +65,7 @@ export async function GET(request: Request) {
     const subreddit = searchParams.get('subreddit');
     const postsPerBrand = parseInt(searchParams.get('postsPerBrand') || '5');
     const brandsParam = searchParams.get('brands') || 'tcl,samsung,sony';
+    const timeRange = searchParams.get('timeRange') || 'all'; // all, 7d, 30d, 90d
     const selectedBrands = brandsParam.split(',').filter(b => b);
 
     // 构建竞品品牌列表
@@ -84,8 +85,8 @@ export async function GET(request: Request) {
     const proxyConfig = getLocalProxyConfig();
     console.log(`[Competitor Analysis] proxyConfig: ${JSON.stringify(proxyConfig)}`);
 
-    // 1. 获取板块最新帖子（优先从 Reddit 抓取，失败则使用本地数据）
-    let allPosts = await fetchSubredditPosts(subreddit, 500, 'new');
+    // 1. 获取板块最新帖子（增加到 1000 条）
+    let allPosts = await fetchSubredditPosts(subreddit, 1000, 'new');
     
     console.log(`[Competitor Analysis] Fetched ${allPosts.length} posts from Reddit`);
     
@@ -115,6 +116,31 @@ export async function GET(request: Request) {
       }));
       
       console.log(`[Competitor Analysis] Using ${allPosts.length} local posts`);
+    }
+
+    // 1.5 根据时间范围过滤帖子
+    if (timeRange !== 'all') {
+      const now = new Date();
+      let daysBack: number;
+      
+      switch (timeRange) {
+        case '7d': daysBack = 7; break;
+        case '30d': daysBack = 30; break;
+        case '90d': daysBack = 90; break;
+        default: daysBack = 0;
+      }
+      
+      if (daysBack > 0) {
+        const cutoffDate = new Date(now.getTime() - daysBack * 24 * 60 * 60 * 1000);
+        const beforeCount = allPosts.length;
+        
+        allPosts = allPosts.filter(post => {
+          const postDate = new Date(post.createdAt);
+          return postDate >= cutoffDate;
+        });
+        
+        console.log(`[Competitor Analysis] Time filter (${timeRange}): ${beforeCount} -> ${allPosts.length} posts`);
+      }
     }
 
     // 2. 获取已管理的海信帖子（不限制时间和评论数）
