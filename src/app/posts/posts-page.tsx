@@ -93,13 +93,10 @@ export default function PostsPage() {
         const json = await res.json();
         if (json.isRunning && json.total > 0) {
           setScanProgress(`正在扫描 ${json.current}/${json.total}`);
-          // Also refresh posts list to show updated alert levels
-          const postsRes = await fetch('/api/posts?sort=alert');
-          const postsJson = await postsRes.json();
-          if (postsJson.posts) setPosts(postsJson.posts);
         }
       } catch {}
-    }, 1000);
+    }, 500); // 更频繁的轮询（0.5秒）
+
 
     try {
       const res = await fetch('/api/scan', {

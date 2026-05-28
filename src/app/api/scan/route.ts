@@ -47,9 +47,15 @@ let scanProgress = {
 
 export async function POST(request: Request) {
   try {
-    // Initialize local proxy for development
+    // 初始化 scanProgress（立即设为运行状态，让前端开始轮询）
+    scanProgress.isRunning = true;
+    scanProgress.current = 0;
+    scanProgress.total = 0;
+    scanProgress.postTitle = '';
+    scanProgress.message = '准备扫描...';
+    // 初始化本地代理
     await ensureLocalProxyInitialized();
-    
+
     const body = await request.json();
     const { postIds, scanAll, quickScan } = body;
 
@@ -98,6 +104,7 @@ export async function POST(request: Request) {
       postTitle: '',
       message: '准备扫描...',
     };
+    console.log(`[Scan] Progress initialized: 0/${postsToScan.length}`);
 
     const results = [];
     let totalNewComments = 0;
