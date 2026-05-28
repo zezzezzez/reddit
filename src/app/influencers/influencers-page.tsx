@@ -93,10 +93,10 @@ export default function InfluencersPage() {
   };
 
   const getInfluenceBadge = (score: number) => {
-    if (score >= 20) return { bg: 'bg-red-500/25', text: 'text-red-300' };
-    if (score >= 10) return { bg: 'bg-orange-500/25', text: 'text-orange-300' };
-    if (score >= 5) return { bg: 'bg-yellow-500/25', text: 'text-yellow-300' };
-    return { bg: 'bg-gray-500/25', text: 'text-gray-300' };
+    if (score >= 20) return { bg: 'bg-red-100', text: 'text-red-700', border: 'border-red-200' };
+    if (score >= 10) return { bg: 'bg-orange-100', text: 'text-orange-700', border: 'border-orange-200' };
+    if (score >= 5) return { bg: 'bg-yellow-100', text: 'text-yellow-700', border: 'border-yellow-200' };
+    return { bg: 'bg-gray-100', text: 'text-gray-700', border: 'border-gray-200' };
   };
 
   return (
@@ -252,7 +252,7 @@ export default function InfluencersPage() {
                   <div className="flex items-start justify-between gap-3 mb-3">
                     <div className="flex items-center gap-3 flex-wrap">
                       <span className="text-sm font-medium text-primary">u/{comment.author}</span>
-                      <span className={`px-2 py-0.5 rounded text-xs font-bold ${badge.bg} ${badge.text}`}>
+                      <span className={`px-2 py-0.5 rounded text-xs font-bold ${badge.bg} ${badge.text} border ${badge.border}`}>
                         ⚡ {comment.influenceScore}
                       </span>
                       <span className="text-xs text-muted flex items-center gap-1">
