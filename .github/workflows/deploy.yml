@@ -16,13 +16,13 @@ jobs:
           username: ec2-user
           key: ${{ secrets.EC2_SSH_KEY }}
           script: |
-            echo "拉取最新代码..."
+            echo "拉取最新代码和数据..."
             cd ~/reddit && git pull origin main
 
             echo "重新构建镜像..."
             sudo docker build -t reddit-monitor .
 
-            echo "重启容器（保留数据卷和代理配置）..."
+            echo "重启容器（使用 Git 中的数据，不保留 Docker volume）..."
             sudo docker stop reddit-monitor || true
             sudo docker rm reddit-monitor || true
             sudo docker run -d \
@@ -32,7 +32,6 @@ jobs:
               -e NODE_ENV=production \
               -e HTTP_PROXY=http://10.19.193.99:443 \
               -e HTTPS_PROXY=http://10.19.193.99:443 \
-              -v reddit-data:/app/data \
               reddit-monitor
 
             echo "部署完成！"
