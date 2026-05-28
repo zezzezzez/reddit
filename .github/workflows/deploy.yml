@@ -16,6 +16,8 @@ jobs:
           username: ec2-user
           key: ${{ secrets.EC2_SSH_KEY }}
           script: |
+            set -e  # 任何命令失败都立即退出
+            
             echo "拉取最新代码和数据..."
             cd ~/reddit-monitor && git pull origin main
 
