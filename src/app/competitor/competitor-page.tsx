@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { TrendingUp, AlertTriangle, BarChart3, ExternalLink, ChevronDown, Check } from 'lucide-react';
+import { TrendingUp, AlertTriangle, BarChart3, ExternalLink, ChevronDown, Check, Sparkles, Target, TrendingDown } from 'lucide-react';
 
 interface BrandData {
   brand: string;
@@ -104,110 +104,146 @@ export default function CompetitorPage() {
 
   return (
     <div className="p-6 space-y-6 max-w-[1600px] mx-auto">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-semibold text-gray-900">竞品舆情对比</h1>
-          <p className="text-sm text-gray-500 mt-1">
-            对比同一板块下各品牌帖子的舆情表现
+      {/* Header with gradient */}
+      <div className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-cyan-600 via-blue-600 to-indigo-600 p-6 text-white">
+        <div className="absolute inset-0 bg-black/10"></div>
+        <div className="absolute -top-10 -right-10 w-40 h-40 bg-white/10 rounded-full"></div>
+        <div className="absolute -bottom-5 -left-5 w-20 h-20 bg-white/10 rounded-full"></div>
+        <div className="relative z-10">
+          <div className="flex items-center gap-3 mb-2">
+            <div className="p-2 bg-white/20 rounded-xl backdrop-blur-sm">
+              <Target className="w-6 h-6" />
+            </div>
+            <h1 className="text-2xl font-bold">竞品舆情对比</h1>
+          </div>
+          <p className="text-cyan-100 text-sm">
+            对比同一板块下各品牌帖子的舆情表现，发现品牌优势与风险
           </p>
         </div>
       </div>
 
-      {/* Input Section */}
-      <div className="bg-white rounded-lg p-5 border border-gray-100 shadow-sm">
-        <div className="flex gap-3 items-center">
-          <div className="flex items-center gap-2">
-            <span className="text-xs text-gray-500 whitespace-nowrap">板块</span>
-            <div className="relative">
-              <button
-                onClick={() => setShowSubredditMenu(!showSubredditMenu)}
-                className="px-4 py-2.5 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary text-sm flex items-center justify-between min-w-[140px]"
-              >
-                {selectedSubreddit || '选择板块'}
-                <ChevronDown className="w-4 h-4" />
-              </button>
-              {showSubredditMenu && (
-                <div className="absolute top-full left-0 right-0 bg-white border border-gray-200 rounded-lg shadow-lg z-10 max-h-60 overflow-y-auto">
-                  {subreddits.map(subreddit => (
-                    <button
-                      key={subreddit}
-                      onClick={() => {
-                        setSelectedSubreddit(subreddit);
-                        setShowSubredditMenu(false);
-                      }}
-                      className="w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-                    >
-                      {subreddit}
-                    </button>
-                  ))}
-                </div>
-              )}
+      {/* Input Section with glassmorphism */}
+      <div className="relative group">
+        <div className="absolute inset-0 bg-gradient-to-r from-cyan-500/20 via-blue-500/20 to-indigo-500/20 rounded-2xl blur-xl group-hover:blur-2xl transition-all"></div>
+        <div className="relative bg-white/80 backdrop-blur-xl rounded-2xl p-6 border border-white/50 shadow-xl shadow-cyan-500/10">
+          <div className="flex flex-wrap gap-4 items-end">
+            {/* Subreddit Selector */}
+            <div className="flex-1 min-w-[200px]">
+              <label className="block text-xs font-medium text-gray-500 mb-2 flex items-center gap-1">
+                <span className="w-1.5 h-1.5 bg-cyan-500 rounded-full"></span>
+                选择板块
+              </label>
+              <div className="relative">
+                <button
+                  onClick={() => setShowSubredditMenu(!showSubredditMenu)}
+                  className="w-full px-4 py-3 bg-gradient-to-r from-gray-50 to-white border-2 border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-cyan-500/30 focus:border-cyan-400 text-sm flex items-center justify-between transition-all hover:border-cyan-300"
+                >
+                  <span className={selectedSubreddit ? 'text-gray-900 font-medium' : 'text-gray-400'}>
+                    {selectedSubreddit || '请选择板块'}
+                  </span>
+                  <ChevronDown className={`w-5 h-5 text-gray-400 transition-transform ${showSubredditMenu ? 'rotate-180' : ''}`} />
+                </button>
+                {showSubredditMenu && (
+                  <div className="absolute top-full left-0 right-0 mt-2 bg-white border border-gray-200 rounded-xl shadow-xl z-20 max-h-64 overflow-y-auto">
+                    {subreddits.map(subreddit => (
+                      <button
+                        key={subreddit}
+                        onClick={() => {
+                          setSelectedSubreddit(subreddit);
+                          setShowSubredditMenu(false);
+                        }}
+                        className={`w-full px-4 py-3 text-sm text-left hover:bg-cyan-50 flex items-center gap-2 transition-colors ${selectedSubreddit === subreddit ? 'bg-cyan-50 text-cyan-700 font-medium' : 'text-gray-700'}`}
+                      >
+                        <span className="w-2 h-2 bg-cyan-500 rounded-full"></span>
+                        r/{subreddit}
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
             </div>
-          </div>
-          <div className="flex items-center gap-2">
-            <span className="text-xs text-gray-500 whitespace-nowrap">竞品</span>
-            <div className="relative">
-              <button
-                onClick={() => setShowBrandMenu(!showBrandMenu)}
-                className="px-4 py-2.5 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary text-sm flex items-center justify-between min-w-[180px]"
-              >
-                {selectedBrands.map(brand => COMPETITOR_BRANDS.find(b => b.value === brand)?.name).join(', ') || '选择品牌'}
-                <ChevronDown className="w-4 h-4" />
-              </button>
-              {showBrandMenu && (
-                <div className="absolute top-full left-0 right-0 bg-white border border-gray-200 rounded-lg shadow-lg z-10">
-                  {COMPETITOR_BRANDS.map(brand => (
-                    <button
-                      key={brand.value}
-                      onClick={() => {
-                        setSelectedBrands(prev => {
-                          if (prev.includes(brand.value)) {
-                            return prev.filter(b => b !== brand.value);
-                          } else {
-                            return [...prev, brand.value];
-                          }
-                        });
-                      }}
-                      className="w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 flex items-center justify-between"
-                    >
-                      {brand.name}
-                      {selectedBrands.includes(brand.value) && <Check className="w-4 h-4" />}
-                    </button>
-                  ))}
-                </div>
-              )}
+
+            {/* Brand Selector */}
+            <div className="flex-1 min-w-[240px]">
+              <label className="block text-xs font-medium text-gray-500 mb-2 flex items-center gap-1">
+                <span className="w-1.5 h-1.5 bg-indigo-500 rounded-full"></span>
+                选择竞品
+              </label>
+              <div className="relative">
+                <button
+                  onClick={() => setShowBrandMenu(!showBrandMenu)}
+                  className="w-full px-4 py-3 bg-gradient-to-r from-gray-50 to-white border-2 border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500/30 focus:border-indigo-400 text-sm flex items-center justify-between transition-all hover:border-indigo-300"
+                >
+                  <span className={selectedBrands.length > 0 ? 'text-gray-900 font-medium' : 'text-gray-400'}>
+                    {selectedBrands.length > 0 
+                      ? selectedBrands.map(brand => COMPETITOR_BRANDS.find(b => b.value === brand)?.name).join(', ')
+                      : '请选择品牌'}
+                  </span>
+                  <ChevronDown className={`w-5 h-5 text-gray-400 transition-transform ${showBrandMenu ? 'rotate-180' : ''}`} />
+                </button>
+                {showBrandMenu && (
+                  <div className="absolute top-full left-0 right-0 mt-2 bg-white border border-gray-200 rounded-xl shadow-xl z-20">
+                    {COMPETITOR_BRANDS.map(brand => (
+                      <button
+                        key={brand.value}
+                        onClick={() => {
+                          setSelectedBrands(prev => {
+                            if (prev.includes(brand.value)) {
+                              return prev.filter(b => b !== brand.value);
+                            } else {
+                              return [...prev, brand.value];
+                            }
+                          });
+                        }}
+                        className={`w-full px-4 py-3 text-sm text-left hover:bg-indigo-50 flex items-center justify-between transition-colors ${selectedBrands.includes(brand.value) ? 'bg-indigo-50 text-indigo-700' : 'text-gray-700'}`}
+                      >
+                        <span>{brand.name}</span>
+                        {selectedBrands.includes(brand.value) && (
+                          <div className="w-5 h-5 bg-indigo-500 rounded-full flex items-center justify-center">
+                            <Check className="w-3 h-3 text-white" />
+                          </div>
+                        )}
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
             </div>
+
+            {/* Analyze Button */}
+            <button
+              onClick={handleAnalyze}
+              disabled={loading || !selectedSubreddit}
+              className="px-8 py-3 bg-gradient-to-r from-cyan-600 to-blue-600 text-white rounded-xl hover:from-cyan-700 hover:to-blue-700 disabled:opacity-50 disabled:cursor-not-allowed font-semibold text-sm flex items-center gap-2 transition-all shadow-lg shadow-cyan-500/30 hover:shadow-xl hover:shadow-cyan-500/40 hover:-translate-y-0.5 disabled:hover:translate-y-0"
+            >
+              {loading ? (
+                <>
+                  <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                  <span>分析中...</span>
+                </>
+              ) : (
+                <>
+                  <Sparkles className="w-5 h-5" />
+                  <span>开始分析</span>
+                </>
+              )}
+            </button>
           </div>
-          <button
-            onClick={handleAnalyze}
-            disabled={loading || !selectedSubreddit}
-            className="px-6 py-2.5 bg-primary text-white rounded-lg hover:bg-primary-hover disabled:opacity-50 disabled:cursor-not-allowed font-medium text-sm flex items-center gap-2 transition-colors ml-auto"
-          >
-            {loading ? (
-              <>
-                <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                分析中...
-              </>
-            ) : (
-              <>
-                <BarChart3 className="w-4 h-4" />
-                开始分析
-              </>
-            )}
-          </button>
+          {progress && (
+            <div className="mt-4 flex items-center gap-2 text-sm text-cyan-600">
+              <div className="w-2 h-2 bg-cyan-500 rounded-full animate-pulse"></div>
+              {progress}
+            </div>
+          )}
         </div>
-        {progress && (
-          <p className="text-xs text-gray-500 mt-2">{progress}</p>
-        )}
       </div>
 
       {/* Results */}
       {data && (
-        <div className="space-y-6">
+        <div className="space-y-6 animate-in fade-in duration-500">
           {/* Brand Comparison Cards */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-            {Object.entries(data.brands).map(([brandName, brandData]) => {
+            {Object.entries(data.brands).map(([brandName, brandData], idx) => {
               const colors = BRAND_COLORS[brandName] || BRAND_COLORS['Hisense'];
               const totalComments = brandData.totalComments;
               const flaggedRatio = totalComments > 0 
@@ -215,62 +251,79 @@ export default function CompetitorPage() {
                 : '0';
 
               return (
-                <div key={brandName} className="bg-white rounded-lg p-5 border border-gray-100 shadow-sm hover:shadow-md transition-shadow">
+                <div 
+                  key={brandName} 
+                  className={`relative overflow-hidden bg-white rounded-2xl p-5 border border-gray-100 shadow-sm hover:shadow-xl transition-all duration-300 hover:-translate-y-1 group`}
+                  style={{ animationDelay: `${idx * 100}ms` }}
+                >
+                  {/* Gradient accent */}
+                  <div className={`absolute top-0 left-0 right-0 h-1 bg-gradient-to-r ${colors.text.replace('text-', 'from-').replace('-700', '-400')} to-${colors.text.replace('text-', 'to-').replace('-700', '-600')}`}></div>
+                  
                   <div className="flex items-center justify-between mb-4">
-                    <h3 className={`text-lg font-semibold ${colors.text}`}>{brandName}</h3>
-                    <span className={`px-2.5 py-1 rounded text-xs font-semibold text-white ${colors.badge}`}>
-                      {brandData.posts.length} 帖子
+                    <h3 className={`text-lg font-bold ${colors.text}`}>{brandName}</h3>
+                    <span className={`px-3 py-1 rounded-full text-xs font-bold text-white ${colors.badge} shadow-lg`}>
+                      {brandData.posts.length} 帖
                     </span>
                   </div>
 
                   <div className="space-y-3">
-                    <div className="flex justify-between items-center">
+                    {/* Sentiment */}
+                    <div className="flex items-center justify-between p-2 bg-gray-50 rounded-xl">
                       <span className="text-xs text-gray-500">平均情感</span>
-                      <span className={`text-sm font-semibold ${getSentimentColor(brandData.avgSentiment)}`}>
-                        {getSentimentLabel(brandData.avgSentiment)} ({brandData.avgSentiment.toFixed(2)})
-                      </span>
+                      <div className="flex items-center gap-1">
+                        {brandData.avgSentiment > 0.1 ? (
+                          <TrendingUp className="w-4 h-4 text-green-500" />
+                        ) : brandData.avgSentiment < -0.1 ? (
+                          <TrendingDown className="w-4 h-4 text-red-500" />
+                        ) : null}
+                        <span className={`text-sm font-bold ${getSentimentColor(brandData.avgSentiment)}`}>
+                          {brandData.avgSentiment.toFixed(2)}
+                        </span>
+                      </div>
                     </div>
 
-                    <div className="flex justify-between items-center">
+                    {/* Comments */}
+                    <div className="flex items-center justify-between p-2 bg-gray-50 rounded-xl">
                       <span className="text-xs text-gray-500">总评论数</span>
-                      <span className="text-sm font-semibold text-gray-900">{totalComments}</span>
+                      <span className="text-sm font-bold text-gray-900">{totalComments}</span>
                     </div>
 
-                    <div className="flex justify-between items-center">
-                      <span className="text-xs text-gray-500">恶意评论</span>
-                      <span className="text-sm font-semibold text-red-600">
+                    {/* Flagged */}
+                    <div className="flex items-center justify-between p-2 bg-red-50 rounded-xl">
+                      <span className="text-xs text-red-600">恶意评论</span>
+                      <span className="text-sm font-bold text-red-600">
                         {brandData.flaggedComments} ({flaggedRatio}%)
                       </span>
                     </div>
 
                     {/* Sentiment Distribution */}
                     <div className="pt-3 border-t border-gray-100">
-                      <p className="text-xs text-gray-500 mb-2">情感分布</p>
-                      <div className="flex gap-1 h-2 rounded-full overflow-hidden bg-gray-100">
+                      <p className="text-xs text-gray-500 mb-2 font-medium">情感分布</p>
+                      <div className="flex gap-1 h-3 rounded-full overflow-hidden bg-gray-100 shadow-inner">
                         {totalComments > 0 && (
                           <>
                             <div
-                              className="bg-green-500"
+                              className="bg-gradient-to-r from-green-400 to-green-500 transition-all"
                               style={{ width: `${(brandData.positiveCount / totalComments) * 100}%` }}
                               title={`正面: ${brandData.positiveCount}`}
                             />
                             <div
-                              className="bg-gray-400"
+                              className="bg-gradient-to-r from-gray-400 to-gray-500 transition-all"
                               style={{ width: `${(brandData.neutralCount / totalComments) * 100}%` }}
                               title={`中性: ${brandData.neutralCount}`}
                             />
                             <div
-                              className="bg-red-500"
+                              className="bg-gradient-to-r from-red-400 to-red-500 transition-all"
                               style={{ width: `${(brandData.negativeCount / totalComments) * 100}%` }}
                               title={`负面: ${brandData.negativeCount}`}
                             />
                           </>
                         )}
                       </div>
-                      <div className="flex justify-between mt-1 text-xs text-gray-500">
-                        <span>正面 {brandData.positiveCount}</span>
-                        <span>中性 {brandData.neutralCount}</span>
-                        <span>负面 {brandData.negativeCount}</span>
+                      <div className="flex justify-between mt-2 text-[10px] text-gray-400">
+                        <span className="flex items-center gap-0.5"><span className="w-1.5 h-1.5 bg-green-500 rounded"></span>{brandData.positiveCount}</span>
+                        <span className="flex items-center gap-0.5"><span className="w-1.5 h-1.5 bg-gray-500 rounded"></span>{brandData.neutralCount}</span>
+                        <span className="flex items-center gap-0.5"><span className="w-1.5 h-1.5 bg-red-500 rounded"></span>{brandData.negativeCount}</span>
                       </div>
                     </div>
                   </div>
@@ -423,14 +476,32 @@ export default function CompetitorPage() {
 
       {/* Empty State */}
       {!data && !loading && (
-        <div className="bg-white rounded-lg p-12 border border-gray-100 shadow-sm text-center">
-          <TrendingUp className="w-12 h-12 text-gray-300 mx-auto mb-4" />
-          <h3 className="text-lg font-semibold text-gray-900 mb-2">开始竞品分析</h3>
-          <p className="text-sm text-gray-500">
-            输入 Reddit 板块名称，系统将自动抓取并分析各品牌帖子的舆情数据
-          </p>
-          <div className="mt-4 text-xs text-gray-400">
-            支持品牌：Hisense、TCL、Samsung、Sony
+        <div className="relative overflow-hidden bg-white rounded-2xl p-12 border border-gray-100 shadow-sm text-center">
+          {/* Decorative elements */}
+          <div className="absolute top-0 left-1/2 -translate-x-1/2 w-96 h-96 bg-gradient-to-r from-cyan-500/10 via-blue-500/10 to-indigo-500/10 rounded-full blur-3xl"></div>
+          
+          <div className="relative z-10">
+            <div className="w-20 h-20 mx-auto mb-6 bg-gradient-to-br from-cyan-100 to-indigo-100 rounded-2xl flex items-center justify-center">
+              <Target className="w-10 h-10 text-cyan-600" />
+            </div>
+            <h3 className="text-2xl font-bold text-gray-900 mb-3">开始竞品分析</h3>
+            <p className="text-gray-500 mb-6 max-w-md mx-auto">
+              选择 Reddit 板块和竞品品牌，系统将自动抓取并分析各品牌帖子的舆情数据
+            </p>
+            <div className="flex flex-wrap justify-center gap-3">
+              {['Hisense', 'TCL', 'Samsung', 'Sony'].map(brand => (
+                <span 
+                  key={brand}
+                  className="px-4 py-2 bg-gradient-to-r from-gray-50 to-gray-100 rounded-full text-sm font-medium text-gray-600 border border-gray-200"
+                >
+                  {brand}
+                </span>
+              ))}
+            </div>
+            <div className="mt-6 flex items-center justify-center gap-2 text-sm text-gray-400">
+              <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+              支持品牌实时舆情对比
+            </div>
           </div>
         </div>
       )}
