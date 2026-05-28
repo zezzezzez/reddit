@@ -17,7 +17,7 @@ jobs:
           key: ${{ secrets.EC2_SSH_KEY }}
           script: |
             echo "拉取最新代码和数据..."
-            cd ~/reddit && git pull origin main
+            cd ~/reddit-monitor && git pull origin main
 
             echo "重新构建镜像..."
             sudo docker build -t reddit-monitor .
