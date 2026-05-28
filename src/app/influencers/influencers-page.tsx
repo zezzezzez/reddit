@@ -84,6 +84,7 @@ export default function InfluencersPage() {
 
   const formatDate = (dateStr: string) => {
     return new Date(dateStr).toLocaleDateString('zh-CN', {
+      year: 'numeric',
       month: 'short',
       day: 'numeric',
       hour: '2-digit',
