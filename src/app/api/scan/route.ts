@@ -9,28 +9,54 @@ import { getLocalProxyConfig, isLocalDevelopment } from '@/lib/local-proxy';
 
 const isVercel = !!process.env.VERCEL;
 
-// Initialize proxy for local development
+// Initialize proxy for local development and production
 let proxyInitialized = false;
-async function ensureLocalProxyInitialized() {
-  if (proxyInitialized || !isLocalDevelopment()) {
+async function ensureProxyInitialized() {
+  if (proxyInitialized) {
     return;
   }
   
-  const proxyConfig = getLocalProxyConfig();
-  if (!proxyConfig) {
+  // 本地开发环境：从 local-proxy.ts 获取配置
+  let proxyHost: string | null = null;
+  let proxyPort: number | null = null;
+  
+  if (isLocalDevelopment()) {
+    const proxyConfig = getLocalProxyConfig();
+    if (proxyConfig) {
+      proxyHost = proxyConfig.host;
+      proxyPort = proxyConfig.port;
+    }
+  } else {
+    // 生产环境：从环境变量获取
+    proxyHost = process.env.HTTP_PROXY || process.env.https_proxy || null;
+    if (proxyHost) {
+      // 解析代理 URL，例如 http://10.19.193.99:443
+      try {
+        const proxyUrl = new URL(proxyHost);
+        proxyHost = proxyUrl.hostname;
+        proxyPort = parseInt(proxyUrl.port);
+      } catch (e) {
+        console.error('[Scan] Failed to parse HTTP_PROXY:', e);
+        proxyHost = null;
+      }
+    }
+  }
+  
+  if (!proxyHost || !proxyPort) {
+    console.log('[Scan] No proxy configuration found');
     proxyInitialized = true;
     return;
   }
 
   try {
-    console.log('[Scan] Initializing local proxy:', `${proxyConfig.protocol}://${proxyConfig.host}:${proxyConfig.port}`);
+    const proxyUrl = `http://${proxyHost}:${proxyPort}`;
+    console.log('[Scan] Initializing proxy:', proxyUrl);
     const undici = await import('undici');
-    const proxyUrl = `${proxyConfig.protocol}://${proxyConfig.host}:${proxyConfig.port}`;
     const proxyAgent = new undici.ProxyAgent(proxyUrl);
     undici.setGlobalDispatcher(proxyAgent);
-    console.log('[Scan] Local proxy configured successfully');
+    console.log('[Scan] Proxy configured successfully');
   } catch (error) {
-    console.error('[Scan] Failed to configure local proxy:', error);
+    console.error('[Scan] Failed to configure proxy:', error);
   } finally {
     proxyInitialized = true;
   }
@@ -53,8 +79,8 @@ export async function POST(request: Request) {
     scanProgress.total = 0;
     scanProgress.postTitle = '';
     scanProgress.message = '准备扫描...';
-    // 初始化本地代理
-    await ensureLocalProxyInitialized();
+    // 初始化代理（本地和生产环境）
+    await ensureProxyInitialized();
 
     const body = await request.json();
     const { postIds, scanAll, quickScan } = body;
