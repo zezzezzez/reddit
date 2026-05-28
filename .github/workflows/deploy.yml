@@ -33,8 +33,6 @@ jobs:
               --restart unless-stopped \
               -p 3000:3000 \
               -e NODE_ENV=production \
-              -e HTTP_PROXY=http://47.88.62.42:80 \
-              -e HTTPS_PROXY=http://47.88.62.42:80 \
               reddit-monitor
 
             echo "部署完成！"
