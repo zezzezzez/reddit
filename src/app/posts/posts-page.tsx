@@ -40,6 +40,14 @@ const SORT_OPTIONS = [
   { value: 'comments', label: '按评论数' },
 ];
 
+// 快捷日期筛选选项
+const QUICK_DATE_OPTIONS = [
+  { label: '今天', days: 0 },
+  { label: '近7天', days: 7 },
+  { label: '近30天', days: 30 },
+  { label: '近90天', days: 90 },
+];
+
 export default function PostsPage() {
   const [posts, setPosts] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -55,6 +63,7 @@ export default function PostsPage() {
   const [scanResult, setScanResult] = useState<{success: boolean; message: string} | null>(null);
   const [showSortMenu, setShowSortMenu] = useState(false);
   const [deletingPostId, setDeletingPostId] = useState<string | null>(null);
+  const [selectedQuickDate, setSelectedQuickDate] = useState<string | null>(null);
 
   useEffect(() => {
     fetchPosts();
@@ -257,7 +266,7 @@ export default function PostsPage() {
             <input
               type="date"
               value={dateFrom}
-              onChange={(e) => setDateFrom(e.target.value)}
+              onChange={(e) => { setDateFrom(e.target.value); setSelectedQuickDate(null); }}
               className="bg-transparent text-sm text-gray-700 focus:outline-none w-[130px]"
               title="开始日期"
             />
@@ -265,19 +274,52 @@ export default function PostsPage() {
             <input
               type="date"
               value={dateTo}
-              onChange={(e) => setDateTo(e.target.value)}
+              onChange={(e) => { setDateTo(e.target.value); setSelectedQuickDate(null); }}
               className="bg-transparent text-sm text-gray-700 focus:outline-none w-[130px]"
               title="结束日期"
             />
             {(dateFrom || dateTo) && (
               <button
-                onClick={() => { setDateFrom(''); setDateTo(''); }}
+                onClick={() => { setDateFrom(''); setDateTo(''); setSelectedQuickDate(null); }}
                 className="text-gray-400 hover:text-gray-700 ml-1"
                 title="清除日期筛选"
               >
                 <X className="w-3.5 h-3.5" />
               </button>
             )}
+          </div>
+
+
+          {/* Quick Date Filter Buttons */}
+          <div className="flex items-center gap-1 ml-2">
+            {QUICK_DATE_OPTIONS.map(opt => (
+              <button
+                key={opt.days}
+                onClick={() => {
+                  const today = new Date();
+                  const targetDate = new Date(today.getTime() - opt.days * 24 * 60 * 60 * 1000);
+                  const todayStr = today.toISOString().split('T')[0];
+                  const targetStr = targetDate.toISOString().split('T')[0];
+                  
+                  if (opt.days === 0) {
+                    // 今天：只设置结束日期为今天，开始日期为空
+                    setDateFrom('');
+                    setDateTo(todayStr);
+                  } else {
+                    setDateFrom(targetStr);
+                    setDateTo(todayStr);
+                  }
+                  setSelectedQuickDate(String(opt.days));
+                }}
+                className={`px-2.5 py-1 text-xs rounded-md transition-all ${
+                  selectedQuickDate === String(opt.days)
+                    ? 'bg-primary text-white shadow-sm'
+                    : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                }`}
+              >
+                {opt.label}
+              </button>
+            ))}
           </div>
 
           {/* Sort */}

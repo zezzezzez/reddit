@@ -707,6 +707,32 @@ export default function CompetitorPage() {
                       删除
                     </button>
                   </div>
+                  
+                  {/* 健康度摘要 */}
+                  {record.data?.brands && (
+                    <div className="flex items-center gap-3 mt-2 pt-2 border-t border-gray-100">
+                      {Object.entries(record.data.brands).map(([brandName, brandData]: [string, any]) => {
+                        // 计算健康度
+                        const criticalPenalty = (brandData.criticalPosts || 0) * 4;
+                        const mediumPenalty = (brandData.mediumPosts || 0) * 1.5;
+                        const flaggedRatio = brandData.totalComments > 0 
+                          ? (brandData.flaggedComments / brandData.totalComments * 100) : 0;
+                        const flaggedPenalty = flaggedRatio * 0.5;
+                        const healthScore = Math.max(0, Math.round(100 - Math.min(criticalPenalty, 60) - Math.min(mediumPenalty, 25) - Math.min(flaggedPenalty, 15)));
+                        const healthLabel = healthScore >= 80 ? '健康' : healthScore >= 60 ? '一般' : healthScore >= 40 ? '预警' : '高危';
+                        const healthColor = healthScore >= 80 ? 'text-green-600' : healthScore >= 60 ? 'text-yellow-600' : healthScore >= 40 ? 'text-orange-600' : 'text-red-600';
+                        const bgColor = healthScore >= 80 ? 'bg-green-50' : healthScore >= 60 ? 'bg-yellow-50' : healthScore >= 40 ? 'bg-orange-50' : 'bg-red-50';
+                        
+                        return (
+                          <div key={brandName} className={`flex items-center gap-1 px-2 py-1 rounded-full text-xs ${bgColor}`}>
+                            <span className="font-medium">{brandName}:</span>
+                            <span className={`font-bold ${healthColor}`}>{healthScore}</span>
+                            <span className="text-gray-500">{healthLabel}</span>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  )}
                 </div>
               );
             })}

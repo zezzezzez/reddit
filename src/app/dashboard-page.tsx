@@ -54,6 +54,7 @@ export default function DashboardPage() {
   const [pushing, setPushing] = useState(false);
   const [pushResult, setPushResult] = useState<{ success: boolean; message: string } | null>(null);
   const [notifyScheduler, setNotifyScheduler] = useState<{ enabled: boolean; scheduledTime: string | null; lastPushTime: string | null; lastPushResult: { success: boolean; message: string; postCount: number } | null } | null>(null);
+  const [trendDays, setTrendDays] = useState(7); // 趋势图显示天数
 
   useEffect(() => {
     fetchDashboard();
@@ -368,7 +369,25 @@ export default function DashboardPage() {
         {/* Trend Chart */}
         <div className="lg:col-span-2 bg-white rounded-lg p-5 border border-gray-100 shadow-sm">
           <div className="flex items-center justify-between mb-1">
-            <h3 className="text-sm font-semibold text-gray-900">评论情感趋势 (7天)</h3>
+            <div className="flex items-center gap-3">
+              <h3 className="text-sm font-semibold text-gray-900">评论情感趋势</h3>
+              {/* 时间范围选择 */}
+              <div className="flex items-center gap-1">
+                {[7, 14, 30].map(days => (
+                  <button
+                    key={days}
+                    onClick={() => setTrendDays(days)}
+                    className={`px-2 py-0.5 text-xs rounded transition-all ${
+                      trendDays === days
+                        ? 'bg-cyan-100 text-cyan-700 font-medium'
+                        : 'text-gray-500 hover:bg-gray-100'
+                    }`}
+                  >
+                    {days}天
+                  </button>
+                ))}
+              </div>
+            </div>
             <div className="flex items-center gap-3 text-xs text-gray-500">
               <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-green-500 inline-block"></span>正面: 情感分数 &gt; 0.1</span>
               <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-gray-400 inline-block"></span>中性: -0.1 ~ 0.1</span>
@@ -377,7 +396,7 @@ export default function DashboardPage() {
           </div>
           <p className="text-xs text-gray-500 mb-3">纵轴表示对应情感类别的评论数量</p>
           <ResponsiveContainer width="100%" height={260}>
-            <AreaChart data={data.trendData}>
+            <AreaChart data={data.trendData?.slice(-trendDays)}>
               <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
               <XAxis dataKey="date" stroke="#9ca3af" fontSize={12} tickFormatter={(v) => v.slice(5)} />
               <YAxis stroke="#9ca3af" fontSize={12} />
