@@ -42,7 +42,6 @@ const SORT_OPTIONS = [
 
 // 快捷日期筛选选项
 const QUICK_DATE_OPTIONS = [
-  { label: '今天', days: 0 },
   { label: '近7天', days: 7 },
   { label: '近30天', days: 30 },
   { label: '近90天', days: 90 },
@@ -296,20 +295,22 @@ export default function PostsPage() {
               <button
                 key={opt.days}
                 onClick={() => {
-                  const today = new Date();
-                  const targetDate = new Date(today.getTime() - opt.days * 24 * 60 * 60 * 1000);
-                  const todayStr = today.toISOString().split('T')[0];
-                  const targetStr = targetDate.toISOString().split('T')[0];
-                  
-                  if (opt.days === 0) {
-                    // 今天：只设置结束日期为今天，开始日期为空
+                  if (selectedQuickDate === String(opt.days)) {
+                    // 已选中，再次点击取消筛选
                     setDateFrom('');
-                    setDateTo(todayStr);
+                    setDateTo('');
+                    setSelectedQuickDate(null);
                   } else {
+                    // 未选中，点击进行筛选
+                    const today = new Date();
+                    const targetDate = new Date(today.getTime() - opt.days * 24 * 60 * 60 * 1000);
+                    const todayStr = today.toISOString().split('T')[0];
+                    const targetStr = targetDate.toISOString().split('T')[0];
+                    
                     setDateFrom(targetStr);
                     setDateTo(todayStr);
+                    setSelectedQuickDate(String(opt.days));
                   }
-                  setSelectedQuickDate(String(opt.days));
                 }}
                 className={`px-2.5 py-1 text-xs rounded-md transition-all ${
                   selectedQuickDate === String(opt.days)
