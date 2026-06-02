@@ -88,5 +88,23 @@
         "negative": 0
       }
     ]
+  },
+  {
+    "date": "2026-06-02",
+    "totalPosts": 78,
+    "totalComments": 1060,
+    "flaggedComments": 0,
+    "criticalAlerts": 4,
+    "highAlerts": 0,
+    "mediumAlerts": 5,
+    "safePosts": 69,
+    "sentimentTrend": [
+      {
+        "date": "2026-06-02",
+        "positive": 0,
+        "neutral": 0,
+        "negative": 0
+      }
+    ]
   }
 ]
