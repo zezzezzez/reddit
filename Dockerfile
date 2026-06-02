@@ -16,8 +16,8 @@ RUN npm ci
 # 复制源代码
 COPY . .
 
-# 构建 Next.js 应用
-RUN npm run build
+# 构建 Next.js 应用（使用 webpack 模式，兼容 Next.js 16 的 Turbopack 默认行为）
+RUN npx next build --webpack
 
 # 生产镜像
 FROM node:22-alpine AS runner
