@@ -33,6 +33,8 @@ jobs:
               --restart unless-stopped \
               -p 3000:3000 \
               -e NODE_ENV=production \
+              -e HTTP_PROXY='http://spo7492epm:926%2BygmrP0eyYkEkSf@gate.decodo.com:10001' \
+              -e HTTPS_PROXY='http://spo7492epm:926%2BygmrP0eyYkEkSf@gate.decodo.com:10001' \
               reddit-monitor
 
             echo "部署完成！"
