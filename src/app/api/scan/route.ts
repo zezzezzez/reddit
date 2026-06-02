@@ -5,90 +5,25 @@ import { analyzeCommentSentiment, calculatePostAlertLevel } from '@/lib/sentimen
 import { generateDetailedSummary } from '@/lib/summary';
 import { analyzeSentimentWithLLM } from '@/lib/llm';
 import { RedditComment } from '@/lib/types';
-import { getLocalProxyConfig, isLocalDevelopment } from '@/lib/local-proxy';
+import { getProxyUrl } from '@/lib/local-proxy';
 
 const isVercel = !!process.env.VERCEL;
 
-// Initialize proxy for local development and production
+// Initialize proxy (all environments use Decodo residential proxy)
 let proxyInitialized = false;
 
-// 免费代理池（AWS 生产环境使用）
-const FREE_PROXY_POOL = [
-  'http://47.88.62.42:80',
-  'http://51.159.115.233:3128',
-  'http://103.152.112.162:80',
-  'http://185.162.230.55:80',
-  'http://91.107.233.194:8080',
-];
-
 async function ensureProxyInitialized() {
-  if (proxyInitialized) {
-    return;
-  }
-  
-  // 本地开发环境：从 local-proxy.ts 获取配置
-  let proxyHost: string | null = null;
-  let proxyPort: number | null = null;
-  
-  if (isLocalDevelopment()) {
-    const proxyConfig = getLocalProxyConfig();
-    if (proxyConfig) {
-      proxyHost = proxyConfig.host;
-      proxyPort = proxyConfig.port;
-    }
-  } else {
-    // 生产环境：从环境变量获取，或尝试免费代理池
-    let proxyUrl = process.env.HTTP_PROXY || process.env.https_proxy || null;
-    
-    if (!proxyUrl) {
-      // 尝试从免费代理池中找到可用的代理
-      console.log('[Scan] No proxy configured, trying free proxy pool...');
-      for (const candidate of FREE_PROXY_POOL) {
-        try {
-          console.log(`[Scan] Testing proxy: ${candidate}`);
-          const undici = await import('undici');
-          const testAgent = new undici.ProxyAgent(candidate);
-          
-          // 测试代理是否可用
-          const testResponse = await undici.fetch('https://www.reddit.com/.json?limit=1', {
-            dispatcher: testAgent,
-            headers: { 'User-Agent': 'Mozilla/5.0' },
-          });
-          
-          if (testResponse.ok) {
-            proxyUrl = candidate;
-            console.log(`[Scan] Found working proxy: ${candidate}`);
-            break;
-          } else {
-            console.log(`[Scan] Proxy ${candidate} returned ${testResponse.status}`);
-          }
-        } catch (error) {
-          console.log(`[Scan] Proxy ${candidate} failed:`, error);
-        }
-      }
-    }
-    
-    if (proxyUrl) {
-      // 解析代理 URL
-      try {
-        const parsedUrl = new URL(proxyUrl);
-        proxyHost = parsedUrl.hostname;
-        proxyPort = parseInt(parsedUrl.port);
-      } catch (e) {
-        console.error('[Scan] Failed to parse proxy URL:', e);
-      }
-    }
-  }
-  
-  if (!proxyHost || !proxyPort) {
-    console.log('[Scan] No proxy configuration found, will try direct connection');
+  if (proxyInitialized) return;
+
+  const proxyUrl = getProxyUrl();
+  if (!proxyUrl) {
+    console.log('[Scan] No proxy configured (HTTP_PROXY/HTTPS_PROXY), will try direct connection');
     proxyInitialized = true;
     return;
   }
 
   try {
-    const proxyUrl = `http://${proxyHost}:${proxyPort}`;
-    console.log('[Scan] Initializing proxy:', proxyUrl);
+    console.log('[Scan] Initializing proxy...');
     const undici = await import('undici');
     const proxyAgent = new undici.ProxyAgent(proxyUrl);
     undici.setGlobalDispatcher(proxyAgent);

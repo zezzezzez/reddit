@@ -4,9 +4,10 @@
 import { RedditComment, RedditPost } from './types';
 
 // 配置代理
-import { getLocalProxyConfig, isLocalDevelopment } from './local-proxy';
+import { getProxyUrl } from './local-proxy';
 
-const REDDIT_USER_AGENT = 'HisenseRedditMonitor/1.0';
+// 使用更真实的浏览器 User-Agent，避免被 Reddit 阻止
+const REDDIT_USER_AGENT = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36';
 
 // 配置代理（从环境变量读取）
 const PROXY_URL = process.env.HTTP_PROXY || process.env.HTTPS_PROXY;
@@ -40,7 +41,11 @@ export async function resolveShortUrl(url: string): Promise<string> {
   try {
     const response = await fetch(url, {
       redirect: 'follow',
-      headers: { 'User-Agent': REDDIT_USER_AGENT },
+      headers: { 
+        'User-Agent': REDDIT_USER_AGENT,
+        'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8',
+        'Accept-Language': 'en-US,en;q=0.9',
+      },
     });
     return response.url;
   } catch {
@@ -70,7 +75,15 @@ export async function fetchRedditPost(url: string, ourPostId?: string): Promise<
     const response = await fetch(jsonUrl, {
       headers: {
         'User-Agent': REDDIT_USER_AGENT,
-        'Accept': 'application/json',
+        'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8',
+        'Accept-Language': 'en-US,en;q=0.9',
+        'Accept-Encoding': 'gzip, deflate, br',
+        'Connection': 'keep-alive',
+        'Upgrade-Insecure-Requests': '1',
+        'Sec-Fetch-Dest': 'document',
+        'Sec-Fetch-Mode': 'navigate',
+        'Sec-Fetch-Site': 'none',
+        'Sec-Fetch-User': '?1',
       },
       signal: controller.signal,
     });
@@ -89,7 +102,15 @@ export async function fetchRedditPost(url: string, ourPostId?: string): Promise<
           const retryResponse = await fetch(jsonUrl, {
             headers: {
               'User-Agent': REDDIT_USER_AGENT,
-              'Accept': 'application/json',
+              'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8',
+              'Accept-Language': 'en-US,en;q=0.9',
+              'Accept-Encoding': 'gzip, deflate, br',
+              'Connection': 'keep-alive',
+              'Upgrade-Insecure-Requests': '1',
+              'Sec-Fetch-Dest': 'document',
+              'Sec-Fetch-Mode': 'navigate',
+              'Sec-Fetch-Site': 'none',
+              'Sec-Fetch-User': '?1',
             },
           });
           if (retryResponse.ok) {
@@ -249,29 +270,21 @@ export async function fetchSubredditPosts(
 
     let response: any;
     
-    // 本地开发环境：使用 undici setGlobalDispatcher 设置的全局代理
-    if (isLocalDevelopment()) {
-      const proxyConfig = getLocalProxyConfig();
-      if (proxyConfig) {
-        console.log(`[Reddit] Using global proxy: ${proxyConfig.protocol}://${proxyConfig.host}:${proxyConfig.port}`);
-      }
-      
-      // 直接使用 fetch，会使用 undici.setGlobalDispatcher 设置的全局代理
-      response = await fetch(url, {
-        headers: {
-          'User-Agent': REDDIT_USER_AGENT,
-          'Accept': 'application/json',
-        },
-      });
-    } else {
-      // 非本地环境，直接 fetch
-      response = await fetch(url, {
-        headers: {
-          'User-Agent': REDDIT_USER_AGENT,
-          'Accept': 'application/json',
-        },
-      });
+    // 使用 undici setGlobalDispatcher 设置的全局代理（所有环境统一走 Decodo 住宅代理）
+    const proxyUrl = getProxyUrl();
+    if (proxyUrl) {
+      console.log(`[Reddit] Using proxy (global dispatcher)`);
     }
+    
+    response = await fetch(url, {
+      headers: {
+        'User-Agent': REDDIT_USER_AGENT,
+        'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8',
+        'Accept-Language': 'en-US,en;q=0.9',
+        'Accept-Encoding': 'gzip, deflate, br',
+        'Connection': 'keep-alive',
+      },
+    });
 
     if (!response.ok) {
       console.error(`[Reddit] Failed to fetch subreddit posts: ${response.status} ${response.statusText}`);

@@ -60,10 +60,39 @@ const memoryStore: Record<string, any> = {
   competitorHistory: [],
 };
 
+// ─── In-memory cache (避免频繁读取大文件) ────────────────────
+const cache: Record<string, any> = {
+  posts: null,
+  comments: null,
+  scans: null,
+  reports: null,
+  config: null,
+  competitorHistory: null,
+  lastUpdated: {} as Record<string, number>,
+};
+
+const CACHE_TTL = 30000; // 30秒缓存（从5秒增加到30秒，减少频繁读取大文件）
+
+function getCached<T>(key: string, readFn: () => T): T {
+  const now = Date.now();
+  if (cache[key] !== null && (now - cache.lastUpdated[key]) < CACHE_TTL) {
+    return cache[key] as T;
+  }
+  const data = readFn();
+  cache[key] = data;
+  cache.lastUpdated[key] = now;
+  return data;
+}
+
+function invalidateCache(key: string) {
+  cache[key] = null;
+  delete cache.lastUpdated[key];
+}
+
 // ─── Posts ───────────────────────────────────────────────────
 export function getPosts(): RedditPost[] {
   if (isVercel) return memoryStore.posts as RedditPost[];
-  return readJsonFile<RedditPost[]>(POSTS_FILE, []);
+  return getCached('posts', () => readJsonFile<RedditPost[]>(POSTS_FILE, []));
 }
 
 export function getPostById(id: string): RedditPost | undefined {
@@ -73,6 +102,7 @@ export function getPostById(id: string): RedditPost | undefined {
 export function savePosts(posts: RedditPost[]) {
   if (isVercel) { memoryStore.posts = posts; return; }
   writeJsonFile(POSTS_FILE, posts);
+  invalidateCache('posts');
 }
 
 export function upsertPost(post: RedditPost) {
@@ -93,7 +123,7 @@ export function deletePost(id: string) {
 
 // ─── Comments ────────────────────────────────────────────────
 export function getComments(postId?: string): RedditComment[] {
-  const all = isVercel ? (memoryStore.comments as RedditComment[]) : readJsonFile<RedditComment[]>(COMMENTS_FILE, []);
+  const all = isVercel ? (memoryStore.comments as RedditComment[]) : getCached('comments', () => readJsonFile<RedditComment[]>(COMMENTS_FILE, []));
   if (postId) return all.filter(c => c.postId === postId);
   return all;
 }
@@ -104,6 +134,7 @@ export function saveComments(postId: string, comments: RedditComment[]) {
   filtered.push(...comments);
   if (isVercel) { memoryStore.comments = filtered; return; }
   writeJsonFile(COMMENTS_FILE, filtered);
+  invalidateCache('comments');
 }
 
 export function deleteComments(postId: string) {
@@ -115,7 +146,7 @@ export function deleteComments(postId: string) {
 
 // ─── Scan Results ────────────────────────────────────────────
 export function getScanResults(postId?: string): ScanResult[] {
-  const all = isVercel ? (memoryStore.scans as ScanResult[]) : readJsonFile<ScanResult[]>(SCANS_FILE, []);
+  const all = isVercel ? (memoryStore.scans as ScanResult[]) : getCached('scans', () => readJsonFile<ScanResult[]>(SCANS_FILE, []));
   if (postId) return all.filter(s => s.postId === postId);
   return all;
 }
@@ -125,6 +156,7 @@ export function saveScanResult(result: ScanResult) {
   all.push(result);
   if (isVercel) { memoryStore.scans = all; return; }
   writeJsonFile(SCANS_FILE, all);
+  invalidateCache('scans');
 }
 
 export function deleteScanResults(postId: string) {
@@ -137,7 +169,7 @@ export function deleteScanResults(postId: string) {
 // ─── Daily Reports ───────────────────────────────────────────
 export function getDailyReports(): DailyScanReport[] {
   if (isVercel) return memoryStore.reports as DailyScanReport[];
-  return readJsonFile<DailyScanReport[]>(REPORTS_FILE, []);
+  return getCached('reports', () => readJsonFile<DailyScanReport[]>(REPORTS_FILE, []));
 }
 
 export function saveDailyReport(report: DailyScanReport) {
@@ -150,6 +182,7 @@ export function saveDailyReport(report: DailyScanReport) {
   }
   if (isVercel) { memoryStore.reports = reports; return; }
   writeJsonFile(REPORTS_FILE, reports);
+  invalidateCache('reports');
 }
 
 // ─── Config ──────────────────────────────────────────────────

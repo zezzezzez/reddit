@@ -1,19 +1,8 @@
-// 本地开发环境代理配置
-// 仅在本地开发时使用，生产环境（EC2/Vercel）不使用
+// 代理配置 - 统一使用 Decodo 住宅代理
+// 代理 URL 从环境变量 HTTP_PROXY / HTTPS_PROXY 读取
 
-const PROXY_CONFIG = {
-  enabled: process.env.NODE_ENV !== 'production', // 仅开发环境启用
-  host: '10.19.193.99',
-  port: 443,
-  protocol: 'http' as const,
-};
-
-export function getLocalProxyConfig() {
-  if (!PROXY_CONFIG.enabled) {
-    return null;
-  }
-  
-  return PROXY_CONFIG;
+export function getProxyUrl(): string | null {
+  return process.env.HTTP_PROXY || process.env.HTTPS_PROXY || null;
 }
 
 export function isLocalDevelopment() {

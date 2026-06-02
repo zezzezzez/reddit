@@ -11,6 +11,10 @@ services:
       # 飞书配置
       - FEISHU_WEBHOOK_URL=${FEISHU_WEBHOOK_URL:-}
       
+      # 代理配置（Decodo 住宅代理，本地和 AWS 统一使用）
+      - HTTP_PROXY=${HTTP_PROXY:-}
+      - HTTPS_PROXY=${HTTPS_PROXY:-}
+      
       # 应用配置
       - NODE_ENV=production
       

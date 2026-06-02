@@ -59,7 +59,15 @@ async function executeMidnightScan() {
 }
 
 // Initialize or update the scheduled task
+let initialized = false;
+
 export function initScheduler(): void {
+  // 防止重复初始化（热重载时很重要）
+  if (initialized) {
+    console.log('[Scheduler] Already initialized, skipping...');
+    return;
+  }
+  
   // Stop existing tasks if any
   if (scheduledTask) {
     scheduledTask.stop();
@@ -90,6 +98,8 @@ export function initScheduler(): void {
   // 2. Schedule midnight auto-scan (00:00 every day)
   midnightScanTask = cron.schedule('0 0 * * *', executeMidnightScan);
   console.log('[Scheduler] Midnight auto-scan scheduled at 00:00 (cron: 0 0 * * *)');
+  
+  initialized = true;
 }
 
 // Get scheduler status
