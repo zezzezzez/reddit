@@ -1,5 +1,5 @@
-# 使用 Node.js 20 LTS 作为基础镜像
-FROM node:20-alpine AS builder
+# 使用 Node.js 22 LTS 作为基础镜像（修复 undici ProxyAgent 兼容性问题）
+FROM node:22-alpine AS builder
 
 # 设置工作目录
 WORKDIR /app
@@ -20,7 +20,7 @@ COPY . .
 RUN npm run build
 
 # 生产镜像
-FROM node:20-alpine AS runner
+FROM node:22-alpine AS runner
 
 WORKDIR /app
 
