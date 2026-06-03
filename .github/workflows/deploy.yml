@@ -14,7 +14,7 @@ jobs:
         with:
           host: 3.76.37.129
           username: ec2-user
-          key: ${{ secrets.EC2_SSH_KEY }}
+          key: ${{ secrets.REDDIT_MONITOR_KEY }}
           script: |
             set -e  # 任何命令失败都立即退出
             
