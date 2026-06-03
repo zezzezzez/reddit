@@ -27,27 +27,56 @@ export async function getProxyAgent(): Promise<any> {
 
 /**
  * 带代理支持的 fetch 包装器
- * 优先使用 undici.fetch + ProxyAgent，解决 Node.js 内置 fetch 不走 npm undici 全局 dispatcher 的问题
+ * 使用 undici.request（底层 API）+ ProxyAgent，兼容 Next.js 生产构建
  */
 export async function proxyFetch(url: string, init?: RequestInit): Promise<Response> {
   const agent = await getProxyAgent();
   if (agent) {
     try {
-      console.log(`[Proxy] Using proxy fetch for: ${url.substring(0, 80)}...`);
-      // 使用 undici.fetch，它尊重 dispatcher 选项
+      console.log(`[Proxy] Using proxy for: ${url.substring(0, 80)}`);
       const undici = await import('undici');
-      const result = await (undici.fetch as any)(url, {
-        ...(init as any),
+
+      // 构建 undici.request 选项
+      const reqOptions: any = {
+        method: init?.method || 'GET',
+        headers: init?.headers as any,
+      };
+
+      // 处理 AbortController signal
+      if (init?.signal) {
+        reqOptions.signal = init.signal;
+      }
+
+      const resp = await undici.request(url, {
+        ...reqOptions,
         dispatcher: agent,
       });
-      console.log(`[Proxy] Response status: ${result.status}`);
-      return result;
+
+      // 读取响应体
+      const body = await resp.body.text();
+
+      console.log(`[Proxy] Response status: ${resp.statusCode} for ${url.substring(0, 60)}`);
+
+      // 手动构造 Response 对象
+      const responseHeaders = new Headers();
+      for (const [key, value] of Object.entries(resp.headers)) {
+        if (Array.isArray(value)) {
+          value.forEach(v => responseHeaders.append(key, v));
+        } else {
+          responseHeaders.set(key, value as string);
+        }
+      }
+
+      return new Response(body, {
+        status: resp.statusCode,
+        statusText: resp.statusText || '',
+        headers: responseHeaders,
+      });
     } catch (error: any) {
-      console.error(`[Proxy] undici.fetch failed:`, error.message, error.cause || '');
+      console.error(`[Proxy] undici.request failed:`, error.message);
       throw error;
     }
   }
   console.log(`[Proxy] No proxy configured, using direct fetch`);
-  // 没有代理时使用全局 fetch
   return fetch(url, init);
 }
