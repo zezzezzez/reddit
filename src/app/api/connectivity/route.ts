@@ -1,11 +1,12 @@
 import { NextResponse } from 'next/server';
+import { proxyFetch } from '@/lib/local-proxy';
 
 export async function GET() {
   try {
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), 8000);
 
-    const response = await fetch('https://www.reddit.com/.json?limit=1', {
+    const response = await proxyFetch('https://www.reddit.com/.json?limit=1', {
       signal: controller.signal,
       headers: { 'User-Agent': 'HisenseRedditMonitor/1.0' },
     });

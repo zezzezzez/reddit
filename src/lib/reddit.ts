@@ -3,8 +3,8 @@
 
 import { RedditComment, RedditPost } from './types';
 
-// 配置代理
-import { getProxyUrl } from './local-proxy';
+// 使用代理 fetch（解决 Node.js 内置 fetch 不走 npm undici 全局 dispatcher 的问题）
+import { getProxyUrl, proxyFetch } from './local-proxy';
 
 // 使用更真实的浏览器 User-Agent，避免被 Reddit 阻止
 const REDDIT_USER_AGENT = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36';
@@ -39,7 +39,7 @@ export async function resolveShortUrl(url: string): Promise<string> {
   if (!url.includes('/s/')) return url;
 
   try {
-    const response = await fetch(url, {
+    const response = await proxyFetch(url, {
       redirect: 'follow',
       headers: { 
         'User-Agent': REDDIT_USER_AGENT,
@@ -72,7 +72,7 @@ export async function fetchRedditPost(url: string, ourPostId?: string): Promise<
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), 30000);
 
-    const response = await fetch(jsonUrl, {
+    const response = await proxyFetch(jsonUrl, {
       headers: {
         'User-Agent': REDDIT_USER_AGENT,
         'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8',
@@ -99,7 +99,7 @@ export async function fetchRedditPost(url: string, ourPostId?: string): Promise<
           const waitTime = (retries + 1) * 15000; // 15s, 30s, 45s
           console.warn(`[Reddit] Rate limited (429), waiting ${waitTime/1000}s before retry ${retries + 1}/${maxRetries}...`);
           await new Promise(resolve => setTimeout(resolve, waitTime));
-          const retryResponse = await fetch(jsonUrl, {
+          const retryResponse = await proxyFetch(jsonUrl, {
             headers: {
               'User-Agent': REDDIT_USER_AGENT,
               'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8',
@@ -276,7 +276,7 @@ export async function fetchSubredditPosts(
       console.log(`[Reddit] Using proxy (global dispatcher)`);
     }
     
-    response = await fetch(url, {
+    response = await proxyFetch(url, {
       headers: {
         'User-Agent': REDDIT_USER_AGENT,
         'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8',
