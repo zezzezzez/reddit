@@ -9,10 +9,10 @@ jobs:
   deploy:
     runs-on: ubuntu-latest
     steps:
-      - name: Deploy to Frankfurt EC2
+      - name: Deploy to EC2
         uses: appleboy/ssh-action@v1.0.3
         with:
-          host: 63.183.212.153
+          host: 3.76.37.129
           username: ec2-user
           key: ${{ secrets.EC2_SSH_KEY }}
           script: |
@@ -33,8 +33,8 @@ jobs:
               --restart unless-stopped \
               -p 3000:3000 \
               -e NODE_ENV=production \
-              -e HTTP_PROXY='http://spo7492epm:926%2BygmrP0eyYkEkSf@gate.decodo.com:10001' \
-              -e HTTPS_PROXY='http://spo7492epm:926%2BygmrP0eyYkEkSf@gate.decodo.com:10001' \
+              -e HTTP_PROXY='http://spo7492epm:8bLtd42alncz%7ETV0gK@gate.decodo.com:10001' \
+              -e HTTPS_PROXY='http://spo7492epm:8bLtd42alncz%7ETV0gK@gate.decodo.com:10001' \
               reddit-monitor
 
             echo "部署完成！"
