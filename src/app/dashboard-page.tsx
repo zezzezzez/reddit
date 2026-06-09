@@ -81,15 +81,11 @@ export default function DashboardPage() {
     }
   };
 
-  const [isQuickScan, setIsQuickScan] = useState(false);
-
-  const handleScan = async (quickScan = false) => {
+  const handleScan = async () => {
     setScanning(true);
-    setIsQuickScan(quickScan);
-    setScanProgress(quickScan ? '' : '准备扫描...');
+    setScanProgress('准备扫描...');
 
     const progressInterval = setInterval(async () => {
-      if (quickScan) return;
       try {
         const res = await fetch('/api/scan');
         const json = await res.json();
@@ -103,7 +99,7 @@ export default function DashboardPage() {
       await fetch('/api/scan', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(quickScan ? { quickScan: true } : { scanAll: true }),
+        body: JSON.stringify({ scanAll: true }),
       });
       await fetchDashboard();
     } catch (e) {
@@ -111,7 +107,6 @@ export default function DashboardPage() {
     } finally {
       clearInterval(progressInterval);
       setScanning(false);
-      setIsQuickScan(false);
       setScanProgress('');
     }
   };
@@ -152,20 +147,12 @@ export default function DashboardPage() {
               <span>上次扫描: 09:00</span>
             </div>
             <button
-              onClick={() => handleScan(false)}
+              onClick={handleScan}
               disabled={scanning}
               className="flex items-center gap-2 px-5 py-2.5 bg-primary hover:bg-primary-hover text-white rounded-lg text-sm font-medium transition-colors disabled:opacity-50 shadow-sm"
             >
               <RefreshCw className={`w-4 h-4 ${scanning ? 'animate-spin' : ''}`} />
-              {scanning ? (isQuickScan ? '扫描中...' : (scanProgress || '扫描中...')) : '立即扫描'}
-            </button>
-            <button
-              onClick={() => handleScan(true)}
-              disabled={scanning}
-              className="flex items-center gap-2 px-5 py-2.5 bg-green-600 hover:bg-green-700 text-white rounded-lg text-sm font-medium transition-colors disabled:opacity-50 shadow-sm"
-            >
-              <RefreshCw className={`w-4 h-4 ${scanning ? 'animate-spin' : ''}`} />
-              {scanning ? (scanProgress || '扫描中...') : '快速扫描'}
+              {scanning ? (scanProgress || '扫描中...') : '立即扫描'}
             </button>
             <button
               onClick={async () => {

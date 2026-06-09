@@ -24,6 +24,7 @@ export interface RedditPost {
   handler?: string;
   handleTime?: string;
   handleNote?: string;
+  scanError?: string; // 扫描失败时的错误信息
 }
 
 export interface RedditComment {

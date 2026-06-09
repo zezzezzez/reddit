@@ -55,7 +55,7 @@ export default function SettingsPage() {
     mode: 'webhook' as string,
     webhookUrl: '',
     notifyTime: '09:00',
-    notifyLevels: ['critical', 'high'] as string[],
+    notifyLevels: ['critical'] as string[],
     receiveUserId: '',
     receiveChatId: '',
   });
@@ -755,7 +755,6 @@ export default function SettingsPage() {
                 <div className="flex items-center gap-2">
                   {[
                     { value: 'critical', label: '严重', color: 'bg-red-500' },
-                    { value: 'high', label: '高危', color: 'bg-orange-500' },
                     { value: 'medium', label: '中等', color: 'bg-yellow-500' },
                   ].map(level => (
                     <button

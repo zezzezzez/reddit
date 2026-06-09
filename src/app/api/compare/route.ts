@@ -29,15 +29,24 @@ export async function GET() {
     const positive = subComments.filter(c => c.sentimentScore > 0.1).length;
     const neutral = subComments.filter(c => c.sentimentScore >= -0.1 && c.sentimentScore <= 0.1).length;
     const negative = subComments.filter(c => c.sentimentScore < -0.1).length;
+    const flagged = subComments.filter(c => c.isFlagged).length;
 
     const positiveRate = total > 0 ? Math.round(positive / total * 1000) / 10 : 0;
     const neutralRate = total > 0 ? Math.round(neutral / total * 1000) / 10 : 0;
     const negativeRate = total > 0 ? Math.round(negative / total * 1000) / 10 : 0;
 
-    // Simple health score for this subreddit
-    const healthScore = total > 0
-      ? Math.max(0, Math.min(100, Math.round(100 - negativeRate * 0.6 - (total > 0 ? (negative / total * 100 * 0.4) : 0))))
-      : 100;
+    // Health score: consistent with dashboard calculation
+    // Factors: post alert levels + flagged comment ratio
+    const criticalPosts = subPosts.filter(p => p.alertLevel === 'critical').length;
+    const mediumPosts = subPosts.filter(p => p.alertLevel === 'medium').length;
+    const flaggedRatio = total > 0 ? (flagged / total * 100) : 0;
+
+    const criticalPenalty = criticalPosts * 4;
+    const mediumPenalty = mediumPosts * 1.5;
+    const flaggedPenalty = flaggedRatio * 0.5;
+
+    let healthScore = Math.max(0, Math.round(100 - Math.min(criticalPenalty, 60) - Math.min(mediumPenalty, 25) - Math.min(flaggedPenalty, 15)));
+    healthScore = Math.min(100, Math.max(0, healthScore));
 
     return {
       subreddit: sub.subreddit,
@@ -46,6 +55,9 @@ export async function GET() {
       positiveRate,
       neutralRate,
       negativeRate,
+      flaggedComments: flagged,
+      criticalPosts,
+      mediumPosts,
       topKeywords: [] as string[],
       healthScore,
     };

@@ -110,7 +110,7 @@
   {
     "date": "2026-06-09",
     "totalPosts": 58,
-    "totalComments": 79,
+    "totalComments": 379,
     "flaggedComments": 1,
     "criticalAlerts": 0,
     "highAlerts": 0,
@@ -119,8 +119,8 @@
     "sentimentTrend": [
       {
         "date": "2026-06-09",
-        "positive": 13,
-        "neutral": 66,
+        "positive": 107,
+        "neutral": 272,
         "negative": 0
       }
     ]

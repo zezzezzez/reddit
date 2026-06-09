@@ -90,14 +90,13 @@ export default function PostsPage() {
     }
   };
 
-  const handleScanAll = async (quickScan = false) => {
+  const handleScanAll = async () => {
     setScanning(true);
     setScanResult(null);
-    setScanProgress(quickScan ? '' : '准备扫描...');
+    setScanProgress('准备扫描...');
 
     // Start a timer to poll real-time scan progress
     const refreshInterval = setInterval(async () => {
-      if (quickScan) return;
       try {
         const res = await fetch('/api/scan');
         const json = await res.json();
@@ -105,14 +104,13 @@ export default function PostsPage() {
           setScanProgress(`正在扫描 ${json.current}/${json.total}`);
         }
       } catch {}
-    }, 500); // 更频繁的轮询（0.5秒）
-
+    }, 500);
 
     try {
       const res = await fetch('/api/scan', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(quickScan ? { quickScan: true } : { scanAll: true }),
+        body: JSON.stringify({ scanAll: true }),
       });
       clearInterval(refreshInterval);
       const json = await res.json();
@@ -223,20 +221,12 @@ export default function PostsPage() {
           </div>
           <div className="flex items-center gap-2">
             <button
-              onClick={() => handleScanAll(false)}
+              onClick={handleScanAll}
               disabled={scanning}
               className="flex items-center gap-2 px-4 py-2 bg-primary hover:bg-primary-hover text-white rounded-lg text-sm font-medium transition-colors disabled:opacity-50 shadow-sm"
             >
               {scanning ? <Loader2 className="w-4 h-4 animate-spin" /> : <Radar className="w-4 h-4" />}
               {scanning ? (scanProgress || '扫描中...') : '扫描全部帖子'}
-            </button>
-            <button
-              onClick={() => handleScanAll(true)}
-              disabled={scanning}
-              className="flex items-center gap-2 px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg text-sm font-medium transition-colors disabled:opacity-50 shadow-sm"
-            >
-              {scanning ? <Loader2 className="w-4 h-4 animate-spin" /> : <Radar className="w-4 h-4" />}
-              {scanning ? scanProgress : '快速扫描'}
             </button>
             <button
               onClick={fetchPosts}

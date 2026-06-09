@@ -26,7 +26,7 @@ export async function POST(request: Request) {
     // 数据通过 Apify 获取，无需初始化代理
 
     const body = await request.json();
-    const { postIds, scanAll, quickScan } = body;
+    const { postIds, scanAll } = body;
 
     const allPosts = getPosts();
     if (allPosts.length === 0) {
@@ -38,19 +38,7 @@ export async function POST(request: Request) {
 
     let postsToScan: typeof allPosts;
 
-    if (quickScan) {
-      // Quick scan: scan the 5 most recent posts that haven't been scanned recently
-      postsToScan = allPosts
-        .filter(p => !p.lastScanned || new Date(p.lastScanned).getTime() < Date.now() - 24 * 60 * 60 * 1000)
-        .sort((a, b) => new Date(b.createdAt || 0).getTime() - new Date(a.createdAt || 0).getTime())
-        .slice(0, 5);
-      if (postsToScan.length === 0) {
-        // If all recently scanned, just take the 5 most recent
-        postsToScan = [...allPosts]
-          .sort((a, b) => new Date(b.createdAt || 0).getTime() - new Date(a.createdAt || 0).getTime())
-          .slice(0, 5);
-      }
-    } else if (scanAll || !postIds || postIds.length === 0) {
+    if (scanAll || !postIds || postIds.length === 0) {
       postsToScan = allPosts;
     } else {
       postsToScan = allPosts.filter(p => postIds.includes(p.id));
@@ -94,9 +82,11 @@ export async function POST(request: Request) {
           results.push({
             postId: post.id,
             status: 'failed',
-            error: '无法获取Reddit数据',
+            error: '无法获取Reddit数据（可能被Reddit封禁或链接无效）',
           });
-          // Save progress even on failure
+          // 即使失败也更新 lastScanned，避免重复显示"未扫描"
+          post.lastScanned = new Date().toISOString();
+          post.scanError = '无法获取Reddit数据，请检查链接是否有效';
           savePosts(allPosts);
           continue;
         }
@@ -218,7 +208,9 @@ export async function POST(request: Request) {
           status: 'error',
           error: error.message,
         });
-        // Save progress even on error
+        // 即使出错也更新 lastScanned
+        post.lastScanned = new Date().toISOString();
+        post.scanError = error.message || '扫描出错';
         savePosts(allPosts);
       }
     }
@@ -226,6 +218,13 @@ export async function POST(request: Request) {
     console.log(`[Scan] Complete: ${results.length} posts, ${totalNewComments} comments, ${totalFlagged} flagged`);
 
     scanProgress.message = '扫描完成，正在保存报告...';
+
+    // 构建包含失败信息的提示
+    const failedPosts = results.filter(r => r.status === 'failed' || r.status === 'error');
+    let message = `扫描完成！共处理 ${results.length} 个帖子，发现 ${totalNewComments} 条评论，${totalFlagged} 条预警`;
+    if (failedPosts.length > 0) {
+      message += `。${failedPosts.length} 个帖子扫描失败，请检查链接是否有效`;
+    }
 
     // Save daily report for trend tracking
     const today = new Date().toISOString().slice(0, 10);
@@ -257,7 +256,7 @@ export async function POST(request: Request) {
 
     return NextResponse.json({
       success: true,
-      message: `扫描完成！共处理 ${results.length} 个帖子，发现 ${totalNewComments} 条评论，${totalFlagged} 条预警`,
+      message,
       results,
       scanTime: new Date().toISOString(),
     });
