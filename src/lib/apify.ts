@@ -138,7 +138,7 @@ export async function fetchPostViaApify(
       maxComments: 500, // 单独设置评论上限，默认只有10条，必须显式设置才能获取更多评论
       skipComments: false,
       sort: 'new',
-      scrollTimeout: 60, // 增加滚动超时，让页面加载全部评论（默认较短可能只加载部分评论）
+      scrollTimeout: 120, // 增加滚动超时到120秒，让页面加载全部评论包括嵌套评论
     });
 
     // 等待完成并获取结果（分页获取所有结果）
