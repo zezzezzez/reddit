@@ -62,6 +62,7 @@ export default function PostsPage() {
   const [scanResult, setScanResult] = useState<{success: boolean; message: string} | null>(null);
   const [showSortMenu, setShowSortMenu] = useState(false);
   const [deletingPostId, setDeletingPostId] = useState<string | null>(null);
+  const [deletingAll, setDeletingAll] = useState(false);
   const [selectedQuickDate, setSelectedQuickDate] = useState<string | null>(null);
 
   useEffect(() => {
@@ -155,6 +156,30 @@ export default function PostsPage() {
     }
   };
 
+  const handleDeleteAll = async () => {
+    if (!confirm(`确定要删除全部 ${posts.length} 个帖子及其评论数据吗？此操作不可恢复！`)) {
+      return;
+    }
+    setDeletingAll(true);
+    try {
+      const res = await fetch('/api/posts', {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ deleteAll: true }),
+      });
+      const json = await res.json();
+      if (json.success) {
+        setPosts([]);
+      } else {
+        alert('删除失败：' + json.message);
+      }
+    } catch (error: any) {
+      alert('删除失败：' + error.message);
+    } finally {
+      setDeletingAll(false);
+    }
+  };
+
   const formatDate = (dateStr: string) => {
     return new Date(dateStr).toLocaleDateString('zh-CN', {
       year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit',
@@ -194,6 +219,16 @@ export default function PostsPage() {
               <RefreshCw className="w-4 h-4" />
               刷新
             </button>
+            {posts.length > 0 && (
+              <button
+                onClick={handleDeleteAll}
+                disabled={deletingAll}
+                className="flex items-center gap-2 px-4 py-2 bg-white hover:bg-red-50 border border-red-200 text-red-600 rounded-lg text-sm font-medium transition-colors disabled:opacity-50 shadow-sm"
+              >
+                {deletingAll ? <Loader2 className="w-4 h-4 animate-spin" /> : <Trash2 className="w-4 h-4" />}
+                删除全部帖子
+              </button>
+            )}
           </div>
         </div>
       </div>

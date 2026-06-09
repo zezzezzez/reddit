@@ -5,35 +5,6 @@ import { analyzeCommentSentiment, calculatePostAlertLevel } from '@/lib/sentimen
 import { generateDetailedSummary } from '@/lib/summary';
 import { analyzeSentimentWithLLM } from '@/lib/llm';
 import { RedditComment } from '@/lib/types';
-import { getProxyUrl } from '@/lib/local-proxy';
-
-const isVercel = !!process.env.VERCEL;
-
-// Initialize proxy (all environments use Decodo residential proxy)
-let proxyInitialized = false;
-
-async function ensureProxyInitialized() {
-  if (proxyInitialized) return;
-
-  const proxyUrl = getProxyUrl();
-  if (!proxyUrl) {
-    console.log('[Scan] No proxy configured (HTTP_PROXY/HTTPS_PROXY), will try direct connection');
-    proxyInitialized = true;
-    return;
-  }
-
-  try {
-    console.log('[Scan] Initializing proxy...');
-    const undici = await import('undici');
-    const proxyAgent = new undici.ProxyAgent(proxyUrl);
-    undici.setGlobalDispatcher(proxyAgent);
-    console.log('[Scan] Proxy configured successfully');
-  } catch (error) {
-    console.error('[Scan] Failed to configure proxy:', error);
-  } finally {
-    proxyInitialized = true;
-  }
-}
 
 // Global scan progress (in-memory, single-process only)
 let scanProgress = {
@@ -52,8 +23,7 @@ export async function POST(request: Request) {
     scanProgress.total = 0;
     scanProgress.postTitle = '';
     scanProgress.message = '准备扫描...';
-    // 初始化代理（本地和生产环境）
-    await ensureProxyInitialized();
+    // 数据通过 Apify 获取，无需初始化代理
 
     const body = await request.json();
     const { postIds, scanAll, quickScan } = body;

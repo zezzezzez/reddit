@@ -2,33 +2,6 @@ import { NextResponse } from 'next/server';
 import { fetchSubredditPosts, selectRandomPosts, fetchRedditPost } from '@/lib/reddit';
 import { analyzeCommentSentiment, calcCommentInfluenceScore } from '@/lib/sentiment';
 import { getPosts, getComments, saveCompetitorRecord } from '@/lib/store';
-import { getProxyUrl } from '@/lib/local-proxy';
-
-const isVercel = !!process.env.VERCEL;
-
-// 初始化代理（所有环境统一使用 Decodo 住宅代理）
-let proxyInitialized = false;
-async function ensureProxyInitialized() {
-  if (proxyInitialized) return;
-
-  const proxyUrl = getProxyUrl();
-  if (!proxyUrl) {
-    proxyInitialized = true;
-    return;
-  }
-
-  try {
-    console.log('[Competitor Analysis] Initializing proxy...');
-    const undici = await import('undici');
-    const proxyAgent = new undici.ProxyAgent(proxyUrl);
-    undici.setGlobalDispatcher(proxyAgent);
-    console.log('[Competitor Analysis] Proxy configured successfully');
-  } catch (error) {
-    console.error('[Competitor Analysis] Failed to configure proxy:', error);
-  } finally {
-    proxyInitialized = true;
-  }
-}
 
 interface CompetitorBrand {
   name: string;
@@ -55,9 +28,6 @@ const HISENSE_KEYWORDS = ['Hisense', 'hisense', '海信'];
 
 export async function GET(request: Request) {
   try {
-    // 初始化代理
-    await ensureProxyInitialized();
-    
     const { searchParams } = new URL(request.url);
     const subreddit = searchParams.get('subreddit');
     const postsPerBrand = parseInt(searchParams.get('postsPerBrand') || '5');
@@ -78,7 +48,6 @@ export async function GET(request: Request) {
 
     console.log(`[Competitor Analysis] Starting analysis for r/${subreddit}, brands: ${selectedBrands.join(', ')}`);
     console.log(`[Competitor Analysis] NODE_ENV: ${process.env.NODE_ENV}`);
-    console.log(`[Competitor Analysis] Proxy: ${getProxyUrl() ? 'configured' : 'not set'}`);
 
     // 1. 获取板块最新帖子（增加到 1000 条）
     let allPosts = await fetchSubredditPosts(subreddit, 1000, 'new');

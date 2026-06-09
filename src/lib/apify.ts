@@ -1,6 +1,6 @@
 // Apify Reddit Scraper Integration
 // 使用 Apify 平台的 Reddit Scraper Actor 抓取帖子和评论
-// 文档: https://apify.com/apify/reddit-scraper
+// 文档: https://apify.com/trudax/reddit-scraper-lite
 
 import { ApifyClient } from 'apify-client';
 import { RedditComment, RedditPost } from './types';
@@ -65,12 +65,11 @@ export async function fetchPostViaApify(
 
     const client = getClient();
 
-    // 使用 apify/reddit-scraper Actor
-    const run = await client.actor('apify/reddit-scraper').call({
-      startUrls: [redditUrl],
-      maxPosts: 1,
-      maxComments: 200,
-      scrapeComments: true,
+    // 使用 trudax/reddit-scraper-lite Actor（原 apify/reddit-scraper 已更名）
+    const run = await client.actor('trudax/reddit-scraper-lite').call({
+      startUrls: [{ url: redditUrl }],
+      maxPostCount: 1,
+      skipComments: false,
       sort: 'new',
     });
 
@@ -82,9 +81,9 @@ export async function fetchPostViaApify(
       return null;
     }
 
-    // 分离帖子和评论
-    const posts = items.filter((item: any) => item.title && !item.body);
-    const comments = items.filter((item: any) => item.body);
+    // 分离帖子和评论（使用 dataType 字段区分）
+    const posts = items.filter((item: any) => item.dataType === 'post' || (item.title && !item.body));
+    const comments = items.filter((item: any) => item.dataType === 'comment' || (item.body && item.dataType !== 'post'));
 
     if (posts.length === 0) {
       console.warn(`[Apify] No post data found in results for ${redditUrl}`);
@@ -95,12 +94,14 @@ export async function fetchPostViaApify(
     const postData: Partial<RedditPost> = {
       id: post.id || ourPostId || '',
       title: post.title || '',
-      author: post.author || '[deleted]',
-      score: post.score || 0,
-      commentCount: post.num_comments || comments.length || 0,
-      subreddit: post.subreddit || '',
+      author: post.username || post.author || '[deleted]',
+      score: post.score || post.upVotes || 0,
+      commentCount: post.numberOfComments || post.num_comments || comments.length || 0,
+      subreddit: post.communityName || post.subreddit || '',
       thumbnailUrl: post.thumbnail?.startsWith('http') ? post.thumbnail : undefined,
-      createdAt: post.created_utc
+      createdAt: post.createdAt
+        ? new Date(post.createdAt).toISOString()
+        : post.created_utc
         ? new Date(post.created_utc * 1000).toISOString()
         : new Date().toISOString(),
     };
@@ -109,18 +110,18 @@ export async function fetchPostViaApify(
     const redditComments: RedditComment[] = comments.map((c: any) => ({
       id: c.id || '',
       postId: ourPostId || postData.id || '',
-      author: c.author || '[deleted]',
+      author: c.username || c.author || '[deleted]',
       body: c.body || '',
-      score: c.score || 0,
-      createdAt: c.created_utc
+      score: c.score || c.upVotes || 0,
+      createdAt: c.createdAt
+        ? new Date(c.createdAt).toISOString()
+        : c.created_utc
         ? new Date(c.created_utc * 1000).toISOString()
         : new Date().toISOString(),
       sentimentScore: 0,
       isFlagged: false,
       flagReasons: [],
-      permalink: c.permalink
-        ? `https://www.reddit.com${c.permalink}`
-        : '',
+      permalink: c.url || '',
     }));
 
     console.log(`[Apify] Got post "${postData.title?.substring(0, 50)}" with ${redditComments.length} comments`);
@@ -162,11 +163,10 @@ export async function fetchSubredditViaApify(
 
     const client = getClient();
 
-    const run = await client.actor('apify/reddit-scraper').call({
-      startUrls: [searchUrl],
-      maxPosts: Math.min(limit, 100), // Apify 免费额度限制
-      maxComments: 0, // 列表模式不抓评论
-      scrapeComments: false,
+    const run = await client.actor('trudax/reddit-scraper-lite').call({
+      startUrls: [{ url: searchUrl }],
+      maxPostCount: Math.min(limit, 100), // Apify 免费额度限制
+      skipComments: true, // 列表模式不抓评论
       sort,
     });
 
@@ -178,21 +178,21 @@ export async function fetchSubredditViaApify(
     }
 
     const posts: ApifySubredditPost[] = items
-      .filter((item: any) => item.title) // 只要帖子，过滤掉评论
+      .filter((item: any) => item.dataType === 'post' || item.title) // 只要帖子
       .map((item: any) => ({
         id: item.id || '',
         title: item.title || '',
-        author: item.author || '[deleted]',
-        score: item.score || 0,
-        commentCount: item.num_comments || 0,
-        subreddit: item.subreddit || subreddit,
-        createdAt: item.created_utc
+        author: item.username || item.author || '[deleted]',
+        score: item.score || item.upVotes || 0,
+        commentCount: item.numberOfComments || item.num_comments || 0,
+        subreddit: item.communityName || item.subreddit || subreddit,
+        createdAt: item.createdAt
+          ? new Date(item.createdAt).toISOString()
+          : item.created_utc
           ? new Date(item.created_utc * 1000).toISOString()
           : new Date().toISOString(),
-        permalink: item.permalink
-          ? `https://www.reddit.com${item.permalink}`
-          : '',
-        selftext: item.selftext || '',
+        permalink: item.url || '',
+        selftext: item.body || item.selftext || '',
       }));
 
     console.log(`[Apify] Got ${posts.length} posts from r/${subreddit}`);

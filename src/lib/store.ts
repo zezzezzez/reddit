@@ -166,6 +166,15 @@ export function deleteScanResults(postId: string) {
   writeJsonFile(SCANS_FILE, filtered);
 }
 
+export function clearAllData() {
+  savePosts([]);
+  if (isVercel) { memoryStore.comments = []; memoryStore.scans = []; return; }
+  writeJsonFile(COMMENTS_FILE, []);
+  writeJsonFile(SCANS_FILE, []);
+  invalidateCache('comments');
+  invalidateCache('scans');
+}
+
 // ─── Daily Reports ───────────────────────────────────────────
 export function getDailyReports(): DailyScanReport[] {
   if (isVercel) return memoryStore.reports as DailyScanReport[];

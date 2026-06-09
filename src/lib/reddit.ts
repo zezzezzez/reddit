@@ -1,245 +1,30 @@
 // Reddit API Integration
 // Fetches comments from Reddit posts
-// 数据源优先级: Apify > 代理直连
+// 数据源: 仅使用 Apify
 
 import { RedditComment, RedditPost } from './types';
-
-// 使用代理 fetch（解决 Node.js 内置 fetch 不走 npm undici 全局 dispatcher 的问题）
-import { getProxyUrl, proxyFetch } from './local-proxy';
 
 // Apify 集成
 import { isApifyConfigured, fetchPostViaApify, fetchSubredditViaApify } from './apify';
 
-// 使用最新的 Chrome User-Agent，避免被 Reddit 识别为过时/自动化请求
-const REDDIT_USER_AGENT = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36';
-
-// 配置代理（从环境变量读取）
-const PROXY_URL = process.env.HTTP_PROXY || process.env.HTTPS_PROXY;
-
-interface RedditPostData {
-  title: string;
-  author: string;
-  score: number;
-  num_comments: number;
-  created_utc: number;
-  subreddit: string;
-  thumbnail: string;
-  permalink: string;
-  selftext: string;
-}
-
-interface RedditCommentData {
-  id: string;
-  author: string;
-  body: string;
-  score: number;
-  created_utc: number;
-  permalink: string;
-  replies?: any;
-}
-
-// Resolve short URLs to full Reddit URLs
-export async function resolveShortUrl(url: string): Promise<string> {
-  if (!url.includes('/s/')) return url;
-
-  try {
-    const response = await proxyFetch(url, {
-      redirect: 'follow',
-      headers: { 
-        'User-Agent': REDDIT_USER_AGENT,
-        'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8',
-        'Accept-Language': 'en-US,en;q=0.9',
-      },
-    });
-    return response.url;
-  } catch {
-    return url;
-  }
-}
-
-// Fetch post data and comments from Reddit
-// 优先使用 Apify，失败时 fallback 到代理直连
+// Fetch post data and comments from Reddit (仅使用 Apify)
 export async function fetchRedditPost(url: string, ourPostId?: string): Promise<{
   postData: Partial<RedditPost>;
   comments: RedditComment[];
 } | null> {
-  // 优先走 Apify
-  if (isApifyConfigured()) {
-    console.log(`[Reddit] Trying Apify first for: ${url}`);
-    const apifyResult = await fetchPostViaApify(url, ourPostId);
-    if (apifyResult) {
-      console.log(`[Reddit] Apify success for: ${url}`);
-      return apifyResult;
-    }
-    console.warn(`[Reddit] Apify failed, falling back to proxy for: ${url}`);
-  }
-
-  // Fallback: 代理直连
-  return fetchRedditPostDirect(url, ourPostId);
-}
-
-// 直接通过 Reddit JSON API 抓取（原 fetchRedditPost 逻辑）
-async function fetchRedditPostDirect(url: string, ourPostId?: string): Promise<{
-  postData: Partial<RedditPost>;
-  comments: RedditComment[];
-} | null> {
-  try {
-    // Resolve short URLs first
-    const resolvedUrl = await resolveShortUrl(url);
-
-    // Convert to JSON API URL
-    // Clean URL: remove query parameters and trailing slashes, then append .json
-    let cleanUrl = resolvedUrl.split('?')[0].replace(/\/$/, '');
-    const jsonUrl = cleanUrl + '.json';
-    console.log(`[Reddit] Fetching: ${jsonUrl}`);
-
-    // 添加超时控制（30秒）
-    const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 30000);
-
-    const response = await proxyFetch(jsonUrl, {
-      headers: {
-        'User-Agent': REDDIT_USER_AGENT,
-        'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8',
-        'Accept-Language': 'en-US,en;q=0.9',
-        'Connection': 'keep-alive',
-        'Sec-Fetch-Dest': 'document',
-        'Sec-Fetch-Mode': 'navigate',
-        'Sec-Fetch-Site': 'none',
-        'Sec-Fetch-User': '?1',
-      },
-      signal: controller.signal,
-    });
-
-    clearTimeout(timeoutId);
-
-    if (!response.ok) {
-      // If rate limited (429), wait longer and retry up to 3 times
-      if (response.status === 429) {
-        let retries = 0;
-        const maxRetries = 3;
-        while (retries < maxRetries) {
-          const waitTime = (retries + 1) * 15000; // 15s, 30s, 45s
-          console.warn(`[Reddit] Rate limited (429), waiting ${waitTime/1000}s before retry ${retries + 1}/${maxRetries}...`);
-          await new Promise(resolve => setTimeout(resolve, waitTime));
-          const retryResponse = await proxyFetch(jsonUrl, {
-            headers: {
-              'User-Agent': REDDIT_USER_AGENT,
-              'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8',
-              'Accept-Language': 'en-US,en;q=0.9',
-              'Connection': 'keep-alive',
-              'Sec-Fetch-Dest': 'document',
-              'Sec-Fetch-Mode': 'navigate',
-              'Sec-Fetch-Site': 'none',
-              'Sec-Fetch-User': '?1',
-            },
-          });
-          if (retryResponse.ok) {
-            const retryData = await retryResponse.json();
-            if (!Array.isArray(retryData) || retryData.length < 2) return null;
-            const retryPostData = extractPostData(retryData[0]);
-            const retryComments = extractComments(retryData[1], ourPostId || retryPostData.id || '');
-            return { postData: retryPostData, comments: retryComments };
-          }
-          retries++;
-        }
-        console.error(`[Reddit] Rate limited after ${maxRetries} retries for ${url}`);
-        return null;
-      }
-      // 403 诊断：打印响应体前200字符，帮助判断封禁原因
-      if (response.status === 403) {
-        try {
-          const errorBody = await response.clone().text();
-          console.error(`[Reddit] 403 response body (first 200 chars): ${errorBody.substring(0, 200)}`);
-        } catch {}
-      }
-      console.error(`Reddit API returned ${response.status} for ${url}`);
-      return null;
-    }
-
-    const data = await response.json();
-
-    if (!Array.isArray(data) || data.length < 2) {
-      return null;
-    }
-
-    // Extract post data
-    const postListing = data[0];
-    const postData = extractPostData(postListing);
-
-    // Extract comments - use our post ID instead of Reddit's internal ID
-    const commentListing = data[1];
-    const comments = extractComments(commentListing, ourPostId || postData.id || '');
-
-    return { postData, comments };
-  } catch (error: any) {
-    // 处理超时错误
-    if (error.name === 'AbortError') {
-      console.error(`[Reddit] Timeout fetching post ${url} (30s)`);
-    } else {
-      console.error(`Error fetching Reddit post ${url}:`, error);
-    }
+  if (!isApifyConfigured()) {
+    console.error('[Reddit] Apify is not configured. Please set APIFY_TOKEN environment variable.');
     return null;
   }
-}
 
-function extractPostData(listing: any): Partial<RedditPost> {
-  try {
-    const child = listing?.data?.children?.[0]?.data;
-    if (!child) return {};
-
-    return {
-      id: child.id,
-      title: child.title || '',
-      author: child.author || '[deleted]',
-      score: child.score || 0,
-      commentCount: child.num_comments || 0,
-      subreddit: child.subreddit || '',
-      thumbnailUrl: child.thumbnail?.startsWith('http') ? child.thumbnail : undefined,
-      createdAt: new Date(child.created_utc * 1000).toISOString(),
-    };
-  } catch {
-    return {};
+  console.log(`[Reddit] Fetching via Apify: ${url}`);
+  const result = await fetchPostViaApify(url, ourPostId);
+  if (result) {
+    console.log(`[Reddit] Apify success for: ${url}`);
+    return result;
   }
-}
-
-function extractComments(listing: any, postId: string, depth = 0): RedditComment[] {
-  const comments: RedditComment[] = [];
-
-  try {
-    const children = listing?.data?.children || [];
-
-    for (const child of children) {
-      if (child.kind !== 't1') continue; // Skip non-comment items
-
-      const data: RedditCommentData = child.data;
-      if (!data || data.body === '[deleted]' || data.body === '[removed]') continue;
-
-      const comment: RedditComment = {
-        id: data.id,
-        postId,
-        author: data.author || '[deleted]',
-        body: data.body,
-        score: data.score || 0,
-        createdAt: new Date(data.created_utc * 1000).toISOString(),
-        sentimentScore: 0,
-        isFlagged: false,
-        flagReasons: [],
-        permalink: `https://www.reddit.com${data.permalink}`,
-      };
-
-      // Recursively extract replies (limit depth)
-      if (data.replies && typeof data.replies === 'object' && depth < 3) {
-        comment.replies = extractComments(data.replies, postId, depth + 1);
-      }
-
-      comments.push(comment);
-    }
-  } catch (error) {
-    console.error('Error extracting comments:', error);
-  }
-
-  return comments;
+  console.warn(`[Reddit] Apify returned no data for: ${url}`);
+  return null;
 }
 
 // Fetch multiple posts in sequence (with rate limiting)
@@ -274,7 +59,7 @@ export async function fetchMultiplePosts(
   return results;
 }
 
-// Fetch posts from a subreddit (using public API)
+// Fetch posts from a subreddit (仅使用 Apify)
 export interface SubredditPost {
   id: string;
   title: string;
@@ -292,88 +77,15 @@ export async function fetchSubredditPosts(
   limit: number = 100,
   sort: 'hot' | 'new' | 'top' = 'hot'
 ): Promise<SubredditPost[]> {
-  // 优先走 Apify
-  if (isApifyConfigured()) {
-    console.log(`[Reddit] Trying Apify for subreddit r/${subreddit}`);
-    const apifyPosts = await fetchSubredditViaApify(subreddit, limit, sort);
-    if (apifyPosts.length > 0) {
-      console.log(`[Reddit] Apify returned ${apifyPosts.length} posts for r/${subreddit}`);
-      return apifyPosts;
-    }
-    console.warn(`[Reddit] Apify returned 0 posts, falling back to proxy for r/${subreddit}`);
-  }
-
-  // Fallback: 代理直连
-  return fetchSubredditPostsDirect(subreddit, limit, sort);
-}
-
-// 直接通过 Reddit JSON API 抓取板块帖子（原 fetchSubredditPosts 逻辑）
-async function fetchSubredditPostsDirect(
-  subreddit: string,
-  limit: number = 100,
-  sort: 'hot' | 'new' | 'top' = 'hot'
-): Promise<SubredditPost[]> {
-  try {
-    const url = `https://www.reddit.com/r/${subreddit}/${sort}.json?limit=${limit}`;
-    console.log(`[Reddit] Fetching ${sort} posts from r/${subreddit}: ${url}`);
-
-    let response: any;
-    
-    // 使用 undici setGlobalDispatcher 设置的全局代理（所有环境统一走 Decodo 住宅代理）
-    const proxyUrl = getProxyUrl();
-    if (proxyUrl) {
-      console.log(`[Reddit] Using proxy (global dispatcher)`);
-    }
-    
-    response = await proxyFetch(url, {
-      headers: {
-        'User-Agent': REDDIT_USER_AGENT,
-        'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8',
-        'Accept-Language': 'en-US,en;q=0.9',
-        'Connection': 'keep-alive',
-      },
-    });
-
-    if (!response.ok) {
-      // 403 诊断：打印响应体
-      if (response.status === 403) {
-        try {
-          const errorBody = await response.clone().text();
-          console.error(`[Reddit] Subreddit 403 body (first 200 chars): ${errorBody.substring(0, 200)}`);
-        } catch {}
-      }
-      console.error(`[Reddit] Failed to fetch subreddit posts: ${response.status} ${response.statusText}`);
-      return [];
-    }
-
-    const data = await response.json() as any;
-    const posts: SubredditPost[] = [];
-
-    if (data?.data?.children) {
-      for (const child of data.data.children) {
-        if (child.kind === 't3') { // t3 = post
-          const post = child.data;
-          posts.push({
-            id: post.id,
-            title: post.title || '',
-            author: post.author || '[deleted]',
-            score: post.score || 0,
-            commentCount: post.num_comments || 0,
-            subreddit: post.subreddit || subreddit,
-            createdAt: new Date(post.created_utc * 1000).toISOString(),
-            permalink: `https://www.reddit.com${post.permalink}`,
-            selftext: post.selftext || '',
-          });
-        }
-      }
-    }
-
-    console.log(`[Reddit] Fetched ${posts.length} posts from r/${subreddit}`);
-    return posts;
-  } catch (error) {
-    console.error(`[Reddit] Error fetching subreddit posts:`, error);
+  if (!isApifyConfigured()) {
+    console.error('[Reddit] Apify is not configured. Please set APIFY_TOKEN environment variable.');
     return [];
   }
+
+  console.log(`[Reddit] Fetching ${sort} posts from r/${subreddit} via Apify`);
+  const apifyPosts = await fetchSubredditViaApify(subreddit, limit, sort);
+  console.log(`[Reddit] Apify returned ${apifyPosts.length} posts for r/${subreddit}`);
+  return apifyPosts;
 }
 
 // Randomly select N posts from array

@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { getPosts, getComments, savePosts, deletePost, deleteComments, deleteScanResults } from '@/lib/store';
+import { getPosts, getComments, savePosts, deletePost, deleteComments, deleteScanResults, clearAllData } from '@/lib/store';
 import { mockPosts, mockComments } from '@/lib/mock-data';
 import { calcCommentInfluenceScore } from '@/lib/sentiment';
 
@@ -129,7 +129,12 @@ export async function GET(request: Request) {
 export async function DELETE(request: Request) {
   try {
     const body = await request.json();
-    const { postId } = body;
+    const { postId, deleteAll } = body;
+
+    if (deleteAll) {
+      clearAllData();
+      return NextResponse.json({ success: true, message: '已删除全部帖子及相关数据' });
+    }
 
     if (!postId) {
       return NextResponse.json({ success: false, message: '缺少帖子 ID' }, { status: 400 });
