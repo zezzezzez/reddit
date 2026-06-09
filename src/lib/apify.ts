@@ -139,14 +139,7 @@ export async function fetchPostViaApify(
       skipComments: false,
       sort: 'new',
       scrollTimeout: 40, // 滚动超时40秒，平衡评论加载完整度和 token 消耗
-      proxyConfiguration: {
-        useApifyProxy: true,
-        apifyProxyGroups: ['DATACENTER'],
-      },
-      proxy: {
-        useApifyProxy: true,
-        apifyProxyGroups: ['DATACENTER'],
-      },
+      // 不指定代理组，让 Apify 自动选择可用的代理（账号套餐可能不支持 DATACENTER）
     });
 
     // 等待完成并获取结果（分页获取所有结果）
@@ -253,14 +246,7 @@ export async function fetchSubredditViaApify(
       maxPostCount: Math.min(limit, 100), // Apify 免费额度限制
       skipComments: true, // 列表模式不抓评论
       sort,
-      proxyConfiguration: {
-        useApifyProxy: true,
-        apifyProxyGroups: ['DATACENTER'],
-      },
-      proxy: {
-        useApifyProxy: true,
-        apifyProxyGroups: ['DATACENTER'],
-      },
+      // 不指定代理组，让 Apify 自动选择可用的代理
     });
 
     const { items } = await client.dataset(run.defaultDatasetId).listItems();
