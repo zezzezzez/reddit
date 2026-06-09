@@ -49,6 +49,68 @@ interface ApifyRedditCommentResult {
   replies?: ApifyRedditCommentResult[];
 }
 
+// ─── 短链接解析 ────────────────────────────────────────────
+
+/**
+ * 检测并解析 Reddit 短链接 (/s/ 格式) 为标准完整 URL
+ * 短链接格式: https://www.reddit.com/r/xxx/s/xxxxx
+ * 标准格式:   https://www.reddit.com/r/xxx/comments/xxxxx/title/
+ */
+async function resolveRedditShortUrl(url: string): Promise<string> {
+  // 只处理 /s/ 短链接
+  if (!url.includes('/s/')) {
+    return url;
+  }
+
+  console.log(`[Apify] Detected short URL, resolving: ${url}`);
+
+  try {
+    // 使用 HEAD 请求跟随重定向获取完整 URL
+    const response = await fetch(url, {
+      method: 'HEAD',
+      redirect: 'manual', // 手动处理重定向以获取 Location
+      headers: {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+      },
+    });
+
+    // 301/302 重定向
+    if (response.status === 301 || response.status === 302) {
+      const location = response.headers.get('location');
+      if (location) {
+        const resolved = location.startsWith('http') ? location : `https://www.reddit.com${location}`;
+        console.log(`[Apify] Resolved short URL -> ${resolved}`);
+        return resolved;
+      }
+    }
+
+    // 如果 HEAD 没拿到重定向，尝试 GET（跟随重定向）
+    console.log(`[Apify] HEAD did not return redirect, trying GET...`);
+    const getResponse = await fetch(url, {
+      method: 'GET',
+      redirect: 'manual',
+      headers: {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+      },
+    });
+
+    if (getResponse.status === 301 || getResponse.status === 302) {
+      const location = getResponse.headers.get('location');
+      if (location) {
+        const resolved = location.startsWith('http') ? location : `https://www.reddit.com${location}`;
+        console.log(`[Apify] Resolved short URL via GET -> ${resolved}`);
+        return resolved;
+      }
+    }
+
+    console.warn(`[Apify] Could not resolve short URL (status: ${response.status}), using original`);
+  } catch (error: any) {
+    console.warn(`[Apify] Error resolving short URL: ${error.message}, using original`);
+  }
+
+  return url;
+}
+
 // ─── 抓取单个帖子 + 评论 ───────────────────────────────────
 
 /**
@@ -61,29 +123,44 @@ export async function fetchPostViaApify(
   ourPostId?: string
 ): Promise<{ postData: Partial<RedditPost>; comments: RedditComment[] } | null> {
   try {
-    console.log(`[Apify] Fetching post via Apify: ${redditUrl}`);
+    // 如果是短链接，先解析为标准 URL
+    const resolvedUrl = await resolveRedditShortUrl(redditUrl);
+
+    console.log(`[Apify] Fetching post via Apify: ${resolvedUrl}`);
 
     const client = getClient();
 
     // 使用 trudax/reddit-scraper-lite Actor（原 apify/reddit-scraper 已更名）
     const run = await client.actor('trudax/reddit-scraper-lite').call({
-      startUrls: [{ url: redditUrl }],
+      startUrls: [{ url: resolvedUrl }],
       maxPostCount: 1,
+      maxItems: 500, // 增加结果上限，默认只有10条（1帖子+9评论），导致评论获取不全
+      maxComments: 500, // 单独设置评论上限，默认只有10条，必须显式设置才能获取更多评论
       skipComments: false,
       sort: 'new',
+      scrollTimeout: 60, // 增加滚动超时，让页面加载全部评论（默认较短可能只加载部分评论）
     });
 
-    // 等待完成并获取结果
-    const { items } = await client.dataset(run.defaultDatasetId).listItems();
+    // 等待完成并获取结果（分页获取所有结果）
+    const allItems: any[] = [];
+    let offset = 0;
+    const batchSize = 100;
+    while (true) {
+      const { items } = await client.dataset(run.defaultDatasetId).listItems({ offset, limit: batchSize });
+      if (!items || items.length === 0) break;
+      allItems.push(...items);
+      offset += batchSize;
+      if (items.length < batchSize) break; // 最后一批
+    }
 
-    if (!items || items.length === 0) {
+    if (!allItems || allItems.length === 0) {
       console.warn(`[Apify] No data returned for ${redditUrl}`);
       return null;
     }
 
     // 分离帖子和评论（使用 dataType 字段区分）
-    const posts = items.filter((item: any) => item.dataType === 'post' || (item.title && !item.body));
-    const comments = items.filter((item: any) => item.dataType === 'comment' || (item.body && item.dataType !== 'post'));
+    const posts = allItems.filter((item: any) => item.dataType === 'post' || (item.title && !item.body));
+    const comments = allItems.filter((item: any) => item.dataType === 'comment' || (item.body && item.dataType !== 'post'));
 
     if (posts.length === 0) {
       console.warn(`[Apify] No post data found in results for ${redditUrl}`);
