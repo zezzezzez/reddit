@@ -143,6 +143,10 @@ export async function fetchPostViaApify(
         useApifyProxy: true,
         apifyProxyGroups: ['DATACENTER'],
       },
+      proxy: {
+        useApifyProxy: true,
+        apifyProxyGroups: ['DATACENTER'],
+      },
     });
 
     // 等待完成并获取结果（分页获取所有结果）
@@ -250,6 +254,10 @@ export async function fetchSubredditViaApify(
       skipComments: true, // 列表模式不抓评论
       sort,
       proxyConfiguration: {
+        useApifyProxy: true,
+        apifyProxyGroups: ['DATACENTER'],
+      },
+      proxy: {
         useApifyProxy: true,
         apifyProxyGroups: ['DATACENTER'],
       },
