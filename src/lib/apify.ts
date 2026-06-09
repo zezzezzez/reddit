@@ -1,0 +1,204 @@
+// Apify Reddit Scraper Integration
+// 使用 Apify 平台的 Reddit Scraper Actor 抓取帖子和评论
+// 文档: https://apify.com/apify/reddit-scraper
+
+import { ApifyClient } from 'apify-client';
+import { RedditComment, RedditPost } from './types';
+
+const APIFY_TOKEN = process.env.APIFY_TOKEN;
+
+// 懒加载 Apify 客户端
+let _client: ApifyClient | null = null;
+function getClient(): ApifyClient {
+  if (!_client) {
+    if (!APIFY_TOKEN) {
+      throw new Error('[Apify] APIFY_TOKEN not configured');
+    }
+    _client = new ApifyClient({ token: APIFY_TOKEN });
+  }
+  return _client;
+}
+
+export function isApifyConfigured(): boolean {
+  return !!APIFY_TOKEN;
+}
+
+// ─── 类型定义 ───────────────────────────────────────────────
+
+interface ApifyRedditPostResult {
+  id: string;
+  title: string;
+  author: string;
+  score: number;
+  num_comments: number;
+  created_utc: number;
+  subreddit: string;
+  permalink: string;
+  selftext?: string;
+  thumbnail?: string;
+  url?: string;
+}
+
+interface ApifyRedditCommentResult {
+  id: string;
+  author: string;
+  body: string;
+  score: number;
+  created_utc: number;
+  permalink: string;
+  replies?: ApifyRedditCommentResult[];
+}
+
+// ─── 抓取单个帖子 + 评论 ───────────────────────────────────
+
+/**
+ * 通过 Apify Reddit Scraper 抓取指定帖子及其评论
+ * @param redditUrl Reddit 帖子 URL
+ * @param ourPostId 我们系统中的帖子 ID（用于关联评论）
+ */
+export async function fetchPostViaApify(
+  redditUrl: string,
+  ourPostId?: string
+): Promise<{ postData: Partial<RedditPost>; comments: RedditComment[] } | null> {
+  try {
+    console.log(`[Apify] Fetching post via Apify: ${redditUrl}`);
+
+    const client = getClient();
+
+    // 使用 apify/reddit-scraper Actor
+    const run = await client.actor('apify/reddit-scraper').call({
+      startUrls: [redditUrl],
+      maxPosts: 1,
+      maxComments: 200,
+      scrapeComments: true,
+      sort: 'new',
+    });
+
+    // 等待完成并获取结果
+    const { items } = await client.dataset(run.defaultDatasetId).listItems();
+
+    if (!items || items.length === 0) {
+      console.warn(`[Apify] No data returned for ${redditUrl}`);
+      return null;
+    }
+
+    // 分离帖子和评论
+    const posts = items.filter((item: any) => item.title && !item.body);
+    const comments = items.filter((item: any) => item.body);
+
+    if (posts.length === 0) {
+      console.warn(`[Apify] No post data found in results for ${redditUrl}`);
+      return null;
+    }
+
+    const post = posts[0] as any;
+    const postData: Partial<RedditPost> = {
+      id: post.id || ourPostId || '',
+      title: post.title || '',
+      author: post.author || '[deleted]',
+      score: post.score || 0,
+      commentCount: post.num_comments || comments.length || 0,
+      subreddit: post.subreddit || '',
+      thumbnailUrl: post.thumbnail?.startsWith('http') ? post.thumbnail : undefined,
+      createdAt: post.created_utc
+        ? new Date(post.created_utc * 1000).toISOString()
+        : new Date().toISOString(),
+    };
+
+    // 转换评论
+    const redditComments: RedditComment[] = comments.map((c: any) => ({
+      id: c.id || '',
+      postId: ourPostId || postData.id || '',
+      author: c.author || '[deleted]',
+      body: c.body || '',
+      score: c.score || 0,
+      createdAt: c.created_utc
+        ? new Date(c.created_utc * 1000).toISOString()
+        : new Date().toISOString(),
+      sentimentScore: 0,
+      isFlagged: false,
+      flagReasons: [],
+      permalink: c.permalink
+        ? `https://www.reddit.com${c.permalink}`
+        : '',
+    }));
+
+    console.log(`[Apify] Got post "${postData.title?.substring(0, 50)}" with ${redditComments.length} comments`);
+    return { postData, comments: redditComments };
+  } catch (error: any) {
+    console.error(`[Apify] Error fetching post ${redditUrl}:`, error.message);
+    return null;
+  }
+}
+
+// ─── 抓取板块帖子列表 ──────────────────────────────────────
+
+export interface ApifySubredditPost {
+  id: string;
+  title: string;
+  author: string;
+  score: number;
+  commentCount: number;
+  subreddit: string;
+  createdAt: string;
+  permalink: string;
+  selftext: string;
+}
+
+/**
+ * 通过 Apify Reddit Scraper 抓取指定板块的帖子列表
+ * @param subreddit 板块名称（如 "Hisense"）
+ * @param limit 最大帖子数
+ * @param sort 排序方式
+ */
+export async function fetchSubredditViaApify(
+  subreddit: string,
+  limit: number = 100,
+  sort: 'hot' | 'new' | 'top' = 'new'
+): Promise<ApifySubredditPost[]> {
+  try {
+    const searchUrl = `https://www.reddit.com/r/${subreddit}/${sort}/`;
+    console.log(`[Apify] Fetching ${sort} posts from r/${subreddit} via Apify (limit: ${limit})`);
+
+    const client = getClient();
+
+    const run = await client.actor('apify/reddit-scraper').call({
+      startUrls: [searchUrl],
+      maxPosts: Math.min(limit, 100), // Apify 免费额度限制
+      maxComments: 0, // 列表模式不抓评论
+      scrapeComments: false,
+      sort,
+    });
+
+    const { items } = await client.dataset(run.defaultDatasetId).listItems();
+
+    if (!items || items.length === 0) {
+      console.warn(`[Apify] No posts returned for r/${subreddit}`);
+      return [];
+    }
+
+    const posts: ApifySubredditPost[] = items
+      .filter((item: any) => item.title) // 只要帖子，过滤掉评论
+      .map((item: any) => ({
+        id: item.id || '',
+        title: item.title || '',
+        author: item.author || '[deleted]',
+        score: item.score || 0,
+        commentCount: item.num_comments || 0,
+        subreddit: item.subreddit || subreddit,
+        createdAt: item.created_utc
+          ? new Date(item.created_utc * 1000).toISOString()
+          : new Date().toISOString(),
+        permalink: item.permalink
+          ? `https://www.reddit.com${item.permalink}`
+          : '',
+        selftext: item.selftext || '',
+      }));
+
+    console.log(`[Apify] Got ${posts.length} posts from r/${subreddit}`);
+    return posts;
+  } catch (error: any) {
+    console.error(`[Apify] Error fetching subreddit r/${subreddit}:`, error.message);
+    return [];
+  }
+}

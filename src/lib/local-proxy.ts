@@ -28,6 +28,7 @@ export async function getProxyAgent(): Promise<any> {
 /**
  * 带代理支持的 fetch 包装器
  * 使用 undici.request（底层 API）+ ProxyAgent，兼容 Next.js 生产构建
+ * 返回的 Response 对象包含 .url 属性（跟踪重定向后的最终 URL）
  */
 export async function proxyFetch(url: string, init?: RequestInit): Promise<Response> {
   const agent = await getProxyAgent();
@@ -40,6 +41,7 @@ export async function proxyFetch(url: string, init?: RequestInit): Promise<Respo
       const reqOptions: any = {
         method: init?.method || 'GET',
         headers: init?.headers as any,
+        maxRedirections: 0, // 不自动跟随重定向，手动处理
       };
 
       // 处理 AbortController signal
@@ -51,6 +53,21 @@ export async function proxyFetch(url: string, init?: RequestInit): Promise<Respo
         ...reqOptions,
         dispatcher: agent,
       });
+
+      // 手动处理 301/302/303/307/308 重定向
+      if ([301, 302, 303, 307, 308].includes(resp.statusCode)) {
+        const location = resp.headers['location'] as string | undefined;
+        if (location) {
+          // 解析相对路径为绝对 URL
+          const redirectUrl = new URL(location, url).href;
+          console.log(`[Proxy] Following redirect: ${resp.statusCode} -> ${redirectUrl.substring(0, 80)}`);
+          // 递归请求重定向 URL（不传 signal 以避免冲突）
+          return proxyFetch(redirectUrl, {
+            ...init,
+            signal: undefined,
+          });
+        }
+      }
 
       // 读取响应体
       const body = await resp.body.text();
@@ -67,11 +84,20 @@ export async function proxyFetch(url: string, init?: RequestInit): Promise<Respo
         }
       }
 
-      return new Response(body, {
+      const response = new Response(body, {
         status: resp.statusCode,
         statusText: resp.statusText || '',
         headers: responseHeaders,
       });
+
+      // 设置 response.url（原生 Response 构造函数不支持此属性，手动定义）
+      Object.defineProperty(response, 'url', {
+        value: url,
+        writable: false,
+        configurable: true,
+      });
+
+      return response;
     } catch (error: any) {
       console.error(`[Proxy] undici.request failed:`, error.message);
       throw error;

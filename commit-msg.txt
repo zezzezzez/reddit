@@ -1,0 +1,1 @@
+﻿fix: URL-encode proxy password tilde and target us-east-1 EC2

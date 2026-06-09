@@ -1,12 +1,13 @@
 import { NextResponse } from 'next/server';
-import { getProxyUrl } from '@/lib/local-proxy';
+import { getProxyUrl, proxyFetch } from '@/lib/local-proxy';
 
 export async function GET() {
   const results: any = {
     envCheck: {},
-    proxyTest: null,
-    directTest: null,
-    redditApiTest: null,
+    proxyExitIp: null,
+    redditViaProxy: null,
+    redditDirect: null,
+    redditOldViaProxy: null,
   };
 
   // 1. Check environment variables
@@ -17,93 +18,112 @@ export async function GET() {
   };
 
   const proxyUrl = getProxyUrl();
+  const modernUA = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36';
 
-  // 2. Test proxy connection to a simple endpoint first
-  try {
-    const undici = await import('undici');
-    const agent = new undici.ProxyAgent(proxyUrl || '');
-    
-    // Test with httpbin to check proxy exit IP
-    const proxyStartTime = Date.now();
-    const proxyRes = await (undici.fetch as any)('https://httpbin.org/ip', {
-      dispatcher: agent,
-      timeout: 15000,
-    });
-    const proxyElapsed = Date.now() - proxyStartTime;
-    
-    if (proxyRes.ok) {
-      const ipData = await proxyRes.json();
-      results.proxyTest = {
-        success: true,
-        exitIp: ipData.origin,
-        elapsed: proxyElapsed + 'ms',
-      };
-    } else {
-      results.proxyTest = {
-        success: false,
-        status: proxyRes.status,
-        elapsed: proxyElapsed + 'ms',
-      };
+  // 2. Test proxy exit IP via httpbin
+  if (proxyUrl) {
+    try {
+      const undici = await import('undici');
+      const agent = new undici.ProxyAgent(proxyUrl);
+      const startTime = Date.now();
+      const resp = await undici.request('https://httpbin.org/ip', {
+        dispatcher: agent,
+        method: 'GET',
+        headers: { 'User-Agent': modernUA },
+      });
+      const elapsed = Date.now() - startTime;
+      const body = await resp.body.text();
+      
+      if (resp.statusCode === 200) {
+        const ipData = JSON.parse(body);
+        results.proxyExitIp = {
+          success: true,
+          exitIp: ipData.origin,
+          elapsed: elapsed + 'ms',
+        };
+      } else {
+        results.proxyExitIp = {
+          success: false,
+          status: resp.statusCode,
+          body: body.substring(0, 200),
+          elapsed: elapsed + 'ms',
+        };
+      }
+    } catch (e: any) {
+      results.proxyExitIp = { success: false, error: e.message };
     }
-  } catch (e: any) {
-    results.proxyTest = { success: false, error: e.message };
+  } else {
+    results.proxyExitIp = { success: false, error: 'No proxy configured' };
   }
 
-  // 3. Test Reddit via proxy with detailed error info
+  // 3. Test Reddit API via proxy (using proxyFetch - the same function used in scanning)
   try {
-    const undici = await import('undici');
-    const agent = new undici.ProxyAgent(proxyUrl || '');
-    
-    const redditStartTime = Date.now();
-    const redditRes = await (undici.fetch as any)('https://www.reddit.com/r/Hisense.json?limit=1', {
-      dispatcher: agent,
-      timeout: 15000,
+    const startTime = Date.now();
+    const resp = await proxyFetch('https://www.reddit.com/r/Hisense.json?limit=1', {
       headers: {
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
-        'Accept': 'application/json',
+        'User-Agent': modernUA,
+        'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+        'Accept-Language': 'en-US,en;q=0.9',
       },
     });
-    const redditElapsed = Date.now() - redditStartTime;
+    const elapsed = Date.now() - startTime;
+    const body = await resp.clone().text();
 
-    let bodyPreview = '';
-    try {
-      const text = await redditRes.text();
-      bodyPreview = text.substring(0, 500);
-    } catch {}
-
-    results.redditApiTest = {
-      success: redditRes.ok,
-      status: redditRes.status,
-      statusText: redditRes.statusText,
-      elapsed: redditElapsed + 'ms',
-      headers: {
-        contentType: redditRes.headers.get('content-type'),
-        server: redditRes.headers.get('server'),
-      },
-      bodyPreview,
+    results.redditViaProxy = {
+      success: resp.ok,
+      status: resp.status,
+      statusText: resp.statusText,
+      elapsed: elapsed + 'ms',
+      contentType: resp.headers.get('content-type'),
+      server: resp.headers.get('server'),
+      bodyPreview: body.substring(0, 500),
     };
   } catch (e: any) {
-    results.redditApiTest = { success: false, error: e.message };
+    results.redditViaProxy = { success: false, error: e.message };
   }
 
-  // 4. Test direct Reddit access (no proxy)
+  // 4. Test old.reddit.com via proxy (sometimes less strict blocking)
   try {
-    const directStartTime = Date.now();
-    const directRes = await fetch('https://www.reddit.com/r/Hisense.json?limit=1', {
+    const startTime = Date.now();
+    const resp = await proxyFetch('https://old.reddit.com/r/Hisense.json?limit=1', {
       headers: {
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+        'User-Agent': modernUA,
+        'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+        'Accept-Language': 'en-US,en;q=0.9',
       },
+    });
+    const elapsed = Date.now() - startTime;
+    const body = await resp.clone().text();
+
+    results.redditOldViaProxy = {
+      success: resp.ok,
+      status: resp.status,
+      statusText: resp.statusText,
+      elapsed: elapsed + 'ms',
+      bodyPreview: body.substring(0, 500),
+    };
+  } catch (e: any) {
+    results.redditOldViaProxy = { success: false, error: e.message };
+  }
+
+  // 5. Test direct Reddit access (no proxy, for comparison)
+  try {
+    const startTime = Date.now();
+    const resp = await fetch('https://www.reddit.com/r/Hisense.json?limit=1', {
+      headers: { 'User-Agent': modernUA },
       signal: AbortSignal.timeout(10000),
     });
-    const directElapsed = Date.now() - directStartTime;
+    const elapsed = Date.now() - startTime;
+    const body = await resp.clone().text();
     
-    results.directTest = {
-      success: directRes.ok,
-      status: directRes.status,
-      elapsed: directElapsed + 'ms',
+    results.redditDirect = {
+      success: resp.ok,
+      status: resp.status,
+      elapsed: elapsed + 'ms',
+      bodyPreview: body.substring(0, 300),
     };
   } catch (e: any) {
-    results.directTest = { success: false, error: e.message };
+    results.redditDirect = { success: false, error: e.message };
   }
 
   return NextResponse.json(results);
