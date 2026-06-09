@@ -64,6 +64,7 @@ export default function PostsPage() {
   const [deletingPostId, setDeletingPostId] = useState<string | null>(null);
   const [deletingAll, setDeletingAll] = useState(false);
   const [selectedQuickDate, setSelectedQuickDate] = useState<string | null>(null);
+  const [scanningPostId, setScanningPostId] = useState<string | null>(null);
 
   useEffect(() => {
     fetchPosts();
@@ -123,6 +124,31 @@ export default function PostsPage() {
     } finally {
       setScanning(false);
       setScanProgress('');
+    }
+  };
+
+  const handleScanSingle = async (postId: string, e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setScanningPostId(postId);
+    setScanResult(null);
+    try {
+      const res = await fetch('/api/scan', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ postIds: [postId] }),
+      });
+      const json = await res.json();
+      if (json.success) {
+        setScanResult({ success: true, message: json.message || '扫描完成' });
+      } else {
+        setScanResult({ success: false, message: json.message || json.error || '扫描失败' });
+      }
+      await fetchPosts();
+    } catch (err: any) {
+      setScanResult({ success: false, message: err.message || '扫描失败' });
+    } finally {
+      setScanningPostId(null);
     }
   };
 
@@ -430,7 +456,11 @@ export default function PostsPage() {
                 {/* Header */}
                 <div className="flex items-start justify-between gap-2 mb-3">
                   <div className="flex items-center gap-2">
-                    {!post.lastScanned ? (
+                    {post.scanError ? (
+                      <span className="px-2 py-0.5 text-[10px] font-bold rounded bg-orange-100 text-orange-600" title={post.scanError}>
+                        扫描失败
+                      </span>
+                    ) : !post.lastScanned ? (
                       <span className="px-2 py-0.5 text-[10px] font-bold rounded bg-gray-100 text-gray-600">
                         未扫描
                       </span>
@@ -442,6 +472,14 @@ export default function PostsPage() {
                     <span className="text-xs text-gray-500">r/{post.subreddit}</span>
                   </div>
                   <div className="flex items-center gap-1">
+                    <button
+                      onClick={(e) => handleScanSingle(post.id, e)}
+                      disabled={scanningPostId === post.id || scanning}
+                      className="p-1 text-gray-300 hover:text-blue-500 transition-colors disabled:opacity-50"
+                      title="扫描此帖子评论"
+                    >
+                      {scanningPostId === post.id ? <Loader2 className="w-3 h-3 animate-spin" /> : <Radar className="w-3 h-3" />}
+                    </button>
                     <button
                       onClick={(e) => {
                         e.preventDefault();
