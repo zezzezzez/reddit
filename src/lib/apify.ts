@@ -134,11 +134,15 @@ export async function fetchPostViaApify(
     const run = await client.actor('trudax/reddit-scraper-lite').call({
       startUrls: [{ url: resolvedUrl }],
       maxPostCount: 1,
-      maxItems: 500, // 增加结果上限，默认只有10条（1帖子+9评论），导致评论获取不全
-      maxComments: 500, // 单独设置评论上限，默认只有10条，必须显式设置才能获取更多评论
+      maxItems: 200, // 结果上限，平衡数据量和 token 消耗
+      maxComments: 200, // 评论上限，平衡数据量和 token 消耗
       skipComments: false,
       sort: 'new',
-      scrollTimeout: 120, // 增加滚动超时到120秒，让页面加载全部评论包括嵌套评论
+      scrollTimeout: 40, // 滚动超时40秒，平衡评论加载完整度和 token 消耗
+      proxyConfiguration: {
+        useApifyProxy: true,
+        apifyProxyGroups: ['DATACENTER'],
+      },
     });
 
     // 等待完成并获取结果（分页获取所有结果）
@@ -245,6 +249,10 @@ export async function fetchSubredditViaApify(
       maxPostCount: Math.min(limit, 100), // Apify 免费额度限制
       skipComments: true, // 列表模式不抓评论
       sort,
+      proxyConfiguration: {
+        useApifyProxy: true,
+        apifyProxyGroups: ['DATACENTER'],
+      },
     });
 
     const { items } = await client.dataset(run.defaultDatasetId).listItems();
