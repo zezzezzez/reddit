@@ -1,9 +1,15 @@
 // Feishu Bitable Integration
 // Fetches Reddit post URLs from a Feishu Bitable (multi-dimensional table)
+// Supports two access modes:
+//   1. tenant_access_token  - 本租户访问（默认）
+//   2. user_access_token    - 跨租户访问（通过 OAuth 用户授权，可访问外部租户文档）
 
 import { FeishuConfig, RedditPost } from './types';
+import { getValidUserAccessToken } from './feishu-auth';
+import { getConfig } from './store';
 
 let cachedAccessToken: { token: string; expiresAt: number } | null = null;
+let cachedUserAccessToken: { token: string; expiresAt: number } | null = null;
 
 async function getAccessToken(config: FeishuConfig): Promise<string> {
   // Check cache
@@ -38,6 +44,65 @@ async function getAccessToken(config: FeishuConfig): Promise<string> {
   };
 
   return token;
+}
+
+/**
+ * 使用 user_access_token 获取 Bitable 记录（跨租户访问）
+ * @param appToken 目标文档的 appToken（可能是跨租户的）
+ * @param tableId 目标表格 ID
+ */
+export async function fetchBitableRecordsWithUserToken(
+  appToken: string,
+  tableId: string,
+  pageToken?: string
+): Promise<{ records: FeishuBitableRecord[]; hasMore: boolean; pageToken?: string }> {
+  // 获取有效的 user_access_token（自动刷新）
+  const token = await getValidUserAccessToken();
+
+  let url = `https://open.feishu.cn/open-apis/bitable/v1/apps/${appToken}/tables/${tableId}/records?page_size=100`;
+  if (pageToken) {
+    url += `&page_token=${pageToken}`;
+  }
+
+  const response = await fetch(url, {
+    headers: {
+      'Authorization': `Bearer ${token}`,
+      'Content-Type': 'application/json',
+    },
+  });
+
+  const data = await response.json();
+
+  if (data.code !== 0) {
+    throw new Error(`Feishu bitable (user token) fetch failed: ${data.msg}`);
+  }
+
+  return {
+    records: data.data.items || [],
+    hasMore: data.data.has_more || false,
+    pageToken: data.data.page_token,
+  };
+}
+
+/**
+ * 分页获取所有 Bitable 记录（使用 user_access_token）
+ */
+export async function fetchAllBitableRecordsWithUserToken(
+  appToken: string,
+  tableId: string
+): Promise<FeishuBitableRecord[]> {
+  const allRecords: FeishuBitableRecord[] = [];
+  let pageToken: string | undefined;
+  let hasMore = true;
+
+  while (hasMore) {
+    const result = await fetchBitableRecordsWithUserToken(appToken, tableId, pageToken);
+    allRecords.push(...result.records);
+    hasMore = result.hasMore;
+    pageToken = result.pageToken;
+  }
+
+  return allRecords;
 }
 
 export interface FeishuBitableRecord {
@@ -210,12 +275,41 @@ function extractSubredditFromUrl(url: string): string | null {
 }
 
 // Test Feishu connection
-export async function testFeishuConnection(config: FeishuConfig): Promise<{
+// mode: 'tenant' (默认，tenant_access_token) | 'user' (user_access_token，跨租户)
+export async function testFeishuConnection(
+  config: FeishuConfig,
+  mode: 'tenant' | 'user' = 'tenant'
+): Promise<{
   success: boolean;
   message: string;
   recordCount?: number;
 }> {
   try {
+    if (mode === 'user') {
+      // user_access_token 模式：需要外部文档配置
+      const userAuth = getConfig().feishuUserAuth;
+      if (!userAuth?.accessToken) {
+        return { success: false, message: '未授权：请先完成飞书 OAuth 用户授权' };
+      }
+      if (!userAuth.externalAppToken || !userAuth.externalTableId) {
+        return { success: false, message: '未配置外部文档（externalAppToken / externalTableId）' };
+      }
+      const token = await getValidUserAccessToken();
+      if (!token) {
+        return { success: false, message: '获取 user_access_token 失败' };
+      }
+      const result = await fetchBitableRecordsWithUserToken(
+        userAuth.externalAppToken,
+        userAuth.externalTableId
+      );
+      return {
+        success: true,
+        message: `连接成功（user token），共 ${result.records.length} 条记录`,
+        recordCount: result.records.length,
+      };
+    }
+
+    // tenant_access_token 模式（默认）
     const token = await getAccessToken(config);
     if (!token) {
       return { success: false, message: '获取访问令牌失败' };

@@ -5,6 +5,7 @@ import {
   Database, RefreshCw, Key, Clock, Shield, Save,
   CheckCircle, XCircle, Loader2, ExternalLink,
   Upload, FileSpreadsheet, AlertCircle, Trash2, BrainCircuit, Sparkles, Bell, Send,
+  UserCheck, ShieldCheck, Link2, Globe,
 } from 'lucide-react';
 
 export default function SettingsPage() {
@@ -80,6 +81,69 @@ export default function SettingsPage() {
   const [rulesSaving, setRulesSaving] = useState(false);
   const [rulesSaved, setRulesSaved] = useState(false);
 
+  // Feishu User OAuth state (跨租户访问外部文档)
+  const [feishuAuth, setFeishuAuth] = useState<{
+    authorized: boolean;
+    userName: string;
+    openId: string;
+    expiresAt: string | null;
+    refreshExpiresAt: string | null;
+    isExpired: boolean;
+    needsRefresh: boolean;
+    tokenValid: boolean;
+    tokenError: string | null;
+  }>({
+    authorized: false,
+    userName: '',
+    openId: '',
+    expiresAt: null,
+    refreshExpiresAt: null,
+    isExpired: true,
+    needsRefresh: true,
+    tokenValid: false,
+    tokenError: null,
+  });
+  const [externalDoc, setExternalDoc] = useState({
+    externalAppToken: '',
+    externalTableId: '',
+    urlFieldName: 'Reddit URL',
+  });
+  const [externalSaving, setExternalSaving] = useState(false);
+  const [externalSaved, setExternalSaved] = useState(false);
+  const [externalTesting, setExternalTesting] = useState(false);
+  const [externalTestResult, setExternalTestResult] = useState<{ success: boolean; message: string } | null>(null);
+  const [externalSyncing, setExternalSyncing] = useState(false);
+  const [externalSyncResult, setExternalSyncResult] = useState<{ success: boolean; message: string } | null>(null);
+  const [revoking, setRevoking] = useState(false);
+
+  // Load feishu auth status + external doc config on mount,
+  // and check URL query for OAuth callback result
+  useEffect(() => {
+    loadFeishuAuthStatus();
+    loadExternalDocConfig();
+
+    // 检查 OAuth 回调后重定向带的 query 参数
+    if (typeof window !== 'undefined') {
+      const params = new URLSearchParams(window.location.search);
+      const auth = params.get('feishu_auth');
+      const msg = params.get('feishu_msg');
+      if (auth && msg) {
+        if (auth === 'success') {
+          setExternalTestResult({ success: true, message: decodeURIComponent(msg) });
+        } else {
+          setExternalTestResult({ success: false, message: decodeURIComponent(msg) });
+        }
+        // 清理 URL 中的 query
+        const url = new URL(window.location.href);
+        url.searchParams.delete('feishu_auth');
+        url.searchParams.delete('feishu_msg');
+        url.searchParams.delete('feishu_userName');
+        url.searchParams.delete('feishu_expiresAt');
+        window.history.replaceState({}, '', url.toString());
+      }
+    }
+  }, []);
+
   // Load LLM, notify & detection rules config on mount
   useEffect(() => {
     fetch('/api/llm').then(r => r.json()).then(data => {
@@ -134,6 +198,146 @@ export default function SettingsPage() {
       setSyncResult({ success: false, message: e.message || '同步失败' });
     } finally {
       setSyncing(false);
+    }
+  };
+
+  // ============================================================
+  // Feishu User OAuth & External Doc Sync Handlers
+  // ============================================================
+  const loadFeishuAuthStatus = async () => {
+    try {
+      const res = await fetch('/api/feishu-auth/status');
+      const json = await res.json();
+      if (json.success) {
+        const { tokenValid, tokenError, ...rest } = json;
+        setFeishuAuth({ ...rest, tokenValid: !!tokenValid, tokenError: tokenError || null });
+        // 同步外部文档配置
+        if (json.externalAppToken || json.externalTableId) {
+          setExternalDoc(prev => ({
+            ...prev,
+            externalAppToken: json.externalAppToken || '',
+            externalTableId: json.externalTableId || '',
+          }));
+        }
+      }
+    } catch (e) {
+      console.warn('Load feishu auth status failed', e);
+    }
+  };
+
+  const loadExternalDocConfig = async () => {
+    try {
+      const res = await fetch('/api/feishu-auth/external');
+      const json = await res.json();
+      if (json.success) {
+        setExternalDoc(prev => ({
+          ...prev,
+          externalAppToken: json.externalAppToken || '',
+          externalTableId: json.externalTableId || '',
+        }));
+      }
+    } catch (e) {
+      console.warn('Load external doc config failed', e);
+    }
+  };
+
+  const handleAuthorize = async () => {
+    try {
+      const res = await fetch('/api/feishu-auth/url');
+      const json = await res.json();
+      if (json.success && json.authUrl) {
+        // 跳转到飞书授权页面
+        window.location.href = json.authUrl;
+      } else {
+        setExternalTestResult({ success: false, message: json.message || '生成授权 URL 失败' });
+      }
+    } catch (e: any) {
+      setExternalTestResult({ success: false, message: e.message || '请求失败' });
+    }
+  };
+
+  const handleRevokeAuth = async () => {
+    if (!confirm(`确定要撤销 ${feishuAuth.userName || '当前用户'} 的飞书授权吗？`)) return;
+    setRevoking(true);
+    try {
+      const res = await fetch('/api/feishu-auth/revoke', { method: 'POST' });
+      const json = await res.json();
+      if (json.success) {
+        setExternalTestResult({ success: true, message: json.message });
+        await loadFeishuAuthStatus();
+      } else {
+        setExternalTestResult({ success: false, message: json.message || '撤销失败' });
+      }
+    } catch (e: any) {
+      setExternalTestResult({ success: false, message: e.message || '请求失败' });
+    } finally {
+      setRevoking(false);
+    }
+  };
+
+  const handleSaveExternalDoc = async () => {
+    setExternalSaving(true);
+    setExternalSaved(false);
+    try {
+      const res = await fetch('/api/feishu-auth/external', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          externalAppToken: externalDoc.externalAppToken,
+          externalTableId: externalDoc.externalTableId,
+        }),
+      });
+      const json = await res.json();
+      if (json.success) {
+        setExternalSaved(true);
+        setTimeout(() => setExternalSaved(false), 3000);
+      } else {
+        setExternalTestResult({ success: false, message: json.message || '保存失败' });
+      }
+    } catch (e: any) {
+      setExternalTestResult({ success: false, message: e.message || '请求失败' });
+    } finally {
+      setExternalSaving(false);
+    }
+  };
+
+  const handleTestExternalConnection = async () => {
+    setExternalTesting(true);
+    setExternalTestResult(null);
+    try {
+      const res = await fetch('/api/feishu', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ useUserToken: true }),
+      });
+      const json = await res.json();
+      setExternalTestResult(json);
+    } catch (e: any) {
+      setExternalTestResult({ success: false, message: e.message || '测试失败' });
+    } finally {
+      setExternalTesting(false);
+    }
+  };
+
+  const handleSyncExternal = async () => {
+    setExternalSyncing(true);
+    setExternalSyncResult(null);
+    try {
+      const res = await fetch('/api/feishu', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ useUserToken: true }),
+      });
+      const json = await res.json();
+      setExternalSyncResult(json);
+      // 同步后刷新 token 状态
+      if (json.success) {
+        await loadFeishuAuthStatus();
+      }
+    } catch (e: any) {
+      setExternalSyncResult({ success: false, message: e.message || '同步失败' });
+    } finally {
+      setExternalSyncing(false);
     }
   };
 
@@ -449,6 +653,166 @@ export default function SettingsPage() {
           )}
         </div>
         </div>{/* end Feishu API section */}
+
+        {/* Divider */}
+        <div className="flex items-center gap-3 my-6">
+          <div className="flex-1 h-px bg-border"></div>
+          <span className="text-xs text-muted">跨租户同步</span>
+          <div className="flex-1 h-px bg-border"></div>
+        </div>
+
+        {/* 方式三：OAuth 用户授权同步外部租户文档 */}
+        <div>
+          <h3 className="text-sm font-medium text-foreground mb-1">方式三：OAuth 授权同步外部租户文档</h3>
+          <p className="text-xs text-muted mb-3">
+            适用于访问其他公司租户下的飞书文档（如 bluefocus.feishu.cn）。需先完成飞书 OAuth 授权。
+          </p>
+
+          {/* 授权状态卡片 */}
+          <div className="bg-background border border-border rounded-lg p-4 mb-4">
+            <div className="flex items-center justify-between gap-4 flex-wrap">
+              <div className="flex items-center gap-2">
+                {feishuAuth.authorized ? (
+                  feishuAuth.tokenValid ? (
+                    <ShieldCheck className="w-5 h-5 text-green-400" />
+                  ) : (
+                    <AlertCircle className="w-5 h-5 text-yellow-400" />
+                  )
+                ) : (
+                  <Shield className="w-5 h-5 text-muted" />
+                )}
+                <div>
+                  <div className="text-sm text-foreground font-medium">
+                    {feishuAuth.authorized
+                      ? `已授权：${feishuAuth.userName || feishuAuth.openId || '未知用户'}`
+                      : '未授权'}
+                  </div>
+                  <div className="text-xs text-muted mt-0.5">
+                    {feishuAuth.authorized
+                      ? feishuAuth.tokenValid
+                        ? `access_token 有效，至 ${feishuAuth.expiresAt ? new Date(feishuAuth.expiresAt).toLocaleString('zh-CN') : '未知'}`
+                        : `token 无效：${feishuAuth.tokenError || '请重新授权'}`
+                      : '请点击右侧按钮完成飞书账号授权'}
+                  </div>
+                </div>
+              </div>
+              <div className="flex items-center gap-2">
+                {feishuAuth.authorized ? (
+                  <>
+                    <button
+                      onClick={loadFeishuAuthStatus}
+                      className="flex items-center gap-1.5 px-3 py-1.5 bg-card hover:bg-card-hover border border-border rounded-lg text-xs text-foreground transition-colors"
+                      title="刷新授权状态"
+                    >
+                      <RefreshCw className="w-3.5 h-3.5" />
+                      刷新
+                    </button>
+                    <button
+                      onClick={handleRevokeAuth}
+                      disabled={revoking}
+                      className="flex items-center gap-1.5 px-3 py-1.5 bg-red-500/10 hover:bg-red-500/20 border border-red-500/30 rounded-lg text-xs text-red-400 transition-colors disabled:opacity-50"
+                    >
+                      {revoking ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Trash2 className="w-3.5 h-3.5" />}
+                      撤销授权
+                    </button>
+                  </>
+                ) : (
+                  <button
+                    onClick={handleAuthorize}
+                    className="flex items-center gap-1.5 px-4 py-1.5 bg-primary hover:bg-primary-hover text-white rounded-lg text-sm font-medium transition-colors"
+                  >
+                    <UserCheck className="w-4 h-4" />
+                    飞书授权
+                  </button>
+                )}
+              </div>
+            </div>
+          </div>
+
+          {/* 外部文档配置 */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="md:col-span-2">
+              <h4 className="text-xs text-muted mb-2 flex items-center gap-1.5">
+                <Globe className="w-3.5 h-3.5" />
+                外部租户文档配置
+              </h4>
+            </div>
+            <div>
+              <label className="block text-sm text-muted mb-1.5">外部多维表格 App Token</label>
+              <input
+                type="text"
+                value={externalDoc.externalAppToken}
+                onChange={(e) => setExternalDoc({ ...externalDoc, externalAppToken: e.target.value })}
+                placeholder="如：bascnXXXXXXXXXXXXXX"
+                disabled={!feishuAuth.authorized}
+                className="w-full px-3 py-2 bg-background border border-border rounded-lg text-sm text-foreground placeholder:text-muted/50 focus:outline-none focus:border-primary disabled:opacity-50"
+              />
+              <p className="text-xs text-muted mt-1">从外部飞书表格 URL 中获取</p>
+            </div>
+            <div>
+              <label className="block text-sm text-muted mb-1.5">外部数据表 Table ID</label>
+              <input
+                type="text"
+                value={externalDoc.externalTableId}
+                onChange={(e) => setExternalDoc({ ...externalDoc, externalTableId: e.target.value })}
+                placeholder="如：tblXXXXXXXXXX"
+                disabled={!feishuAuth.authorized}
+                className="w-full px-3 py-2 bg-background border border-border rounded-lg text-sm text-foreground placeholder:text-muted/50 focus:outline-none focus:border-primary disabled:opacity-50"
+              />
+            </div>
+            <div className="md:col-span-2">
+              <label className="block text-sm text-muted mb-1.5">Reddit URL 字段名</label>
+              <input
+                type="text"
+                value={externalDoc.urlFieldName}
+                onChange={(e) => setExternalDoc({ ...externalDoc, urlFieldName: e.target.value })}
+                placeholder="多维表格中存放 Reddit 链接的字段名"
+                className="w-full px-3 py-2 bg-background border border-border rounded-lg text-sm text-foreground placeholder:text-muted/50 focus:outline-none focus:border-primary"
+              />
+            </div>
+          </div>
+
+          {/* 操作按钮 */}
+          <div className="flex items-center gap-3 mt-4 pt-4 border-t border-border flex-wrap">
+            <button
+              onClick={handleSaveExternalDoc}
+              disabled={externalSaving}
+              className="flex items-center gap-2 px-4 py-2 bg-card hover:bg-card-hover border border-border rounded-lg text-sm text-foreground transition-colors disabled:opacity-50"
+            >
+              {externalSaving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
+              保存外部文档配置
+              {externalSaved && <CheckCircle className="w-4 h-4 text-green-400 ml-1" />}
+            </button>
+            <button
+              onClick={handleTestExternalConnection}
+              disabled={externalTesting || !feishuAuth.authorized}
+              className="flex items-center gap-2 px-4 py-2 bg-card hover:bg-card-hover border border-border rounded-lg text-sm text-foreground transition-colors disabled:opacity-50"
+            >
+              {externalTesting ? <Loader2 className="w-4 h-4 animate-spin" /> : <Link2 className="w-4 h-4" />}
+              测试外部连接
+            </button>
+            <button
+              onClick={handleSyncExternal}
+              disabled={externalSyncing || !feishuAuth.authorized}
+              className="flex items-center gap-2 px-4 py-2 bg-primary hover:bg-primary-hover text-white rounded-lg text-sm font-medium transition-colors disabled:opacity-50"
+            >
+              {externalSyncing ? <Loader2 className="w-4 h-4 animate-spin" /> : <RefreshCw className="w-4 h-4" />}
+              同步外部文档数据
+            </button>
+            {externalTestResult && (
+              <div className={`flex items-center gap-1.5 text-sm ${externalTestResult.success ? 'text-green-400' : 'text-red-400'}`}>
+                {externalTestResult.success ? <CheckCircle className="w-4 h-4" /> : <XCircle className="w-4 h-4" />}
+                {externalTestResult.message}
+              </div>
+            )}
+            {externalSyncResult && (
+              <div className={`flex items-center gap-1.5 text-sm ${externalSyncResult.success ? 'text-green-400' : 'text-red-400'}`}>
+                {externalSyncResult.success ? <CheckCircle className="w-4 h-4" /> : <XCircle className="w-4 h-4" />}
+                {externalSyncResult.message}
+              </div>
+            )}
+          </div>
+        </div>{/* end External OAuth section */}
       </div>{/* end Data Import Section */}
 
       {/* Scan Schedule */}

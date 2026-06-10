@@ -6,6 +6,19 @@
     "tableId": "9dRNBr",
     "urlFieldName": "发布完成后反链"
   },
+  "feishuUserAuth": {
+    "accessToken": "",
+    "refreshToken": "",
+    "openId": "",
+    "unionId": "",
+    "scope": "",
+    "expiresAt": 0,
+    "refreshExpiresAt": 0,
+    "authorizedAt": 0,
+    "userName": "",
+    "externalAppToken": "",
+    "externalTableId": ""
+  },
   "scanSchedule": "0 9 * * *",
   "autoScanEnabled": false,
   "scanTime": "00:00",
