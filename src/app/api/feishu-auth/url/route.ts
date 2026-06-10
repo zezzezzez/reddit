@@ -5,10 +5,24 @@
 import { NextResponse } from 'next/server';
 import { generateAuthorizationUrl, getRedirectUri } from '@/lib/feishu-auth';
 
-export async function GET() {
+export async function GET(request: Request) {
   try {
+    // 从请求的 origin 动态构造 redirect_uri，避免环境变量未设置时硬编码 localhost
+    const { origin } = new URL(request.url);
+    const redirectUri = `${origin}/api/feishu-auth/callback`;
+
+    // 临时覆盖环境变量，让 generateAuthorizationUrl 使用动态 origin
+    const originalEnv = process.env.FEISHU_REDIRECT_URI;
+    process.env.FEISHU_REDIRECT_URI = redirectUri;
+
     const authUrl = generateAuthorizationUrl();
-    const redirectUri = getRedirectUri();
+
+    // 恢复原值
+    if (originalEnv === undefined) {
+      delete process.env.FEISHU_REDIRECT_URI;
+    } else {
+      process.env.FEISHU_REDIRECT_URI = originalEnv;
+    }
 
     return NextResponse.json({
       success: true,
