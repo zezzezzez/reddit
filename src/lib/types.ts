@@ -125,6 +125,8 @@ export interface DetectionRules {
 export interface MonitorConfig {
   feishu: FeishuConfig;
   scanSchedule: string; // cron expression
+  autoScanEnabled: boolean; // whether auto-scan is enabled
+  scanTime: string; // "HH:MM" format, time for daily auto-scan
   keywords: string[];
   sentimentThreshold: number; // -1 to 1, threshold for flagging
   openaiApiKey?: string;

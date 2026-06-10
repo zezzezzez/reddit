@@ -204,6 +204,8 @@ const DEFAULT_CONFIG: MonitorConfig = {
     urlFieldName: 'Reddit URL',
   },
   scanSchedule: '0 9 * * *',
+  autoScanEnabled: false,
+  scanTime: '00:00',
   keywords: [],
   sentimentThreshold: -0.3,
   openaiApiKey: '',

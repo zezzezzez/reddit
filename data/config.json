@@ -7,6 +7,8 @@
     "urlFieldName": "发布完成后反链"
   },
   "scanSchedule": "0 9 * * *",
+  "autoScanEnabled": false,
+  "scanTime": "00:00",
   "keywords": [],
   "sentimentThreshold": -0.3,
   "openaiApiKey": "",

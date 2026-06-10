@@ -16,6 +16,10 @@ export default function SettingsPage() {
     urlFieldName: '发布完成后反链',
   });
   const [scanSchedule, setScanSchedule] = useState('0 9 * * *');
+  const [autoScanEnabled, setAutoScanEnabled] = useState(false);
+  const [scanTime, setScanTime] = useState('00:00');
+  const [scanSaving, setScanSaving] = useState(false);
+  const [scanSaved, setScanSaved] = useState(false);
   const [sentimentThreshold, setSentimentThreshold] = useState(-0.3);
   const [openaiApiKey, setOpenaiApiKey] = useState('');
   const [openaiModel, setOpenaiModel] = useState('gpt-4o-mini');
@@ -88,6 +92,12 @@ export default function SettingsPage() {
     }).catch(() => {});
     fetch('/api/detection-rules').then(r => r.json()).then(data => {
       if (data.rules) setDetectionRules(data.rules);
+    }).catch(() => {});
+    fetch('/api/scan-schedule').then(r => r.json()).then(data => {
+      if (typeof data.autoScanEnabled === 'boolean') setAutoScanEnabled(data.autoScanEnabled);
+      if (data.scanTime) setScanTime(data.scanTime);
+      if (data.scanSchedule) setScanSchedule(data.scanSchedule);
+      if (typeof data.sentimentThreshold === 'number') setSentimentThreshold(data.sentimentThreshold);
     }).catch(() => {});
   }, []);
 
@@ -443,12 +453,82 @@ export default function SettingsPage() {
 
       {/* Scan Schedule */}
       <div className="bg-card rounded-xl p-6 border border-border">
-        <div className="flex items-center gap-2 mb-4">
-          <Clock className="w-5 h-5 text-primary" />
-          <h2 className="text-base font-semibold text-foreground">扫描策略</h2>
+        <div className="flex items-center justify-between mb-4">
+          <div className="flex items-center gap-2">
+            <Clock className="w-5 h-5 text-primary" />
+            <h2 className="text-base font-semibold text-foreground">扫描策略</h2>
+          </div>
+          <button
+            onClick={async () => {
+              setScanSaving(true);
+              try {
+                const res = await fetch('/api/scan-schedule', {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify({ autoScanEnabled, scanTime, scanSchedule, sentimentThreshold }),
+                });
+                const json = await res.json();
+                if (json.success) {
+                  setScanSaved(true);
+                  setTimeout(() => setScanSaved(false), 3000);
+                }
+              } catch (e) {
+                console.error('Save scan config failed', e);
+              } finally {
+                setScanSaving(false);
+              }
+            }}
+            disabled={scanSaving}
+            className="px-3 py-1.5 bg-primary text-white text-sm rounded-lg hover:bg-primary/90 disabled:opacity-50 transition-colors flex items-center gap-1.5"
+          >
+            {scanSaving ? (
+              <Loader2 className="w-3.5 h-3.5 animate-spin" />
+            ) : scanSaved ? (
+              <CheckCircle className="w-3.5 h-3.5" />
+            ) : (
+              <Save className="w-3.5 h-3.5" />
+            )}
+            {scanSaving ? '保存中...' : scanSaved ? '已保存' : '保存策略'}
+          </button>
         </div>
 
         <div className="space-y-4">
+          {/* Auto Scan Toggle */}
+          <div className="flex items-center justify-between p-3 rounded-lg bg-background border border-border">
+            <div className="flex items-center gap-3">
+              <Clock className={`w-4 h-4 ${autoScanEnabled ? 'text-primary' : 'text-muted'}`} />
+              <div>
+                <p className="text-sm font-medium text-foreground">自动定时扫描</p>
+                <p className="text-xs text-muted">开启后将按设定时间自动执行 Apify 扫描</p>
+              </div>
+            </div>
+            <button
+              onClick={() => setAutoScanEnabled(!autoScanEnabled)}
+              className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
+                autoScanEnabled ? 'bg-primary' : 'bg-gray-600'
+              }`}
+            >
+              <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                autoScanEnabled ? 'translate-x-6' : 'translate-x-1'
+              }`} />
+            </button>
+          </div>
+
+          {autoScanEnabled && (
+            <div className="pl-2 border-l-2 border-primary/30">
+              <div className="flex items-center gap-3">
+                <label className="text-sm text-muted w-20 shrink-0">扫描时间</label>
+                <input
+                  type="time"
+                  value={scanTime}
+                  onChange={e => setScanTime(e.target.value)}
+                  className="bg-background border border-border rounded-lg px-3 py-2 text-sm text-foreground focus:outline-none focus:border-primary"
+                />
+                <span className="text-xs text-muted">每日在此时间自动执行扫描</span>
+              </div>
+            </div>
+          )}
+
           <div>
             <label className="block text-sm text-muted mb-1.5">扫描频率</label>
             <select

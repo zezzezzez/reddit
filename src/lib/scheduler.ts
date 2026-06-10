@@ -62,12 +62,6 @@ async function executeMidnightScan() {
 let initialized = false;
 
 export function initScheduler(): void {
-  // 防止重复初始化（热重载时很重要）
-  if (initialized) {
-    console.log('[Scheduler] Already initialized, skipping...');
-    return;
-  }
-  
   // Stop existing tasks if any
   if (scheduledTask) {
     scheduledTask.stop();
@@ -95,9 +89,15 @@ export function initScheduler(): void {
     console.log('[Scheduler] Feishu notification is disabled, no push task');
   }
 
-  // 2. Schedule midnight auto-scan (00:00 every day)
-  midnightScanTask = cron.schedule('0 0 * * *', executeMidnightScan);
-  console.log('[Scheduler] Midnight auto-scan scheduled at 00:00 (cron: 0 0 * * *)');
+  // 2. Schedule auto-scan based on config
+  if (config.autoScanEnabled) {
+    const scanTime = config.scanTime || '00:00';
+    const scanCron = timeToCron(scanTime);
+    midnightScanTask = cron.schedule(scanCron, executeMidnightScan);
+    console.log(`[Scheduler] Auto-scan scheduled at ${scanTime} (cron: ${scanCron})`);
+  } else {
+    console.log('[Scheduler] Auto-scan is disabled, no scan task');
+  }
   
   initialized = true;
 }
@@ -109,6 +109,8 @@ export function getSchedulerStatus(): {
   cronExpression: string | null;
   lastPushTime: string | null;
   lastPushResult: { success: boolean; message: string; postCount: number } | null;
+  autoScanEnabled: boolean;
+  scanTime: string | null;
 } {
   const config = getConfig();
   const notifyConfig = config.feishuNotify;
@@ -119,6 +121,8 @@ export function getSchedulerStatus(): {
     cronExpression: scheduledTask ? timeToCron(notifyConfig?.notifyTime || '09:00') : null,
     lastPushTime,
     lastPushResult,
+    autoScanEnabled: config.autoScanEnabled || false,
+    scanTime: config.scanTime || null,
   };
 }
 
