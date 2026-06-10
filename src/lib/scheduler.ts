@@ -59,7 +59,6 @@ async function executeMidnightScan() {
 }
 
 // Initialize or update the scheduled task
-let initialized = false;
 
 export function initScheduler(): void {
   // Stop existing tasks if any
@@ -98,8 +97,6 @@ export function initScheduler(): void {
   } else {
     console.log('[Scheduler] Auto-scan is disabled, no scan task');
   }
-  
-  initialized = true;
 }
 
 // Get scheduler status

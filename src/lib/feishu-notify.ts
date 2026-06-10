@@ -91,10 +91,7 @@ export function buildAlertMessage(): {
     return (order[a.alertLevel] ?? 99) - (order[b.alertLevel] ?? 99);
   });
 
-  if (alertPosts.length === 0) {
-    return { hasAlerts: false, text: '', richText: null, postCount: 0 };
-  }
-
+  // Always generate daily report (even with 0 alert posts)
   const now = new Date();
   const dateStr = now.toLocaleDateString('zh-CN', { year: 'numeric', month: 'long', day: 'numeric' });
   const baseUrl = getSystemBaseUrl();
@@ -180,7 +177,8 @@ export function buildAlertMessage(): {
   // Build Feishu rich text (interactive card) for webhook
   const richText = buildFeishuCard(posts, allComments, alertPosts, flaggedComments, categoryCount, dateStr, now, baseUrl);
 
-  return { hasAlerts: true, text, richText, postCount: alertPosts.length };
+  // Always generate daily report
+  return { hasAlerts: alertPosts.length > 0, text, richText, postCount: alertPosts.length };
 }
 
 // Build Feishu Interactive Card message
@@ -425,10 +423,7 @@ export async function sendDailyAlert(): Promise<{ success: boolean; message: str
 
   const { hasAlerts, text, richText, postCount } = buildAlertMessage();
 
-  if (!hasAlerts) {
-    return { success: true, message: '今日无严重/高危帖子，无需推送', postCount: 0 };
-  }
-
+  // Always send daily report (manual push or scheduled push always delivers)
   if (notifyConfig.mode === 'webhook') {
     if (!notifyConfig.webhookUrl) {
       return { success: false, message: '请先配置飞书机器人Webhook地址', postCount };
