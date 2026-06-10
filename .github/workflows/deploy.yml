@@ -33,6 +33,7 @@ jobs:
               --restart unless-stopped \
               -p 3000:3000 \
               -e NODE_ENV=production \
+              -e FEISHU_REDIRECT_URI='http://18.192.65.69:3000/api/feishu-auth/callback' \
               -e HTTP_PROXY='http://spo7492epm:8bLtd42alncz%7ETV0gK@gate.decodo.com:10001' \
               -e HTTPS_PROXY='http://spo7492epm:8bLtd42alncz%7ETV0gK@gate.decodo.com:10001' \
               reddit-monitor
