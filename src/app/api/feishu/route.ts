@@ -69,27 +69,12 @@ export async function POST(request: Request) {
 
     savePosts(mergedPosts);
 
-    // Auto-scan: trigger scan for new posts in background
-    let autoScanStatus = 'pending';
-    if (newCount > 0) {
-      autoScanStatus = 'triggered';
-      const newPostIds = mergedPosts.filter(p => !p.lastScanned).map(p => p.id);
-      fetch('/api/scan', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ postIds: newPostIds }),
-      }).catch(() => {});
-    }
-
     return NextResponse.json({
       success: true,
-      message: `飞书数据同步成功${
-        autoScanStatus === 'triggered' ? '，已自动开始扫描评论' : ''
-      }`,
+      message: `飞书数据同步成功。请手动点击「扫描全部帖子」按钮进行扫描。`,
       syncedPosts: newPosts.length,
       newPosts: newCount,
       updatedPosts: updatedCount,
-      autoScanStatus,
     });
   } catch (error: any) {
     console.error('Feishu sync error:', error);
