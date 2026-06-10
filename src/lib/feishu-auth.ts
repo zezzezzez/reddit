@@ -53,11 +53,12 @@ export function generateAuthorizationUrl(state?: string): string {
     throw new Error('请先在系统设置中配置飞书应用 App ID');
   }
 
-  // 飞书 OAuth 授权 scope：
+  // 飞书 OAuth 授权 scope（多个 scope 用空格分隔）：
   // - bitable:app:readonly - 只读访问多维表格
   // - bitable:app - 读写多维表格
-  // 我们只需要读取文档，所以用只读权限即可
-  const scope = 'bitable:app:readonly';
+  // - wiki:wiki:readonly - 只读访问知识库（用于解析 wiki 链接得到真实的 bitable app_token / sheet token）
+  // - sheets:spreadsheet:readonly - 只读访问电子表格（用于解析 sheet 文档的内部 worksheet）
+  const scope = 'bitable:app:readonly wiki:wiki:readonly sheets:spreadsheet:readonly';
 
   const params = new URLSearchParams({
     app_id: feishuCfg.appId,
@@ -83,13 +84,21 @@ function randomState(): string {
 
 interface TokenResponse {
   code: number;
-  msg: string;
+  msg?: string;
+  // 飞书 v2 可能直接返回扁平结构（无 data 嵌套）
+  access_token?: string;
+  refresh_token?: string;
+  token_type?: string;
+  expires_in?: number;
+  refresh_expires_in?: number;
+  scope?: string;
+  // 或者嵌套在 data 中
   data?: {
     access_token: string;
     refresh_token: string;
     token_type: string;
-    expires_in: number;         // access_token 有效期（秒）
-    refresh_expires_in: number; // refresh_token 有效期（秒）
+    expires_in: number;
+    refresh_expires_in: number;
     scope: string;
   };
 }
@@ -97,7 +106,7 @@ interface TokenResponse {
 /**
  * 用授权码 code 换取 user_access_token
  */
-export async function exchangeCodeForToken(code: string): Promise<FeishuUserAuth> {
+export async function exchangeCodeForToken(code: string, redirectUri?: string): Promise<FeishuUserAuth> {
   const config = getConfig();
   const feishuCfg = config.feishu;
 
@@ -108,33 +117,68 @@ export async function exchangeCodeForToken(code: string): Promise<FeishuUserAuth
   // 飞书 v2 OAuth token 端点使用 app_secret_basic 认证
   const basicAuth = Buffer.from(`${feishuCfg.appId}:${feishuCfg.appSecret}`).toString('base64');
 
+  const tokenParams: Record<string, string> = {
+    grant_type: 'authorization_code',
+    code,
+  };
+  // redirect_uri 必须与授权请求时一致
+  if (redirectUri) {
+    tokenParams.redirect_uri = redirectUri;
+  }
+
   const response = await fetch(FEISHU_TOKEN_URL, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/x-www-form-urlencoded',
       'Authorization': `Basic ${basicAuth}`,
     },
-    body: new URLSearchParams({
-      grant_type: 'authorization_code',
-      code,
-    }).toString(),
+    body: new URLSearchParams(tokenParams).toString(),
   });
 
-  const data: TokenResponse = await response.json();
+  let data: TokenResponse;
+  try {
+    const raw = await response.json();
+    // 兼容飞书可能返回字符串的情况
+    data = typeof raw === 'string' ? JSON.parse(raw) : raw;
+  } catch (parseError) {
+    throw new Error(`解析飞书响应失败: ${parseError instanceof Error ? parseError.message : String(parseError)}`);
+  }
 
-  if (data.code !== 0 || !data.data) {
+  if (!response.ok) {
+    throw new Error(`飞书请求失败 (${response.status}): ${data.msg || JSON.stringify(data)}`);
+  }
+
+  if (!response.ok) {
+    throw new Error(`飞书请求失败 (${response.status}): ${data.msg || JSON.stringify(data)}`);
+  }
+
+  if (data.code !== 0) {
     throw new Error(`飞书授权失败: ${data.msg || JSON.stringify(data)}`);
+  }
+
+  // 兼容两种响应格式：嵌套 data 或扁平结构
+  const tokenData = data.data || {
+    access_token: data.access_token || '',
+    refresh_token: data.refresh_token || '',
+    token_type: data.token_type || 'Bearer',
+    expires_in: data.expires_in || 7200,
+    refresh_expires_in: data.refresh_expires_in || 2592000,
+    scope: data.scope || '',
+  };
+
+  if (!tokenData.access_token) {
+    throw new Error(`飞书授权失败: 未返回 access_token, ${JSON.stringify(data)}`);
   }
 
   const now = Date.now();
   const tokenInfo: FeishuUserAuth = {
-    accessToken: data.data.access_token,
-    refreshToken: data.data.refresh_token,
+    accessToken: tokenData.access_token,
+    refreshToken: tokenData.refresh_token,
     openId: '', // 需要额外调用 user info 接口获取
     unionId: '',
-    scope: data.data.scope,
-    expiresAt: now + data.data.expires_in * 1000,
-    refreshExpiresAt: now + data.data.refresh_expires_in * 1000,
+    scope: tokenData.scope,
+    expiresAt: now + tokenData.expires_in * 1000,
+    refreshExpiresAt: now + tokenData.refresh_expires_in * 1000,
     authorizedAt: now,
     userName: '',
     externalAppToken: config.feishuUserAuth?.externalAppToken || '',
@@ -192,11 +236,11 @@ async function fetchUserInfo(accessToken: string): Promise<UserInfoResponse['dat
 
   const data: UserInfoResponse = await response.json();
 
-  if (data.code !== 0 || !data.data) {
+  if (data.code !== 0) {
     return null;
   }
 
-  return data.data;
+  return data.data || null;
 }
 
 /**
@@ -230,20 +274,44 @@ export async function refreshUserToken(): Promise<FeishuUserAuth> {
     }).toString(),
   });
 
-  const data: TokenResponse = await response.json();
+  let data: TokenResponse;
+  try {
+    const raw = await response.json();
+    data = typeof raw === 'string' ? JSON.parse(raw) : raw;
+  } catch (parseError) {
+    throw new Error(`解析飞书刷新响应失败: ${parseError instanceof Error ? parseError.message : String(parseError)}`);
+  }
 
-  if (data.code !== 0 || !data.data) {
+  if (!response.ok) {
+    throw new Error(`飞书刷新请求失败 (${response.status}): ${data.msg || JSON.stringify(data)}`);
+  }
+
+  if (data.code !== 0) {
     throw new Error(`刷新 token 失败: ${data.msg || JSON.stringify(data)}`);
+  }
+
+  // 兼容两种响应格式
+  const tokenData = data.data || {
+    access_token: data.access_token || '',
+    refresh_token: data.refresh_token || auth.refreshToken,
+    token_type: data.token_type || 'Bearer',
+    expires_in: data.expires_in || 7200,
+    refresh_expires_in: data.refresh_expires_in || 2592000,
+    scope: data.scope || auth.scope || '',
+  };
+
+  if (!tokenData.access_token) {
+    throw new Error(`刷新 token 失败: 未返回 access_token, ${JSON.stringify(data)}`);
   }
 
   const now = Date.now();
   const updated: FeishuUserAuth = {
     ...auth,
-    accessToken: data.data.access_token,
-    refreshToken: data.data.refresh_token, // 飞书会同时返回新的 refresh_token
-    scope: data.data.scope,
-    expiresAt: now + data.data.expires_in * 1000,
-    refreshExpiresAt: now + data.data.refresh_expires_in * 1000,
+    accessToken: tokenData.access_token,
+    refreshToken: tokenData.refresh_token,
+    scope: tokenData.scope,
+    expiresAt: now + tokenData.expires_in * 1000,
+    refreshExpiresAt: now + tokenData.refresh_expires_in * 1000,
   };
 
   config.feishuUserAuth = updated;

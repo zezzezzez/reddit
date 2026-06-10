@@ -1,10 +1,10 @@
-// Feishu Bitable Integration
-// Fetches Reddit post URLs from a Feishu Bitable (multi-dimensional table)
+// Feishu Bitable / Sheet Integration
+// Fetches Reddit post URLs from a Feishu Bitable (multi-dimensional table) or Sheet (spreadsheet)
 // Supports two access modes:
 //   1. tenant_access_token  - 本租户访问（默认）
 //   2. user_access_token    - 跨租户访问（通过 OAuth 用户授权，可访问外部租户文档）
 
-import { FeishuConfig, RedditPost } from './types';
+import { FeishuConfig, FeishuDocType, RedditPost } from './types';
 import { getValidUserAccessToken } from './feishu-auth';
 import { getConfig } from './store';
 
@@ -108,6 +108,110 @@ export async function fetchAllBitableRecordsWithUserToken(
 export interface FeishuBitableRecord {
   record_id: string;
   fields: Record<string, any>;
+}
+
+// ============================================================
+// Sheet (电子表格) 系列 API - 使用 user_access_token 跨租户访问
+// ============================================================
+export interface FeishuSheetRecord {
+  record_id: string;        // 行号，格式 "row_<rowIndex>"
+  fields: Record<string, any>;
+}
+
+export interface FeishuSheetValueRange {
+  range: string;            // 例如 "9dRNBr!A1:Z1000"
+  values: string[][];       // 二维数组，首行为表头
+}
+
+/**
+ * 使用 user_access_token 读取 Sheet 工作表内容
+ * 走 v2 values 接口，简单直接。
+ * @param spreadsheetToken 飞书电子表格 token（obj_token）
+ * @param sheetId           工作表 ID（如 "9dRNBr"）
+ * @param range             可选，读取范围，默认 A1:Z1000
+ */
+export async function fetchSheetValuesWithUserToken(
+  spreadsheetToken: string,
+  sheetId: string,
+  range: string = 'A1:Z1000'
+): Promise<string[][]> {
+  const token = await getValidUserAccessToken();
+
+  // 飞书 v2 values 接口：路径是 spreadsheet token + 工作表 ID + 范围
+  const url = `https://open.feishu.cn/open-apis/sheets/v2/spreadsheets/${spreadsheetToken}/values/${encodeURIComponent(sheetId)}?valueRenderOption=ToString&range=${encodeURIComponent(range)}`;
+
+  const response = await fetch(url, {
+    headers: {
+      'Authorization': `Bearer ${token}`,
+      'Content-Type': 'application/json',
+    },
+  });
+
+  const data = await response.json();
+
+  if (data.code !== 0) {
+    throw new Error(`Feishu sheet (user token) fetch failed: ${data.msg}`);
+  }
+
+  // v2 返回结构: { data: { valueRange: { range, values: [[...], [...]] } } }
+  const values = data?.data?.valueRange?.values || [];
+  return values;
+}
+
+/**
+ * 将 Sheet 二维数组转成 RedditPost 列表
+ * 约定：首行（index 0）是表头，后续每行是一条记录
+ * 根据 urlFieldName（中文表头，如 "发布完成后反链"）查找 URL
+ */
+export function convertSheetValuesToPosts(
+  values: string[][],
+  urlFieldName: string,
+  existingPosts: RedditPost[] = []
+): RedditPost[] {
+  if (!values || values.length === 0) return [];
+
+  const headers = values[0] || [];
+  const urlColIdx = headers.findIndex(h => String(h).trim() === urlFieldName.trim());
+  if (urlColIdx < 0) {
+    throw new Error(`Sheet 中未找到表头「${urlFieldName}」，请检查 urlFieldName 或确认首行是表头`);
+  }
+
+  const posts: RedditPost[] = [];
+
+  for (let i = 1; i < values.length; i++) {
+    const row = values[i] || [];
+    const cell = row[urlColIdx];
+    if (!cell) continue;
+    const redditUrl = String(cell).trim();
+    if (!redditUrl || !redditUrl.includes('reddit.com')) continue;
+
+    const existing = existingPosts.find(p => p.redditUrl === redditUrl);
+    const postId = extractPostIdFromUrl(redditUrl);
+
+    // 把整行也作为 fields 保留，方便后续按列名取值
+    const fields: Record<string, any> = {};
+    headers.forEach((h, idx) => {
+      if (h != null && h !== '') fields[String(h).trim()] = row[idx] ?? '';
+    });
+
+    posts.push({
+      id: postId || `sheet_row_${i}`,
+      redditUrl,
+      title: existing?.title || extractStringField({ record_id: '', fields }, 'Title')
+              || extractStringField({ record_id: '', fields }, '标题')
+              || redditUrl,
+      subreddit: existing?.subreddit || extractSubredditFromUrl(redditUrl) || '',
+      author: existing?.author || extractStringField({ record_id: '', fields }, 'Author') || '',
+      score: existing?.score || 0,
+      commentCount: existing?.commentCount || 0,
+      createdAt: existing?.createdAt || new Date().toISOString(),
+      lastScanned: existing?.lastScanned || null,
+      alertLevel: existing?.alertLevel || 'safe',
+      alertReasons: existing?.alertReasons || [],
+    });
+  }
+
+  return posts;
 }
 
 export async function fetchBitableRecords(
@@ -298,13 +402,26 @@ export async function testFeishuConnection(
       if (!token) {
         return { success: false, message: '获取 user_access_token 失败' };
       }
+      // 根据文档类型走不同 API
+      const docType: FeishuDocType = userAuth.externalDocType || 'bitable';
+      if (docType === 'sheet') {
+        const values = await fetchSheetValuesWithUserToken(
+          userAuth.externalAppToken,
+          userAuth.externalTableId
+        );
+        return {
+          success: true,
+          message: `连接成功（user token · sheet），共 ${values.length - 1} 行数据（不含表头）`,
+          recordCount: Math.max(values.length - 1, 0),
+        };
+      }
       const result = await fetchBitableRecordsWithUserToken(
         userAuth.externalAppToken,
         userAuth.externalTableId
       );
       return {
         success: true,
-        message: `连接成功（user token），共 ${result.records.length} 条记录`,
+        message: `连接成功（user token · bitable），共 ${result.records.length} 条记录`,
         recordCount: result.records.length,
       };
     }

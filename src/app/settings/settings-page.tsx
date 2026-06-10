@@ -104,6 +104,7 @@ export default function SettingsPage() {
     tokenError: null,
   });
   const [externalDoc, setExternalDoc] = useState({
+    externalDocType: 'bitable' as 'bitable' | 'sheet',
     externalAppToken: '',
     externalTableId: '',
     urlFieldName: 'Reddit URL',
@@ -232,6 +233,7 @@ export default function SettingsPage() {
       if (json.success) {
         setExternalDoc(prev => ({
           ...prev,
+          externalDocType: json.externalDocType || 'bitable',
           externalAppToken: json.externalAppToken || '',
           externalTableId: json.externalTableId || '',
         }));
@@ -283,6 +285,7 @@ export default function SettingsPage() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
+          externalDocType: externalDoc.externalDocType,
           externalAppToken: externalDoc.externalAppToken,
           externalTableId: externalDoc.externalTableId,
         }),
@@ -737,25 +740,59 @@ export default function SettingsPage() {
                 外部租户文档配置
               </h4>
             </div>
+            <div className="md:col-span-2">
+              <label className="block text-sm text-muted mb-1.5">外部文档类型</label>
+              <div className="flex items-center gap-2">
+                {([
+                  { value: 'bitable', label: '多维表格 (Bitable)', desc: 'bitable API' },
+                  { value: 'sheet', label: '电子表格 (Sheet)', desc: 'sheets API' },
+                ] as const).map(opt => (
+                  <button
+                    key={opt.value}
+                    type="button"
+                    onClick={() => setExternalDoc({ ...externalDoc, externalDocType: opt.value })}
+                    className={`flex-1 px-3 py-2 rounded-lg text-sm transition-colors border ${
+                      externalDoc.externalDocType === opt.value
+                        ? 'bg-primary text-white border-primary'
+                        : 'bg-background text-muted border-border hover:border-primary/50'
+                    }`}
+                  >
+                    <span className="font-medium">{opt.label}</span>
+                    <span className={`ml-1.5 text-xs ${externalDoc.externalDocType === opt.value ? 'text-white/80' : 'text-muted/70'}`}>
+                      {opt.desc}
+                    </span>
+                  </button>
+                ))}
+              </div>
+              <p className="text-xs text-muted mt-1">选错类型会报 404 或表头未找到</p>
+            </div>
             <div>
-              <label className="block text-sm text-muted mb-1.5">外部多维表格 App Token</label>
+              <label className="block text-sm text-muted mb-1.5">
+                外部{externalDoc.externalDocType === 'sheet' ? '电子表格' : '多维表格'} App Token
+              </label>
               <input
                 type="text"
                 value={externalDoc.externalAppToken}
                 onChange={(e) => setExternalDoc({ ...externalDoc, externalAppToken: e.target.value })}
-                placeholder="如：bascnXXXXXXXXXXXXXX"
+                placeholder={externalDoc.externalDocType === 'sheet'
+                  ? '如：shtcnXXXXXXXXXXXXXX（电子表格 token）'
+                  : '如：bascnXXXXXXXXXXXXXX（多维表格 token）'}
                 disabled={!feishuAuth.authorized}
                 className="w-full px-3 py-2 bg-background border border-border rounded-lg text-sm text-foreground placeholder:text-muted/50 focus:outline-none focus:border-primary disabled:opacity-50"
               />
               <p className="text-xs text-muted mt-1">从外部飞书表格 URL 中获取</p>
             </div>
             <div>
-              <label className="block text-sm text-muted mb-1.5">外部数据表 Table ID</label>
+              <label className="block text-sm text-muted mb-1.5">
+                外部{externalDoc.externalDocType === 'sheet' ? '工作表 ID (Sheet ID)' : '数据表 Table ID'}
+              </label>
               <input
                 type="text"
                 value={externalDoc.externalTableId}
                 onChange={(e) => setExternalDoc({ ...externalDoc, externalTableId: e.target.value })}
-                placeholder="如：tblXXXXXXXXXX"
+                placeholder={externalDoc.externalDocType === 'sheet'
+                  ? '如：9dRNBr（工作表 ID）'
+                  : '如：tblXXXXXXXXXX（tableId）'}
                 disabled={!feishuAuth.authorized}
                 className="w-full px-3 py-2 bg-background border border-border rounded-lg text-sm text-foreground placeholder:text-muted/50 focus:outline-none focus:border-primary disabled:opacity-50"
               />

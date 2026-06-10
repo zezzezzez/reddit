@@ -25,8 +25,12 @@ export async function GET(request: Request) {
 
     console.log(`[FeishuAuth] 收到回调: code=${code.substring(0, 8)}..., state=${state}`);
 
-    // 用 code 换取 token 并保存
-    await exchangeCodeForToken(code);
+    // 用 code 换取 token 并保存（传入与授权时一致的 redirect_uri）
+    const host = request.headers.get('host') || request.headers.get('x-forwarded-host');
+    const protocol = request.headers.get('x-forwarded-proto') || 'http';
+    const origin = host ? `${protocol}://${host}` : new URL(request.url).origin;
+    const redirectUri = `${origin}/api/feishu-auth/callback`;
+    await exchangeCodeForToken(code, redirectUri);
 
     const status = getAuthStatus();
 
@@ -50,7 +54,10 @@ function redirectWithMessage(
   message: string,
   extra: Record<string, string> = {}
 ): NextResponse {
-  const { origin } = new URL(request.url);
+  // 优先从 Host 头获取 origin，避免 request.url 返回 0.0.0.0
+  const host = request.headers.get('host') || request.headers.get('x-forwarded-host');
+  const protocol = request.headers.get('x-forwarded-proto') || 'http';
+  const origin = host ? `${protocol}://${host}` : new URL(request.url).origin;
 
   const params = new URLSearchParams({
     feishu_auth: status,

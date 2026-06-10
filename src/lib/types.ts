@@ -81,8 +81,10 @@ export interface FeishuConfig {
   urlFieldName: string; // field name in bitable that contains Reddit URL
 }
 
-// 飞书用户授权信息（用于跨租户访问 Bitable 文档）
+// 飞书用户授权信息（用于跨租户访问 Bitable / Sheet 文档）
 // 通过 OAuth 用户授权流程获取，可访问任意租户下被授权用户有权限的资源
+export type FeishuDocType = 'bitable' | 'sheet';
+
 export interface FeishuUserAuth {
   accessToken: string;        // user_access_token
   refreshToken: string;       // 用于刷新 access_token
@@ -93,9 +95,10 @@ export interface FeishuUserAuth {
   refreshExpiresAt?: number;  // refresh_token 过期时间戳（ms），飞书默认 30 天
   authorizedAt: number;       // 首次授权时间戳（ms）
   userName?: string;          // 授权用户名（可选，用于展示）
-  // 外部租户 Bitable 目标（要同步的外部文档）
-  externalAppToken?: string;  // 外部租户文档的 appToken
-  externalTableId?: string;   // 外部租户文档的 tableId
+  // 外部租户文档目标（要同步的外部文档）
+  externalDocType?: FeishuDocType;  // 'bitable'（多维表格）或 'sheet'（电子表格），默认 'bitable'
+  externalAppToken?: string;        // bitable: appToken; sheet: spreadsheet_token
+  externalTableId?: string;         // bitable: tableId;    sheet: sheetId（工作表 ID）
 }
 
 export type LLMProvider = 

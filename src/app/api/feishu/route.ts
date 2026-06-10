@@ -3,10 +3,12 @@ import {
   fetchAllBitableRecords,
   fetchAllBitableRecordsWithUserToken,
   convertBitableRecordsToPosts,
+  fetchSheetValuesWithUserToken,
+  convertSheetValuesToPosts,
   testFeishuConnection,
 } from '@/lib/feishu';
 import { getPosts, savePosts, saveConfig, getConfig } from '@/lib/store';
-import { FeishuConfig } from '@/lib/types';
+import { FeishuConfig, FeishuDocType } from '@/lib/types';
 
 // ============================================================
 // POST: Sync data from Feishu Bitable
@@ -53,6 +55,7 @@ async function syncWithUserToken() {
   // 2. 校验外部文档配置
   const externalAppToken = userAuth.externalAppToken;
   const externalTableId = userAuth.externalTableId;
+  const docType: FeishuDocType = userAuth.externalDocType || 'bitable';
   if (!externalAppToken || !externalTableId) {
     return NextResponse.json({
       success: false,
@@ -63,10 +66,18 @@ async function syncWithUserToken() {
   // 3. URL 字段名：默认 "Reddit URL"，可被 feishu.urlFieldName 覆盖
   const urlFieldName = config.feishu.urlFieldName || 'Reddit URL';
 
-  // 4. 获取记录（feishu-auth.ts 内部会自动处理 token 刷新）
-  let records;
+  // 4. 根据文档类型拉取记录
+  let newPosts: ReturnType<typeof convertBitableRecordsToPosts> = [];
   try {
-    records = await fetchAllBitableRecordsWithUserToken(externalAppToken, externalTableId);
+    if (docType === 'sheet') {
+      // Sheet：二维数组，首行是表头
+      const values = await fetchSheetValuesWithUserToken(externalAppToken, externalTableId);
+      newPosts = convertSheetValuesToPosts(values, urlFieldName, []);
+    } else {
+      // Bitable：多维表格记录
+      const records = await fetchAllBitableRecordsWithUserToken(externalAppToken, externalTableId);
+      newPosts = convertBitableRecordsToPosts(records, urlFieldName, []);
+    }
   } catch (e: any) {
     return NextResponse.json({
       success: false,
@@ -74,11 +85,14 @@ async function syncWithUserToken() {
     });
   }
 
-  if (records.length === 0) {
+  if (newPosts.length === 0) {
     return NextResponse.json({
       success: true,
       mode: 'user_token',
-      message: '外部飞书表格中没有记录',
+      docType,
+      message: docType === 'sheet'
+        ? '外部电子表格中未发现含 Reddit URL 的行'
+        : '外部飞书表格中没有记录',
       syncedPosts: 0,
       newPosts: 0,
       updatedPosts: 0,
@@ -87,8 +101,6 @@ async function syncWithUserToken() {
 
   // 5. 转换为 posts 并合并
   const existingPosts = getPosts();
-  const newPosts = convertBitableRecordsToPosts(records, urlFieldName, existingPosts);
-
   let newCount = 0;
   let updatedCount = 0;
   const mergedPosts = [...existingPosts];
@@ -119,7 +131,8 @@ async function syncWithUserToken() {
   return NextResponse.json({
     success: true,
     mode: 'user_token',
-    message: `外部飞书文档同步成功，共 ${records.length} 条。请手动点击「扫描全部帖子」按钮进行扫描。`,
+    docType,
+    message: `外部飞书文档同步成功（${docType}），共 ${newPosts.length} 条。请手动点击「扫描全部帖子」按钮进行扫描。`,
     syncedPosts: newPosts.length,
     newPosts: newCount,
     updatedPosts: updatedCount,

@@ -7,8 +7,10 @@ import { generateAuthorizationUrl, getRedirectUri } from '@/lib/feishu-auth';
 
 export async function GET(request: Request) {
   try {
-    // 从请求的 origin 动态构造 redirect_uri，避免环境变量未设置时硬编码 localhost
-    const { origin } = new URL(request.url);
+    // 优先从 Host 头获取 origin，避免 Next.js request.url 返回 0.0.0.0 或 localhost
+    const host = request.headers.get('host') || request.headers.get('x-forwarded-host');
+    const protocol = request.headers.get('x-forwarded-proto') || 'http';
+    const origin = host ? `${protocol}://${host}` : new URL(request.url).origin;
     const redirectUri = `${origin}/api/feishu-auth/callback`;
 
     // 临时覆盖环境变量，让 generateAuthorizationUrl 使用动态 origin

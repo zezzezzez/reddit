@@ -1,14 +1,16 @@
 // POST /api/feishu-auth/external
-// 保存/更新外部飞书文档配置（externalAppToken, externalTableId）
-// 用于跨租户同步：访问外部公司租户（如 bluefocus.feishu.cn）下的 Bitable 文档
+// 保存/更新外部飞书文档配置（externalAppToken, externalTableId, externalDocType）
+// 用于跨租户同步：访问外部公司租户（如 bluefocus.feishu.cn）下的 Bitable / Sheet 文档
 
 import { NextResponse } from 'next/server';
 import { getConfig, saveConfig } from '@/lib/store';
+import type { FeishuDocType } from '@/lib/types';
 
 interface ExternalDocBody {
-  externalAppToken?: string;
-  externalTableId?: string;
-  urlFieldName?: string;   // 可选：自定义 URL 字段名，默认 "Reddit URL"
+  externalDocType?: FeishuDocType;   // 'bitable' | 'sheet'，默认 'bitable'
+  externalAppToken?: string;         // bitable: appToken; sheet: spreadsheet_token
+  externalTableId?: string;          // bitable: tableId;    sheet: sheetId
+  urlFieldName?: string;             // 可选：自定义 URL 字段名，默认 "Reddit URL"
 }
 
 export async function POST(request: Request) {
@@ -24,11 +26,15 @@ export async function POST(request: Request) {
         openId: '',
         expiresAt: 0,
         authorizedAt: 0,
+        externalDocType: body.externalDocType || 'bitable',
         externalAppToken: body.externalAppToken || '',
         externalTableId: body.externalTableId || '',
       };
     } else {
       // 仅更新外部文档字段
+      if (body.externalDocType !== undefined) {
+        config.feishuUserAuth.externalDocType = body.externalDocType || 'bitable';
+      }
       if (body.externalAppToken !== undefined) {
         config.feishuUserAuth.externalAppToken = body.externalAppToken;
       }
@@ -42,6 +48,7 @@ export async function POST(request: Request) {
     return NextResponse.json({
       success: true,
       message: '外部文档配置已保存',
+      externalDocType: config.feishuUserAuth.externalDocType,
       externalAppToken: config.feishuUserAuth.externalAppToken,
       externalTableId: config.feishuUserAuth.externalTableId,
     });
@@ -63,6 +70,7 @@ export async function GET() {
 
     return NextResponse.json({
       success: true,
+      externalDocType: auth?.externalDocType || 'bitable',
       externalAppToken: auth?.externalAppToken || '',
       externalTableId: auth?.externalTableId || '',
     });
