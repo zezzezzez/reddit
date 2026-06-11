@@ -134,6 +134,7 @@ export async function POST(request: Request) {
         if (redditData.postData.subreddit) post.subreddit = redditData.postData.subreddit!;
         if (redditData.postData.createdAt) post.createdAt = redditData.postData.createdAt!;
         post.lastScanned = new Date().toISOString();
+        post.scanError = undefined; // 清除之前的扫描失败标记
 
         // Analyze sentiment for each comment
         // Use LLM if configured, otherwise use keyword-based analysis
