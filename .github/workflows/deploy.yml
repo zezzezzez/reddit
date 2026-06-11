@@ -12,7 +12,7 @@ jobs:
       - name: Deploy to EC2
         uses: appleboy/ssh-action@v1.0.3
         with:
-          host: 18.192.65.69
+          host: 63.178.68.46
           username: ec2-user
           key: ${{ secrets.DEPLOY_KEY }}
           script: |
@@ -33,7 +33,7 @@ jobs:
               --restart unless-stopped \
               -p 3000:3000 \
               -e NODE_ENV=production \
-              -e FEISHU_REDIRECT_URI='http://18.192.65.69:3000/api/feishu-auth/callback' \
+              -e FEISHU_REDIRECT_URI='http://63.178.68.46:3000/api/feishu-auth/callback' \
               -e HTTP_PROXY='http://spo7492epm:8bLtd42alncz%7ETV0gK@gate.decodo.com:10001' \
               -e HTTPS_PROXY='http://spo7492epm:8bLtd42alncz%7ETV0gK@gate.decodo.com:10001' \
               reddit-monitor

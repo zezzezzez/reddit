@@ -219,59 +219,51 @@ export async function fetchPostViaApify(
       return null;
     }
 
-    // 从返回数据中分离帖子和评论
+    // neatrat/reddit-scraper 返回结构：
+    // 帖子和评论在同一个 dataset item 中，评论嵌套在 item.comments 数组里
+    const postItem = items[0] as any;
     const subreddit = extractSubredditFromUrl(redditUrl);
     const postId = extractPostIdFromUrl(redditUrl) || ourPostId;
 
-    let postData: Partial<RedditPost> | null = null;
+    console.log(`[Apify] dataType: ${postItem.dataType}, comments: ${postItem.comments?.length || 0}`);
+
+    // 提取帖子数据
+    const postData: Partial<RedditPost> = {
+      id: (postItem.id || postId || ourPostId || '') as string,
+      title: (postItem.title || '') as string,
+      author: (postItem.author || '[deleted]') as string,
+      score: Number(postItem.score ?? 0),
+      commentCount: Number(postItem.commentCount ?? postItem.commentCountFromTree ?? 0),
+      subreddit: (postItem.subreddit || subreddit || '') as string,
+      thumbnailUrl: postItem.media?.thumbnail || undefined,
+      createdAt: (postItem.createdAt || new Date().toISOString()) as string,
+    };
+
+    // 递归提取评论（包括嵌套的 children）
     const redditComments: RedditComment[] = [];
-
-    for (const rawItem of items) {
-      const item = rawItem as any;
-      const dataType = item.dataType || item.type;
-
-      if (dataType === 'post' || dataType === 'post-full' || (!dataType && item.title)) {
-        // 帖子数据
-        postData = {
-          id: (item.parsedId || item.id || postId || ourPostId || '') as string,
-          title: (item.itemTitle || item.title || '') as string,
-          author: (item.username || item.author || '[deleted]') as string,
-          score: Number(item.upVotes ?? item.score ?? 0),
-          commentCount: Number(item.numberOfComments ?? item.numComments ?? 0),
-          subreddit: String(item.parsedCommunityName || item.communityName || subreddit || '').replace(/^r\//, ''),
-          thumbnailUrl: item.imageUrls?.[0] || item.thumbnailUrl || undefined,
-          createdAt: (item.createdAt || new Date().toISOString()) as string,
-        };
-      } else if (dataType === 'comment' || dataType === 'comment-permalink' || item.parentId || item.body) {
-        // 评论数据
+    function extractComments(comments: any[]) {
+      if (!Array.isArray(comments)) return;
+      for (const c of comments) {
+        if (!c) continue;
         redditComments.push({
-          id: (item.parsedId || item.id || '') as string,
+          id: (c.id || '') as string,
           postId: (ourPostId || postId || '') as string,
-          author: (item.username || item.author || '[deleted]') as string,
-          body: (item.body || '') as string,
-          score: Number(item.upVotes ?? item.score ?? 0),
-          createdAt: (item.createdAt || new Date().toISOString()) as string,
+          author: (c.author || '[deleted]') as string,
+          body: (c.bodyText || '') as string,
+          score: Number(c.score ?? 0),
+          createdAt: (c.createdAt || new Date().toISOString()) as string,
           sentimentScore: 0,
           isFlagged: false,
           flagReasons: [],
-          permalink: (item.url || '') as string,
+          permalink: (c.permalink || '') as string,
         });
+        // 递归处理子评论
+        if (c.children && Array.isArray(c.children)) {
+          extractComments(c.children);
+        }
       }
     }
-
-    // 如果没有识别到帖子，尝试从第一个 item 构造
-    if (!postData) {
-      const first = items[0] as any;
-      postData = {
-        id: (first.parsedId || first.id || postId || ourPostId || '') as string,
-        title: (first.itemTitle || first.title || '') as string,
-        author: (first.username || first.author || '[deleted]') as string,
-        score: Number(first.upVotes ?? first.score ?? 0),
-        commentCount: Number(first.numberOfComments ?? first.numComments ?? redditComments.length),
-        subreddit: String(first.parsedCommunityName || first.communityName || subreddit || '').replace(/^r\//, ''),
-        createdAt: (first.createdAt || new Date().toISOString()) as string,
-      };
-    }
+    extractComments(postItem.comments || []);
 
     console.log(`[Apify] Got post "${postData.title?.substring(0, 50)}" with ${redditComments.length} comments`);
 
