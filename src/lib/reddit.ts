@@ -1,29 +1,25 @@
 // Reddit API Integration
 // Fetches comments from Reddit posts
-// 数据源: 仅使用 Apify
+// 单帖: Reddit .json 公开端点 | 版块: Apify Actor
 
 import { RedditComment, RedditPost } from './types';
 
 // Apify 集成
 import { isApifyConfigured, fetchPostViaApify, fetchSubredditViaApify } from './apify';
 
-// Fetch post data and comments from Reddit (仅使用 Apify)
+// Fetch post data and comments from Reddit
+// 单帖使用 Reddit .json 端点（无需 Apify token）
 export async function fetchRedditPost(url: string, ourPostId?: string): Promise<{
   postData: Partial<RedditPost>;
   comments: RedditComment[];
 } | null> {
-  if (!isApifyConfigured()) {
-    console.error('[Reddit] Apify is not configured. Please set APIFY_TOKEN environment variable.');
-    return null;
-  }
-
-  console.log(`[Reddit] Fetching via Apify: ${url}`);
+  console.log(`[Reddit] Fetching post: ${url}`);
   const result = await fetchPostViaApify(url, ourPostId);
   if (result) {
-    console.log(`[Reddit] Apify success for: ${url}`);
+    console.log(`[Reddit] Fetch success for: ${url}`);
     return result;
   }
-  console.warn(`[Reddit] Apify returned no data for: ${url}`);
+  console.warn(`[Reddit] Fetch returned no data for: ${url}`);
   return null;
 }
 

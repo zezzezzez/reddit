@@ -1,9 +1,10 @@
 // Apify Reddit Integration
-// 使用 spry_wholemeal/reddit-scraper（FREE，内置智能代理，5.0 评分）
-// 替代之前的 Web Scraper 方案，专用 Reddit actor 成功率更高
+// 单帖抓取: Reddit .json 公开端点（按 URL 精确抓取，无需 Actor）
+// 版块抓取: spry_wholemeal/reddit-scraper（FREE Actor）
 // 文档: https://apify.com/spry_wholemeal/reddit-scraper
 
 import { ApifyClient } from 'apify-client';
+import { ProxyAgent } from 'undici';
 import { RedditComment, RedditPost } from './types';
 
 const APIFY_TOKEN = process.env.APIFY_TOKEN;
@@ -80,13 +81,7 @@ async function resolveRedditShortUrl(url: string): Promise<string> {
   console.log(`[Apify] Detected short URL, resolving: ${url}`);
 
   try {
-    const response = await fetch(url, {
-      method: 'HEAD',
-      redirect: 'manual',
-      headers: {
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
-      },
-    });
+    const response = await redditFetch(url, { method: 'HEAD', redirect: 'manual' });
 
     if (response.status === 301 || response.status === 302) {
       const location = response.headers.get('location');
@@ -97,13 +92,7 @@ async function resolveRedditShortUrl(url: string): Promise<string> {
       }
     }
 
-    const getResponse = await fetch(url, {
-      method: 'GET',
-      redirect: 'manual',
-      headers: {
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
-      },
-    });
+    const getResponse = await redditFetch(url, { redirect: 'manual' });
 
     if (getResponse.status === 301 || getResponse.status === 302) {
       const location = getResponse.headers.get('location');
@@ -226,19 +215,59 @@ export async function fetchSubredditViaApify(
   }
 }
 
-// ─── 抓取单个帖子 + 评论 ────────────────────────────────────
+// ─── 代理 fetch 工具 ─────────────────────────────────────────
 
 /**
- * 判断 dataset item 是否为评论（有 depth/parent_id 字段）
+ * 获取 fetch 的 dispatcher（代理配置）
+ * 如果环境变量设置了 HTTP_PROXY/HTTPS_PROXY，使用 undici ProxyAgent
  */
-function isCommentItem(item: any): boolean {
-  return item.depth !== undefined || (item.parent_id && typeof item.parent_id === 'string' && item.parent_id.startsWith('t1_'));
+function getFetchDispatcher(): { dispatcher?: ProxyAgent } {
+  const proxyUrl = process.env.HTTPS_PROXY || process.env.HTTP_PROXY;
+  if (proxyUrl) {
+    console.log(`[Reddit] Using proxy: ${proxyUrl.replace(/\/\/.*@/, '//***@')}`);
+    return { dispatcher: new ProxyAgent(proxyUrl) };
+  }
+  return {};
 }
 
 /**
- * 通过 spry_wholemeal/reddit-scraper 抓取指定帖子及其评论
- * Actor 输出是扁平 dataset：帖子和评论作为独立 items，
- * 评论通过 parent_id 链关联到帖子。
+ * 带代理和反检测 headers 的 fetch 封装
+ */
+async function redditFetch(url: string, init?: RequestInit): Promise<Response> {
+  const opts = getFetchDispatcher();
+  return fetch(url, {
+    ...opts,
+    ...init,
+    headers: {
+      'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+      'Accept': 'application/json',
+      ...init?.headers,
+    },
+  });
+}
+
+// ─── 构造 Reddit .json URL ──────────────────────────────────
+
+/**
+ * 将 Reddit 帖子 URL 转为 .json 端点
+ * 关键: 必须先去除查询参数和末尾斜杠，再拼 .json
+ * 例: https://www.reddit.com/r/xxx/comments/abc123/title/?share_id=yyy
+ *   → https://www.reddit.com/r/xxx/comments/abc123/title.json
+ */
+function buildJsonUrl(redditUrl: string): string {
+  // 去除查询参数
+  const cleanUrl = redditUrl.split('?')[0];
+  // 去除末尾斜杠
+  const trimmed = cleanUrl.replace(/\/+$/, '');
+  return `${trimmed}.json`;
+}
+
+// ─── 抓取单个帖子 + 评论 ────────────────────────────────────
+
+/**
+ * 通过 Reddit .json 公开端点精确抓取指定帖子及其评论
+ * 任何 Reddit 帖子 URL 后加 .json 即可获取完整数据，无需 API 密钥
+ * 支持代理（通过 HTTP_PROXY 环境变量）
  */
 export async function fetchPostViaApify(
   redditUrl: string,
@@ -254,152 +283,93 @@ export async function fetchPostViaApify(
     // 限流
     await throttle();
 
-    console.log(`[Apify] Fetching post via reddit-scraper: ${resolvedUrl}`);
+    console.log(`[Reddit] Fetching post via .json endpoint: ${resolvedUrl}`);
 
     // 从 URL 提取 subreddit 和 post ID
     const subreddit = extractSubredditFromUrl(resolvedUrl);
     const postId = extractPostIdFromUrl(resolvedUrl) || ourPostId;
 
     if (!subreddit) {
-      console.error(`[Apify] Cannot extract subreddit from URL: ${resolvedUrl}`);
+      console.error(`[Reddit] Cannot extract subreddit from URL: ${resolvedUrl}`);
       return null;
     }
 
-    const client = getClient();
+    // 构造 .json URL（关键：先清查询参数，再拼 .json）
+    const jsonUrl = buildJsonUrl(resolvedUrl);
+    console.log(`[Reddit] JSON URL: ${jsonUrl}`);
 
-    // 抓取该版块的帖子（带评论）
-    // maxPosts 设为 100 以提高找到目标帖子的概率
-    const actorInput = {
-      mode: 'scrape',
-      listings: [{ subreddit, maxPosts: 100, sort: 'new' }],
-      sort: 'new',
-      timeframe: 'week',
-      includeCommentsMode: 'all' as const,
-      maxTopLevelComments: 200,
-      maxRepliesDepth: 3,
-      proxyConfiguration: PROXY_CONFIG,
-    };
+    // 请求 Reddit .json 端点
+    const response = await redditFetch(jsonUrl);
 
-    console.log(`[Apify] Actor input for post:`, JSON.stringify(actorInput));
-
-    const run = await client.actor('spry_wholemeal/reddit-scraper').call(actorInput);
-    const { items } = await client.dataset(run.defaultDatasetId).listItems();
-
-    console.log(`[Apify] Raw items returned: ${items?.length || 0}`);
-
-    if (!items || items.length === 0) {
-      console.warn(`[Apify] No data returned for ${resolvedUrl}`);
+    if (!response.ok) {
+      console.error(`[Reddit] .json endpoint returned ${response.status} for: ${jsonUrl}`);
       return null;
     }
 
-    // ─── 分离帖子和评论 ──────────────────────────────────────
-    // Actor 输出是扁平结构：帖子和评论作为独立 dataset items
-    // 帖子特征: 有 permalink + title + num_comments
-    // 评论特征: 有 depth + parent_id (t1_xxx)
-    const postItems: any[] = [];
-    const commentItems: any[] = [];
+    const data = await response.json();
 
-    for (const item of items) {
-      if (isCommentItem(item)) {
-        commentItems.push(item);
-      } else if (item.permalink || (item.title && item.num_comments !== undefined)) {
-        postItems.push(item);
-      }
-      // 其他 item（如 subreddit 发现结果）忽略
-    }
-
-    console.log(`[Apify] Separated: ${postItems.length} posts, ${commentItems.length} comments`);
-
-    // ─── 查找目标帖子 ──────────────────────────────────────
-    let targetPost: any = null;
-    const urlPath = resolvedUrl.replace('https://www.reddit.com', '');
-
-    for (const post of postItems) {
-      const postPermalink: string = String(post.permalink || '');
-      const postUrl: string = String(post.url || '');
-      const postItemId: string = String(post.id || '');
-
-      // 多种匹配策略
-      if (postId && postPermalink.includes(postId)) { targetPost = post; break; }
-      if (postId && postItemId === postId) { targetPost = post; break; }
-      if (postPermalink === urlPath) { targetPost = post; break; }
-      if (postUrl === resolvedUrl) { targetPost = post; break; }
-      if (postId && postPermalink.includes(`/${postId}/`)) { targetPost = post; break; }
-    }
-
-    if (targetPost) {
-      console.log(`[Apify] Found target post by URL/ID match: "${(targetPost.title || '').substring(0, 50)}"`);
-    } else {
-      // 没找到精确匹配 — 可能是旧帖不在 new 排序中
-      console.warn(`[Apify] Target post ${postId} not found in ${postItems.length} posts. Listing all post IDs...`);
-      const foundIds = postItems.map(p => `${p.id}(${(p.title || '').substring(0, 30)})`).join(', ');
-      console.log(`[Apify] Available posts: ${foundIds}`);
+    if (!Array.isArray(data) || data.length < 2) {
+      console.error(`[Reddit] Unexpected .json response format`);
       return null;
     }
 
-    // ─── 构造帖子数据 ──────────────────────────────────────
+    // ─── 解析帖子数据 ──────────────────────────────────────
+    const postListing = data[0]?.data?.children?.[0]?.data;
+    if (!postListing) {
+      console.error(`[Reddit] No post data in .json response`);
+      return null;
+    }
+
     const postData: Partial<RedditPost> = {
-      id: targetPost.id || postId || ourPostId || '',
-      title: targetPost.title || '',
-      author: targetPost.author || '[deleted]',
-      score: targetPost.score || 0,
-      commentCount: targetPost.num_comments || 0,
-      subreddit: targetPost.subreddit || subreddit,
-      thumbnailUrl: undefined,
-      createdAt: targetPost.created_utc_iso || (targetPost.created_utc
-        ? new Date(targetPost.created_utc * 1000).toISOString()
-        : new Date().toISOString()),
+      id: postListing.id || postId || ourPostId || '',
+      title: postListing.title || '',
+      author: postListing.author || '[deleted]',
+      score: postListing.score || 0,
+      commentCount: postListing.num_comments || 0,
+      subreddit: postListing.subreddit || subreddit,
+      thumbnailUrl: postListing.thumbnail && postListing.thumbnail.startsWith('http')
+        ? postListing.thumbnail : undefined,
+      createdAt: postListing.created_utc
+        ? new Date(postListing.created_utc * 1000).toISOString()
+        : new Date().toISOString(),
     };
 
-    // ─── 收集属于该帖子的评论 ──────────────────────────────
-    // 通过 parent_id 链：顶层评论 parent_id = t3_<postId>，
-    // 回复的 parent_id = t1_<commentId>，需要递归追踪到顶层。
-    const targetPostRedditId = `t3_${postData.id}`;
+    console.log(`[Reddit] Got post: "${postData.title?.substring(0, 50)}" (${postData.commentCount} comments)`);
 
-    // 先建 comment id -> comment 的映射
-    const commentById = new Map<string, any>();
-    for (const c of commentItems) {
-      if (c.id) commentById.set(c.id, c);
+    // ─── 解析评论树 ────────────────────────────────────────
+    const commentListing = data[1]?.data?.children;
+    if (!commentListing || !Array.isArray(commentListing)) {
+      console.warn(`[Reddit] No comments in .json response`);
+      const result = { postData, comments: [] as RedditComment[] };
+      setCacheResult(postCache, resolvedUrl, result);
+      return result;
     }
 
-    // 找出每个评论所属的顶层帖子 ID
-    function findRootPostId(comment: any, visited = new Set<string>()): string | null {
-      if (!comment || !comment.parent_id) return null;
-      if (visited.has(comment.id)) return null; // 防循环
-      visited.add(comment.id);
-
-      const parentId: string = comment.parent_id;
-      if (parentId.startsWith('t3_')) {
-        // 直接属于帖子
-        return parentId;
+    // 递归展平评论树
+    const flatComments: any[] = [];
+    function flattenComments(children: any[], depth: number = 0) {
+      for (const child of children) {
+        if (child.kind === 'more') continue; // 跳过 "load more" 占位
+        const comment = child.data;
+        if (!comment) continue;
+        flatComments.push({ ...comment, depth });
+        if (child.data.replies?.data?.children) {
+          flattenComments(child.data.replies.data.children, depth + 1);
+        }
       }
-      if (parentId.startsWith('t1_')) {
-        // 属于另一条评论，递归查找
-        const parentCommentId = parentId.replace('t1_', '');
-        const parentComment = commentById.get(parentCommentId);
-        if (parentComment) return findRootPostId(parentComment, visited);
-      }
-      return null;
     }
-
-    // 收集属于目标帖子的所有评论
-    const targetPostComments = commentItems.filter(c => {
-      const rootId = findRootPostId(c);
-      return rootId === targetPostRedditId;
-    });
-
-    console.log(`[Apify] Matched ${targetPostComments.length} comments to post "${postData.title?.substring(0, 50)}" (redditId: ${targetPostRedditId})`);
+    flattenComments(commentListing);
 
     // 转换评论格式
-    const redditComments: RedditComment[] = targetPostComments.map((c: any) => ({
+    const redditComments: RedditComment[] = flatComments.map((c: any) => ({
       id: c.id || '',
       postId: ourPostId || postData.id || '',
       author: c.author || '[deleted]',
-      body: c.text || c.body || '',
+      body: c.body || '',
       score: c.score || 0,
-      createdAt: c.created_utc_iso || (c.created_utc
+      createdAt: c.created_utc
         ? new Date(c.created_utc * 1000).toISOString()
-        : new Date().toISOString()),
+        : new Date().toISOString(),
       sentimentScore: 0,
       isFlagged: false,
       flagReasons: [],
@@ -408,7 +378,7 @@ export async function fetchPostViaApify(
         : '',
     }));
 
-    console.log(`[Apify] Got post "${postData.title?.substring(0, 50)}" with ${redditComments.length} comments`);
+    console.log(`[Reddit] Got post "${postData.title?.substring(0, 50)}" with ${redditComments.length} comments`);
 
     // 写入缓存
     const result_data = { postData, comments: redditComments };
@@ -416,7 +386,7 @@ export async function fetchPostViaApify(
 
     return result_data;
   } catch (error: any) {
-    console.error(`[Apify] Error fetching post ${redditUrl}:`, error.message);
+    console.error(`[Reddit] Error fetching post ${redditUrl}:`, error.message);
     return null;
   }
 }
