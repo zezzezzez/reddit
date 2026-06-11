@@ -203,7 +203,7 @@ export async function fetchPostViaApify(
       startUrls: [{ url: resolvedUrl }],
       pageFunction: PAGE_FUNCTION,
       // 强制 DATACENTER 代理（$0.25/GB，最便宜）
-      proxyConfiguration: { useApifyProxy: true, apifyProxyGroups: ['DATACENTER'] },
+      proxyConfiguration: { useApifyProxy: true, apifyProxyGroups: ['BUYPROXIES94952'] },
       maxPages: 1, // 只抓一个页面
       // 不跟踪页面内链接
       linkSelector: '',
@@ -305,7 +305,7 @@ export async function fetchSubredditViaApify(
       startUrls: [{ url: searchUrl }],
       pageFunction: PAGE_FUNCTION,
       // 强制 DATACENTER 代理（$0.25/GB，最便宜）
-      proxyConfiguration: { useApifyProxy: true, apifyProxyGroups: ['DATACENTER'] },
+      proxyConfiguration: { useApifyProxy: true, apifyProxyGroups: ['BUYPROXIES94952'] },
       maxPages: 1,
       linkSelector: '',
     });
