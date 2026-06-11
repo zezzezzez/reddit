@@ -24,8 +24,8 @@ export function isApifyConfigured(): boolean {
   return !!APIFY_TOKEN;
 }
 
-// ─── Web Scraper pageFunction ────────────────────────────────
-// 使用 data: URL 作为起始页（避免 Reddit 403 封禁爬虫导航）
+// ─── Web Scraper pageFunction ───────────────────────────────
+// 使用 https://example.com/ 作为起始页（Apify 不接受 data: URL）
 // 在浏览器上下文中通过 fetch 访问 Reddit .json 端点获取结构化数据
 // 支持两种场景：帖子详情页（含评论）和板块列表页
 
@@ -204,7 +204,7 @@ export async function fetchPostViaApify(
     // 使用 data: URL 作为起始页，避免 Reddit 403 封禁爬虫直接导航
     // 目标 URL 通过 userData 传递给 pageFunction
     const run = await client.actor('apify/web-scraper').call({
-      startUrls: [{ url: 'data:text/html,<html><body>ok</body></html>', userData: { targetUrl: resolvedUrl } }],
+      startUrls: [{ url: 'https://example.com/', userData: { targetUrl: resolvedUrl } }],
       pageFunction: PAGE_FUNCTION,
       // 强制 DATACENTER 代理（$0.25/GB，最便宜）
       proxyConfiguration: { useApifyProxy: true, apifyProxyGroups: ['BUYPROXIES94952'] },
@@ -305,8 +305,11 @@ export async function fetchSubredditViaApify(
 
     const client = getClient();
 
+    // 使用 apify/web-scraper（完整浏览器，原生支持 proxyConfiguration）
+    // 使用 https://example.com/ 作为起始页（Apify 不接受 data: URL）
+    // 目标 URL 通过 userData 传递给 pageFunction
     const run = await client.actor('apify/web-scraper').call({
-      startUrls: [{ url: 'data:text/html,<html><body>ok</body></html>', userData: { targetUrl: searchUrl } }],
+      startUrls: [{ url: 'https://example.com/', userData: { targetUrl: searchUrl } }],
       pageFunction: PAGE_FUNCTION,
       // 强制 DATACENTER 代理（$0.25/GB，最便宜）
       proxyConfiguration: { useApifyProxy: true, apifyProxyGroups: ['BUYPROXIES94952'] },
