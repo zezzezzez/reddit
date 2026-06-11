@@ -48,8 +48,8 @@ export async function POST(request: Request) {
     }
 
     // 跳过近期已扫描的帖子（节省代理流量）
-    // skipRecentHours 默认 1 小时，quickScan 模式下为 0（不跳过）
-    const skipHours = skipRecentHours ?? (quickScan ? 0 : 1);
+    // 已取消冷却限制，skipHours 始终为 0
+    const skipHours = 0;
     if (skipHours > 0) {
       const cutoff = Date.now() - skipHours * 60 * 60 * 1000;
       const before = postsToScan.length;
