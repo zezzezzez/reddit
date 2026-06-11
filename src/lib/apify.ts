@@ -1,20 +1,19 @@
-// Apify Web Scraper Integration
-// 分层代理策略：
-//   - 版块列表页 → DATACENTER（BUYPROXIES94952，低成本 $0.25/GB）
-//   - 帖子详情页 → RESIDENTIAL 住宅代理（高成功率，仅正文抓取消耗流量）
-// 配套：内存缓存 + 限流 + 跳过已扫描帖子
-// 文档: https://apify.com/apify/web-scraper
+// Apify Reddit Integration
+// 使用 spry_wholemeal/reddit-scraper（FREE，内置智能代理，5.0 评分）
+// 替代之前的 Web Scraper 方案，专用 Reddit actor 成功率更高
+// 文档: https://apify.com/spry_wholemeal/reddit-scraper
 
 import { ApifyClient } from 'apify-client';
 import { RedditComment, RedditPost } from './types';
 
 const APIFY_TOKEN = process.env.APIFY_TOKEN;
 
-// ─── 代理组配置 ──────────────────────────────────────────────
-// 列表页用低成本数据中心代理
-const DATACENTER_PROXY = ['BUYPROXIES94952'];
-// 帖子详情页用住宅代理（高成功率）
-const RESIDENTIAL_PROXY = ['RESIDENTIAL'];
+// ─── 代理配置 ──────────────────────────────────────────────
+// 使用 Apify 内置 RESIDENTIAL 代理（Reddit 不封禁）
+const PROXY_CONFIG = {
+  useApifyProxy: true,
+  apifyProxyGroups: ['RESIDENTIAL'],
+};
 
 // ─── 内存缓存 ──────────────────────────────────────────────
 interface CacheEntry<T> {
@@ -73,98 +72,6 @@ export function isApifyConfigured(): boolean {
   return !!APIFY_TOKEN;
 }
 
-// ─── Web Scraper pageFunction（帖子详情） ─────────────────────
-// 使用 https://example.com/ 作为起始页
-// 在浏览器上下文中通过 fetch 访问 Reddit .json 端点获取完整帖子+评论
-const POST_PAGE_FUNCTION = `async function pageFunction(context) {
-  const targetUrl = context.request.userData.targetUrl;
-  const jsonUrl = targetUrl.split('?')[0].replace(/\\/$/, '') + '/.json';
-  const resp = await context.page.evaluate(async (url) => {
-    const r = await fetch(url, {
-      headers: { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36' }
-    });
-    if (!r.ok) return { error: 'HTTP ' + r.status };
-    return { data: await r.json() };
-  }, jsonUrl);
-
-  if (resp.error) return { url: targetUrl, error: resp.error, type: 'error' };
-  if (!resp.data) return { url: targetUrl, error: 'No data', type: 'error' };
-
-  const arr = Array.isArray(resp.data) ? resp.data : [resp.data];
-  const postData = arr[0]?.data?.children?.[0]?.data || {};
-  const commentsArr = arr[1]?.data?.children || [];
-
-  function flatten(replies) {
-    if (!replies || !replies.data || !replies.data.children) return [];
-    const out = [];
-    for (const c of replies.data.children) {
-      if (c.kind !== 'comment') continue;
-      const cd = c.data;
-      out.push({
-        id: cd.id, author: cd.author, body: cd.body || '',
-        score: cd.score, created_utc: cd.created_utc, permalink: cd.permalink
-      });
-      out.push(...flatten(cd.replies));
-    }
-    return out;
-  }
-
-  const comments = [];
-  for (const c of commentsArr) {
-    if (c.kind !== 'comment') continue;
-    const cd = c.data;
-    comments.push({
-      id: cd.id, author: cd.author, body: cd.body || '',
-      score: cd.score, created_utc: cd.created_utc, permalink: cd.permalink
-    });
-    comments.push(...flatten(cd.replies));
-  }
-
-  return {
-    type: 'post', url: targetUrl,
-    id: postData.id, title: postData.title, author: postData.author,
-    score: postData.score, num_comments: postData.num_comments,
-    created_utc: postData.created_utc, subreddit: postData.subreddit,
-    permalink: postData.permalink, selftext: postData.selftext || '',
-    thumbnail: postData.thumbnail,
-    comments
-  };
-}`;
-
-// ─── Web Scraper pageFunction（版块列表） ─────────────────────
-// 只获取帖子链接和基本信息，不抓正文
-const LISTING_PAGE_FUNCTION = `async function pageFunction(context) {
-  const targetUrl = context.request.userData.targetUrl;
-  const jsonUrl = targetUrl.split('?')[0].replace(/\\/$/, '') + '.json';
-  const resp = await context.page.evaluate(async (url) => {
-    const r = await fetch(url, {
-      headers: { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36' }
-    });
-    if (!r.ok) return { error: 'HTTP ' + r.status };
-    return { data: await r.json() };
-  }, jsonUrl);
-
-  if (resp.error) return { url: targetUrl, error: resp.error, type: 'error' };
-  if (!resp.data || !resp.data.data || !resp.data.data.children) {
-    return { url: targetUrl, error: 'Blocked or no data', type: 'error' };
-  }
-
-  const posts = resp.data.data.children
-    .filter(c => c.kind === 't3')
-    .map(c => {
-      const d = c.data;
-      return {
-        type: 'listing_post', id: d.id, title: d.title, author: d.author,
-        score: d.score, num_comments: d.num_comments,
-        created_utc: d.created_utc, subreddit: d.subreddit,
-        permalink: d.permalink, selftext: d.selftext || '',
-        thumbnail: d.thumbnail
-      };
-    });
-
-  return posts;
-}`;
-
 // ─── 短链接解析 ────────────────────────────────────────────
 
 async function resolveRedditShortUrl(url: string): Promise<string> {
@@ -215,12 +122,115 @@ async function resolveRedditShortUrl(url: string): Promise<string> {
   return url;
 }
 
-// ─── 抓取单个帖子 + 评论（RESIDENTIAL 住宅代理） ──────────────
+// ─── 从 Reddit URL 提取 subreddit ──────────────────────────
+
+function extractSubredditFromUrl(url: string): string | null {
+  const match = url.match(/reddit\.com\/r\/([^/]+)/);
+  return match ? match[1] : null;
+}
+
+function extractPostIdFromUrl(url: string): string | null {
+  const match = url.match(/\/comments\/([a-z0-9]+)/);
+  return match ? match[1] : null;
+}
+
+// ─── Subreddit 帖子列表类型 ────────────────────────────────
+
+export interface ApifySubredditPost {
+  id: string;
+  title: string;
+  author: string;
+  score: number;
+  commentCount: number;
+  subreddit: string;
+  createdAt: string;
+  permalink: string;
+  selftext: string;
+}
+
+// ─── 抓取板块帖子列表 ──────────────────────────────────────
 
 /**
- * 通过 Apify Web Scraper 抓取指定帖子及其评论
- * 使用 RESIDENTIAL 住宅代理（高成功率，仅需要正文时消耗流量）
- * 内置缓存：同一帖子 30 分钟内不重复抓取
+ * 通过 spry_wholemeal/reddit-scraper 抓取指定板块的帖子列表
+ * 使用 RESIDENTIAL 代理，FREE actor
+ */
+export async function fetchSubredditViaApify(
+  subreddit: string,
+  limit: number = 100,
+  sort: 'hot' | 'new' | 'top' = 'new'
+): Promise<ApifySubredditPost[]> {
+  try {
+    const cacheKey = `${subreddit}:${sort}:${limit}`;
+
+    // 检查缓存
+    const cached = getCachedResult(subredditCache, cacheKey, SUBREDDIT_CACHE_TTL);
+    if (cached) return cached;
+
+    // 限流
+    await throttle();
+
+    console.log(`[Apify] Fetching ${sort} posts from r/${subreddit} via reddit-scraper (limit: ${limit})`);
+
+    const client = getClient();
+
+    const actorInput = {
+      mode: 'scrape',
+      listings: [{ subreddit, maxPosts: Math.min(limit, 100) }],
+      sort,
+      timeframe: 'week',
+      includeCommentsMode: 'none' as const,
+      proxyConfiguration: PROXY_CONFIG,
+    };
+
+    console.log(`[Apify] Actor input:`, JSON.stringify(actorInput));
+
+    const run = await client.actor('spry_wholemeal/reddit-scraper').call(actorInput);
+    const { items } = await client.dataset(run.defaultDatasetId).listItems();
+
+    console.log(`[Apify] Raw items returned: ${items?.length || 0}`);
+
+    if (!items || items.length === 0) {
+      console.warn(`[Apify] No posts returned for r/${subreddit}`);
+      return [];
+    }
+
+    // 过滤帖子类型的结果（actor 可能返回多种数据集视图）
+    const posts: ApifySubredditPost[] = items
+      .filter((item: any) => item.permalink || item.id || item.title)
+      .slice(0, limit)
+      .map((item: any) => ({
+        id: item.id || '',
+        title: item.title || '',
+        author: item.author || '[deleted]',
+        score: item.score || 0,
+        commentCount: item.num_comments || 0,
+        subreddit: item.subreddit || subreddit,
+        createdAt: item.created_utc_iso || (item.created_utc
+          ? new Date(item.created_utc * 1000).toISOString()
+          : new Date().toISOString()),
+        permalink: item.permalink
+          ? (item.permalink.startsWith('http') ? item.permalink : `https://www.reddit.com${item.permalink}`)
+          : '',
+        selftext: item.text || item.selftext || '',
+      }));
+
+    console.log(`[Apify] Got ${posts.length} posts from r/${subreddit}`);
+
+    // 写入缓存
+    setCacheResult(subredditCache, cacheKey, posts);
+
+    return posts;
+  } catch (error: any) {
+    console.error(`[Apify] Error fetching subreddit r/${subreddit}:`, error.message);
+    return [];
+  }
+}
+
+// ─── 抓取单个帖子 + 评论 ────────────────────────────────────
+
+/**
+ * 通过 spry_wholemeal/reddit-scraper 抓取指定帖子及其评论
+ * 从帖子 URL 提取 subreddit，抓取带评论的帖子列表，然后匹配目标帖子
  */
 export async function fetchPostViaApify(
   redditUrl: string,
@@ -236,67 +246,116 @@ export async function fetchPostViaApify(
     // 限流
     await throttle();
 
-    console.log(`[Apify] Fetching post via Web Scraper (RESIDENTIAL proxy): ${resolvedUrl}`);
+    console.log(`[Apify] Fetching post via reddit-scraper: ${resolvedUrl}`);
+
+    // 从 URL 提取 subreddit 和 post ID
+    const subreddit = extractSubredditFromUrl(resolvedUrl);
+    const postId = extractPostIdFromUrl(resolvedUrl) || ourPostId;
+
+    if (!subreddit) {
+      console.error(`[Apify] Cannot extract subreddit from URL: ${resolvedUrl}`);
+      return null;
+    }
 
     const client = getClient();
 
-    const run = await client.actor('apify/web-scraper').call({
-      startUrls: [{ url: 'https://example.com/', userData: { targetUrl: resolvedUrl } }],
-      pageFunction: POST_PAGE_FUNCTION,
-      // 帖子详情页使用 RESIDENTIAL 住宅代理（高成功率）
-      proxyConfiguration: { useApifyProxy: true, apifyProxyGroups: RESIDENTIAL_PROXY },
-      maxPages: 1,
-      linkSelector: '',
-    });
+    // 抓取该版块的帖子（带评论）
+    const actorInput = {
+      mode: 'scrape',
+      listings: [{ subreddit, maxPosts: 25, sort: 'new' }],
+      sort: 'new',
+      timeframe: 'week',
+      includeCommentsMode: 'all' as const,
+      maxTopLevelComments: 100,
+      maxRepliesDepth: 3,
+      proxyConfiguration: PROXY_CONFIG,
+    };
 
+    console.log(`[Apify] Actor input for post:`, JSON.stringify(actorInput));
+
+    const run = await client.actor('spry_wholemeal/reddit-scraper').call(actorInput);
     const { items } = await client.dataset(run.defaultDatasetId).listItems();
 
+    console.log(`[Apify] Raw items returned: ${items?.length || 0}`);
+
     if (!items || items.length === 0) {
-      console.warn(`[Apify] No data returned for ${redditUrl}`);
+      console.warn(`[Apify] No data returned for ${resolvedUrl}`);
       return null;
     }
 
-    const result = items[0] as any;
+    // 在返回的结果中找到目标帖子
+    // actor 可能把所有帖子放在一个 item 中，也可能每个帖子一个 item
+    let targetPost: any = null;
 
-    if (result.type === 'error' || !result.type) {
-      console.warn(`[Apify] Scraper error: ${result.error || 'Unknown error'} for ${redditUrl}`);
+    for (const item of items) {
+      // 检查是否是包含帖子列表的聚合结果
+      if (item.posts && Array.isArray(item.posts)) {
+        targetPost = item.posts.find((p: any) => {
+          const postPermalink = p.permalink || '';
+          const postIdMatch = postId && postPermalink.includes(postId);
+          const urlMatch = resolvedUrl.includes(postPermalink.replace('https://www.reddit.com', ''));
+          return postIdMatch || urlMatch;
+        });
+        if (targetPost) break;
+      }
+
+      // 检查 item 本身是否是帖子
+      const itemPermalink: string = String(item.permalink || item.url || '');
+      const itemId: string = String(item.id || '');
+      if (
+        (postId && (itemId === postId || itemPermalink.includes(postId))) ||
+        itemPermalink === resolvedUrl.replace('https://www.reddit.com', '') ||
+        itemPermalink === resolvedUrl
+      ) {
+        targetPost = item;
+        break;
+      }
+    }
+
+    // 如果没找到精确匹配，取第一个有评论的帖子
+    if (!targetPost) {
+      console.warn(`[Apify] Target post not found in results, trying first item with comments`);
+      targetPost = items.find((item: any) => item.comments && item.comments.length > 0) || items[0];
+    }
+
+    if (!targetPost) {
+      console.warn(`[Apify] No usable post data for ${resolvedUrl}`);
       return null;
     }
 
-    if (result.type !== 'post') {
-      console.warn(`[Apify] Unexpected result type: ${result.type} for ${redditUrl}`);
-      return null;
-    }
+    console.log(`[Apify] Found target post: "${(targetPost.title || '').substring(0, 50)}"`);
 
     // 构造帖子数据
     const postData: Partial<RedditPost> = {
-      id: result.id || ourPostId || '',
-      title: result.title || '',
-      author: result.author || '[deleted]',
-      score: result.score || 0,
-      commentCount: result.num_comments || result.comments?.length || 0,
-      subreddit: result.subreddit || '',
-      thumbnailUrl: result.thumbnail?.startsWith('http') ? result.thumbnail : undefined,
-      createdAt: result.created_utc
-        ? new Date(result.created_utc * 1000).toISOString()
-        : new Date().toISOString(),
+      id: targetPost.id || postId || ourPostId || '',
+      title: targetPost.title || '',
+      author: targetPost.author || '[deleted]',
+      score: targetPost.score || 0,
+      commentCount: targetPost.num_comments || targetPost.comments?.length || 0,
+      subreddit: targetPost.subreddit || subreddit,
+      thumbnailUrl: undefined,
+      createdAt: targetPost.created_utc_iso || (targetPost.created_utc
+        ? new Date(targetPost.created_utc * 1000).toISOString()
+        : new Date().toISOString()),
     };
 
     // 转换评论
-    const rawComments: any[] = result.comments || [];
+    const rawComments: any[] = targetPost.comments || [];
     const redditComments: RedditComment[] = rawComments.map((c: any) => ({
       id: c.id || '',
       postId: ourPostId || postData.id || '',
       author: c.author || '[deleted]',
-      body: c.body || '',
+      body: c.text || c.body || '',
       score: c.score || 0,
-      createdAt: c.created_utc
+      createdAt: c.created_utc_iso || (c.created_utc
         ? new Date(c.created_utc * 1000).toISOString()
-        : new Date().toISOString(),
+        : new Date().toISOString()),
       sentimentScore: 0,
       isFlagged: false,
       flagReasons: [],
-      permalink: c.permalink ? `https://www.reddit.com${c.permalink}` : '',
+      permalink: c.permalink
+        ? (c.permalink.startsWith('http') ? c.permalink : `https://www.reddit.com${c.permalink}`)
+        : '',
     }));
 
     console.log(`[Apify] Got post "${postData.title?.substring(0, 50)}" with ${redditComments.length} comments`);
@@ -309,97 +368,5 @@ export async function fetchPostViaApify(
   } catch (error: any) {
     console.error(`[Apify] Error fetching post ${redditUrl}:`, error.message);
     return null;
-  }
-}
-
-// ─── 抓取板块帖子列表（DATACENTER 低成本代理） ────────────────
-
-export interface ApifySubredditPost {
-  id: string;
-  title: string;
-  author: string;
-  score: number;
-  commentCount: number;
-  subreddit: string;
-  createdAt: string;
-  permalink: string;
-  selftext: string;
-}
-
-/**
- * 通过 Apify Web Scraper 抓取指定板块的帖子列表
- * 使用 DATACENTER 数据中心代理（低成本，只拿帖子链接不耗住宅流量）
- * 内置缓存：同一板块 10 分钟内不重复抓取
- */
-export async function fetchSubredditViaApify(
-  subreddit: string,
-  limit: number = 100,
-  sort: 'hot' | 'new' | 'top' = 'new'
-): Promise<ApifySubredditPost[]> {
-  try {
-    const searchUrl = `https://www.reddit.com/r/${subreddit}/${sort}/`;
-    const cacheKey = `${subreddit}:${sort}:${limit}`;
-
-    // 检查缓存
-    const cached = getCachedResult(subredditCache, cacheKey, SUBREDDIT_CACHE_TTL);
-    if (cached) return cached;
-
-    // 限流
-    await throttle();
-
-    console.log(`[Apify] Fetching ${sort} posts from r/${subreddit} via Web Scraper (DATACENTER proxy, limit: ${limit})`);
-
-    const client = getClient();
-
-    const run = await client.actor('apify/web-scraper').call({
-      startUrls: [{ url: 'https://example.com/', userData: { targetUrl: searchUrl } }],
-      pageFunction: LISTING_PAGE_FUNCTION,
-      // 列表页使用 DATACENTER 数据中心代理（低成本）
-      proxyConfiguration: { useApifyProxy: true, apifyProxyGroups: DATACENTER_PROXY },
-      maxPages: 1,
-      linkSelector: '',
-    });
-
-    const { items } = await client.dataset(run.defaultDatasetId).listItems();
-
-    if (!items || items.length === 0) {
-      console.warn(`[Apify] No posts returned for r/${subreddit}`);
-      return [];
-    }
-
-    const allPosts: any[] = [];
-    for (const item of items) {
-      if (Array.isArray(item)) {
-        allPosts.push(...item);
-      } else if ((item as any).type === 'listing_post') {
-        allPosts.push(item);
-      }
-    }
-
-    const posts: ApifySubredditPost[] = allPosts
-      .slice(0, limit)
-      .map((item: any) => ({
-        id: item.id || '',
-        title: item.title || '',
-        author: item.author || '[deleted]',
-        score: item.score || 0,
-        commentCount: item.num_comments || 0,
-        subreddit: item.subreddit || subreddit,
-        createdAt: item.created_utc
-          ? new Date(item.created_utc * 1000).toISOString()
-          : new Date().toISOString(),
-        permalink: item.permalink ? `https://www.reddit.com${item.permalink}` : '',
-        selftext: item.selftext || '',
-      }));
-
-    console.log(`[Apify] Got ${posts.length} posts from r/${subreddit}`);
-
-    // 写入缓存
-    setCacheResult(subredditCache, cacheKey, posts);
-
-    return posts;
-  } catch (error: any) {
-    console.error(`[Apify] Error fetching subreddit r/${subreddit}:`, error.message);
-    return [];
   }
 }
