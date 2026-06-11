@@ -229,8 +229,16 @@ export async function fetchSubredditViaApify(
 // ─── 抓取单个帖子 + 评论 ────────────────────────────────────
 
 /**
+ * 判断 dataset item 是否为评论（有 depth/parent_id 字段）
+ */
+function isCommentItem(item: any): boolean {
+  return item.depth !== undefined || (item.parent_id && typeof item.parent_id === 'string' && item.parent_id.startsWith('t1_'));
+}
+
+/**
  * 通过 spry_wholemeal/reddit-scraper 抓取指定帖子及其评论
- * 从帖子 URL 提取 subreddit，抓取带评论的帖子列表，然后匹配目标帖子
+ * Actor 输出是扁平 dataset：帖子和评论作为独立 items，
+ * 评论通过 parent_id 链关联到帖子。
  */
 export async function fetchPostViaApify(
   redditUrl: string,
@@ -260,13 +268,14 @@ export async function fetchPostViaApify(
     const client = getClient();
 
     // 抓取该版块的帖子（带评论）
+    // maxPosts 设为 100 以提高找到目标帖子的概率
     const actorInput = {
       mode: 'scrape',
-      listings: [{ subreddit, maxPosts: 25, sort: 'new' }],
+      listings: [{ subreddit, maxPosts: 100, sort: 'new' }],
       sort: 'new',
       timeframe: 'week',
       includeCommentsMode: 'all' as const,
-      maxTopLevelComments: 100,
+      maxTopLevelComments: 200,
       maxRepliesDepth: 3,
       proxyConfiguration: PROXY_CONFIG,
     };
@@ -283,55 +292,58 @@ export async function fetchPostViaApify(
       return null;
     }
 
-    // 在返回的结果中找到目标帖子
-    // actor 可能把所有帖子放在一个 item 中，也可能每个帖子一个 item
-    let targetPost: any = null;
+    // ─── 分离帖子和评论 ──────────────────────────────────────
+    // Actor 输出是扁平结构：帖子和评论作为独立 dataset items
+    // 帖子特征: 有 permalink + title + num_comments
+    // 评论特征: 有 depth + parent_id (t1_xxx)
+    const postItems: any[] = [];
+    const commentItems: any[] = [];
 
     for (const item of items) {
-      // 检查是否是包含帖子列表的聚合结果
-      if (item.posts && Array.isArray(item.posts)) {
-        targetPost = item.posts.find((p: any) => {
-          const postPermalink = p.permalink || '';
-          const postIdMatch = postId && postPermalink.includes(postId);
-          const urlMatch = resolvedUrl.includes(postPermalink.replace('https://www.reddit.com', ''));
-          return postIdMatch || urlMatch;
-        });
-        if (targetPost) break;
+      if (isCommentItem(item)) {
+        commentItems.push(item);
+      } else if (item.permalink || (item.title && item.num_comments !== undefined)) {
+        postItems.push(item);
       }
-
-      // 检查 item 本身是否是帖子
-      const itemPermalink: string = String(item.permalink || item.url || '');
-      const itemId: string = String(item.id || '');
-      if (
-        (postId && (itemId === postId || itemPermalink.includes(postId))) ||
-        itemPermalink === resolvedUrl.replace('https://www.reddit.com', '') ||
-        itemPermalink === resolvedUrl
-      ) {
-        targetPost = item;
-        break;
-      }
+      // 其他 item（如 subreddit 发现结果）忽略
     }
 
-    // 如果没找到精确匹配，取第一个有评论的帖子
-    if (!targetPost) {
-      console.warn(`[Apify] Target post not found in results, trying first item with comments`);
-      targetPost = items.find((item: any) => item.comments && item.comments.length > 0) || items[0];
+    console.log(`[Apify] Separated: ${postItems.length} posts, ${commentItems.length} comments`);
+
+    // ─── 查找目标帖子 ──────────────────────────────────────
+    let targetPost: any = null;
+    const urlPath = resolvedUrl.replace('https://www.reddit.com', '');
+
+    for (const post of postItems) {
+      const postPermalink: string = String(post.permalink || '');
+      const postUrl: string = String(post.url || '');
+      const postItemId: string = String(post.id || '');
+
+      // 多种匹配策略
+      if (postId && postPermalink.includes(postId)) { targetPost = post; break; }
+      if (postId && postItemId === postId) { targetPost = post; break; }
+      if (postPermalink === urlPath) { targetPost = post; break; }
+      if (postUrl === resolvedUrl) { targetPost = post; break; }
+      if (postId && postPermalink.includes(`/${postId}/`)) { targetPost = post; break; }
     }
 
-    if (!targetPost) {
-      console.warn(`[Apify] No usable post data for ${resolvedUrl}`);
+    if (targetPost) {
+      console.log(`[Apify] Found target post by URL/ID match: "${(targetPost.title || '').substring(0, 50)}"`);
+    } else {
+      // 没找到精确匹配 — 可能是旧帖不在 new 排序中
+      console.warn(`[Apify] Target post ${postId} not found in ${postItems.length} posts. Listing all post IDs...`);
+      const foundIds = postItems.map(p => `${p.id}(${(p.title || '').substring(0, 30)})`).join(', ');
+      console.log(`[Apify] Available posts: ${foundIds}`);
       return null;
     }
 
-    console.log(`[Apify] Found target post: "${(targetPost.title || '').substring(0, 50)}"`);
-
-    // 构造帖子数据
+    // ─── 构造帖子数据 ──────────────────────────────────────
     const postData: Partial<RedditPost> = {
       id: targetPost.id || postId || ourPostId || '',
       title: targetPost.title || '',
       author: targetPost.author || '[deleted]',
       score: targetPost.score || 0,
-      commentCount: targetPost.num_comments || targetPost.comments?.length || 0,
+      commentCount: targetPost.num_comments || 0,
       subreddit: targetPost.subreddit || subreddit,
       thumbnailUrl: undefined,
       createdAt: targetPost.created_utc_iso || (targetPost.created_utc
@@ -339,9 +351,47 @@ export async function fetchPostViaApify(
         : new Date().toISOString()),
     };
 
-    // 转换评论
-    const rawComments: any[] = targetPost.comments || [];
-    const redditComments: RedditComment[] = rawComments.map((c: any) => ({
+    // ─── 收集属于该帖子的评论 ──────────────────────────────
+    // 通过 parent_id 链：顶层评论 parent_id = t3_<postId>，
+    // 回复的 parent_id = t1_<commentId>，需要递归追踪到顶层。
+    const targetPostRedditId = `t3_${postData.id}`;
+
+    // 先建 comment id -> comment 的映射
+    const commentById = new Map<string, any>();
+    for (const c of commentItems) {
+      if (c.id) commentById.set(c.id, c);
+    }
+
+    // 找出每个评论所属的顶层帖子 ID
+    function findRootPostId(comment: any, visited = new Set<string>()): string | null {
+      if (!comment || !comment.parent_id) return null;
+      if (visited.has(comment.id)) return null; // 防循环
+      visited.add(comment.id);
+
+      const parentId: string = comment.parent_id;
+      if (parentId.startsWith('t3_')) {
+        // 直接属于帖子
+        return parentId;
+      }
+      if (parentId.startsWith('t1_')) {
+        // 属于另一条评论，递归查找
+        const parentCommentId = parentId.replace('t1_', '');
+        const parentComment = commentById.get(parentCommentId);
+        if (parentComment) return findRootPostId(parentComment, visited);
+      }
+      return null;
+    }
+
+    // 收集属于目标帖子的所有评论
+    const targetPostComments = commentItems.filter(c => {
+      const rootId = findRootPostId(c);
+      return rootId === targetPostRedditId;
+    });
+
+    console.log(`[Apify] Matched ${targetPostComments.length} comments to post "${postData.title?.substring(0, 50)}" (redditId: ${targetPostRedditId})`);
+
+    // 转换评论格式
+    const redditComments: RedditComment[] = targetPostComments.map((c: any) => ({
       id: c.id || '',
       postId: ourPostId || postData.id || '',
       author: c.author || '[deleted]',
