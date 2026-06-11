@@ -26,7 +26,7 @@ export async function POST(request: Request) {
     // 数据通过 Apify 获取，无需初始化代理
 
     const body = await request.json();
-    const { postIds, scanAll } = body;
+    const { postIds, scanAll, quickScan, skipRecentHours } = body;
 
     const allPosts = getPosts();
     if (allPosts.length === 0) {
@@ -44,10 +44,35 @@ export async function POST(request: Request) {
       postsToScan = allPosts.filter(p => postIds.includes(p.id));
     }
 
+    // 跳过近期已扫描的帖子（节省代理流量）
+    // skipRecentHours 默认 1 小时，quickScan 模式下为 0（不跳过）
+    const skipHours = skipRecentHours ?? (quickScan ? 0 : 1);
+    if (skipHours > 0) {
+      const cutoff = Date.now() - skipHours * 60 * 60 * 1000;
+      const before = postsToScan.length;
+      postsToScan = postsToScan.filter(p => {
+        if (!p.lastScanned) return true;
+        return new Date(p.lastScanned).getTime() < cutoff;
+      });
+      const skipped = before - postsToScan.length;
+      if (skipped > 0) {
+        console.log(`[Scan] Skipped ${skipped} recently scanned posts (within ${skipHours}h)`);
+      }
+    }
+
+    // 快速扫描模式：只扫最近 5 个
+    if (quickScan && postsToScan.length > 5) {
+      postsToScan = postsToScan.slice(0, 5);
+      console.log(`[Scan] Quick scan mode: limited to ${postsToScan.length} posts`);
+    }
+
     if (postsToScan.length === 0) {
       return NextResponse.json({
-        success: false,
-        message: '未找到指定的帖子',
+        success: true,
+        message: skipHours > 0
+          ? `所有帖子在 ${skipHours} 小时内已扫描过，跳过以节省代理流量。如需强制重新扫描，请使用快速扫描或指定帖子。`
+          : '未找到指定的帖子',
+        results: [],
       });
     }
 
