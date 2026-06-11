@@ -161,6 +161,9 @@ export async function GET(request: Request) {
 
 
     console.log(`[Competitor Analysis] Found ${competitorCandidatePosts.length} competitor posts (title match)`);
+    competitorCandidatePosts.slice(0, 10).forEach((p, i) => {
+      console.log(`  Candidate ${i + 1}: ${p.title.substring(0, 80)}`);
+    });
 
     // 4. 按品牌分类帖子
     const brandPosts: Record<string, typeof allPosts> = {
@@ -187,21 +190,29 @@ export async function GET(request: Request) {
     }
 
     // 对 Reddit API 获取的帖子进行品牌分类（仅用于竞品，只看标题）
+    let skippedManaged = 0;
+    let classifiedCount = 0;
     for (const post of competitorCandidatePosts) {
       const titleLower = post.title.toLowerCase();
 
       // 跳过已管理的帖子（避免重复）
       const isManaged = managedPosts.some(mp => mp.redditUrl.includes(post.id) || mp.id === post.id);
-      if (isManaged) continue;
+      if (isManaged) {
+        skippedManaged++;
+        console.log(`[Competitor Analysis] Skipping managed post: ${post.title.substring(0, 60)}`);
+        continue;
+      }
 
       // 只看标题是否包含品牌关键词
       for (const brand of COMPETITOR_BRANDS) {
         if (brand.keywords.some(kw => titleLower.includes(kw.toLowerCase()))) {
           brandPosts[brand.name].push(post);
+          classifiedCount++;
           break;
         }
       }
     }
+    console.log(`[Competitor Analysis] Classification: ${classifiedCount} classified, ${skippedManaged} skipped (managed)`);
 
     console.log('[Competitor Analysis] Brand distribution:', {
       Hisense: brandPosts['Hisense'].length,
