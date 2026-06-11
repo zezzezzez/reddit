@@ -64,6 +64,21 @@ export async function POST(request: Request) {
       }
     }
 
+    // 智能延迟：跳过 nextScanTime 未到期的帖子
+    let skippedByDelay = 0;
+    {
+      const now = Date.now();
+      const before = postsToScan.length;
+      postsToScan = postsToScan.filter(p => {
+        if (!p.nextScanTime) return true;
+        return new Date(p.nextScanTime).getTime() <= now;
+      });
+      skippedByDelay = before - postsToScan.length;
+      if (skippedByDelay > 0) {
+        console.log(`[Scan] Skipped ${skippedByDelay} posts with nextScanTime not yet reached`);
+      }
+    }
+
     // 跳过近期已扫描的帖子（节省代理流量）
     // 已取消冷却限制，skipHours 始终为 0
     const skipHours = 0;
@@ -90,7 +105,7 @@ export async function POST(request: Request) {
       return NextResponse.json({
         success: true,
         message: scanAll
-          ? `近 ${MAX_POST_AGE_MONTHS} 个月内没有可扫描的帖子，所有老帖子已跳过。`
+          ? `没有可扫描的帖子（可能均已超过 ${MAX_POST_AGE_MONTHS} 个月或延迟到 1 个月后）`
           : skipHours > 0
             ? `所有帖子在 ${skipHours} 小时内已扫描过，跳过以节省代理流量。如需强制重新扫描，请使用快速扫描或指定帖子。`
             : '未找到指定的帖子',
@@ -220,6 +235,26 @@ export async function POST(request: Request) {
         // Save comments immediately
         saveComments(post.id, analyzedComments);
 
+        // 智能延迟：检查最近 2 周是否有新评论
+        const TWO_WEEKS_MS = 14 * 24 * 60 * 60 * 1000;
+        const recentComment = analyzedComments.some(c => {
+          if (!c.createdAt) return false;
+          return new Date(c.createdAt).getTime() >= Date.now() - TWO_WEEKS_MS;
+        });
+        if (!recentComment) {
+          // 2 周无新评论 → 下次扫描推迟到 1 个月后
+          const nextMonth = new Date();
+          nextMonth.setMonth(nextMonth.getMonth() + 1);
+          post.nextScanTime = nextMonth.toISOString();
+          console.log(`[Scan] No recent comments for "${post.title}", next scan delayed to ${post.nextScanTime}`);
+        } else {
+          // 有新评论 → 清除延迟，按常规频率扫描
+          if (post.nextScanTime) {
+            console.log(`[Scan] Recent comments found for "${post.title}", clearing nextScanTime`);
+          }
+          post.nextScanTime = undefined;
+        }
+
         // Save scan result
         const flaggedComments = analyzedComments.filter(c => c.isFlagged);
         saveScanResult({
@@ -279,6 +314,9 @@ export async function POST(request: Request) {
     let message = `扫描完成！共处理 ${results.length} 个帖子，发现 ${totalNewComments} 条评论，${totalFlagged} 条预警`;
     if (skippedByAge > 0) {
       message += `（已跳过 ${skippedByAge} 个超过 ${MAX_POST_AGE_MONTHS} 个月的老帖子）`;
+    }
+    if (skippedByDelay > 0) {
+      message += `（已跳过 ${skippedByDelay} 个延迟扫描帖子，2 周内无新评论）`;
     }
     if (failedPosts.length > 0) {
       message += `。${failedPosts.length} 个帖子扫描失败，请检查链接是否有效`;

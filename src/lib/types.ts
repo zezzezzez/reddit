@@ -25,6 +25,7 @@ export interface RedditPost {
   handleTime?: string;
   handleNote?: string;
   scanError?: string; // 扫描失败时的错误信息
+  nextScanTime?: string; // 智能延迟：下次应扫描的时间，未到期则跳过
 }
 
 export interface RedditComment {
