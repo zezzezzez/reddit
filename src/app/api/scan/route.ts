@@ -47,6 +47,23 @@ export async function POST(request: Request) {
       postsToScan = allPosts.filter(p => postIds.includes(p.id));
     }
 
+    // 全量扫描时，只扫描近 3 个月内发布的帖子（节省代理流量）
+    // 单帖扫描（指定 postIds）不受此限制
+    const MAX_POST_AGE_MONTHS = 3;
+    let skippedByAge = 0;
+    if (scanAll) {
+      const ageCutoff = Date.now() - MAX_POST_AGE_MONTHS * 30 * 24 * 60 * 60 * 1000;
+      const before = postsToScan.length;
+      postsToScan = postsToScan.filter(p => {
+        if (!p.createdAt) return true; // 无发布时间的帖子仍扫描
+        return new Date(p.createdAt).getTime() >= ageCutoff;
+      });
+      skippedByAge = before - postsToScan.length;
+      if (skippedByAge > 0) {
+        console.log(`[Scan] Skipped ${skippedByAge} posts older than ${MAX_POST_AGE_MONTHS} months`);
+      }
+    }
+
     // 跳过近期已扫描的帖子（节省代理流量）
     // 已取消冷却限制，skipHours 始终为 0
     const skipHours = 0;
@@ -72,9 +89,11 @@ export async function POST(request: Request) {
     if (postsToScan.length === 0) {
       return NextResponse.json({
         success: true,
-        message: skipHours > 0
-          ? `所有帖子在 ${skipHours} 小时内已扫描过，跳过以节省代理流量。如需强制重新扫描，请使用快速扫描或指定帖子。`
-          : '未找到指定的帖子',
+        message: scanAll
+          ? `近 ${MAX_POST_AGE_MONTHS} 个月内没有可扫描的帖子，所有老帖子已跳过。`
+          : skipHours > 0
+            ? `所有帖子在 ${skipHours} 小时内已扫描过，跳过以节省代理流量。如需强制重新扫描，请使用快速扫描或指定帖子。`
+            : '未找到指定的帖子',
         results: [],
       });
     }
@@ -258,6 +277,9 @@ export async function POST(request: Request) {
     // 构建包含失败信息的提示
     const failedPosts = results.filter(r => r.status === 'failed' || r.status === 'error');
     let message = `扫描完成！共处理 ${results.length} 个帖子，发现 ${totalNewComments} 条评论，${totalFlagged} 条预警`;
+    if (skippedByAge > 0) {
+      message += `（已跳过 ${skippedByAge} 个超过 ${MAX_POST_AGE_MONTHS} 个月的老帖子）`;
+    }
     if (failedPosts.length > 0) {
       message += `。${failedPosts.length} 个帖子扫描失败，请检查链接是否有效`;
     }
