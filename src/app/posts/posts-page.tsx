@@ -6,7 +6,7 @@ import {
   Search, Filter, ExternalLink, MessageSquare, Clock,
   RefreshCw, ChevronDown, AlertTriangle, Shield, CheckCircle,
   Trash2, Eye, Loader2, Radar, CircleDot,
-  Calendar, X,
+  Calendar, X, Square,
 } from 'lucide-react';
 
 const ALERT_STYLES: Record<string, { bg: string; border: string; text: string; badge: string; label: string }> = {
@@ -87,6 +87,15 @@ export default function PostsPage() {
       console.error(e);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleStopScan = async () => {
+    try {
+      await fetch('/api/scan', { method: 'DELETE' });
+      setScanProgress('正在停止...');
+    } catch (e: any) {
+      console.error('停止扫描失败:', e);
     }
   };
 
@@ -220,14 +229,32 @@ export default function PostsPage() {
             <p className="text-sm text-gray-500 mt-1">共 {posts.length} 个帖子正在监控中</p>
           </div>
           <div className="flex items-center gap-2">
-            <button
-              onClick={handleScanAll}
-              disabled={scanning}
-              className="flex items-center gap-2 px-4 py-2 bg-primary hover:bg-primary-hover text-white rounded-lg text-sm font-medium transition-colors disabled:opacity-50 shadow-sm"
-            >
-              {scanning ? <Loader2 className="w-4 h-4 animate-spin" /> : <Radar className="w-4 h-4" />}
-              {scanning ? (scanProgress || '扫描中...') : '扫描全部帖子'}
-            </button>
+            {scanning ? (
+              <>
+                <button
+                  disabled
+                  className="flex items-center gap-2 px-4 py-2 bg-primary text-white rounded-lg text-sm font-medium opacity-50 shadow-sm"
+                >
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                  {scanProgress || '扫描中...'}
+                </button>
+                <button
+                  onClick={handleStopScan}
+                  className="flex items-center gap-2 px-4 py-2 bg-red-500 hover:bg-red-600 text-white rounded-lg text-sm font-medium transition-colors shadow-sm"
+                >
+                  <Square className="w-4 h-4" />
+                  停止扫描
+                </button>
+              </>
+            ) : (
+              <button
+                onClick={handleScanAll}
+                className="flex items-center gap-2 px-4 py-2 bg-primary hover:bg-primary-hover text-white rounded-lg text-sm font-medium transition-colors shadow-sm"
+              >
+                <Radar className="w-4 h-4" />
+                扫描全部帖子
+              </button>
+            )}
             <button
               onClick={fetchPosts}
               className="flex items-center gap-2 px-4 py-2 bg-white hover:bg-gray-50 border border-gray-200 text-gray-700 rounded-lg text-sm transition-colors shadow-sm"

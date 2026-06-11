@@ -15,6 +15,9 @@ let scanProgress = {
   message: '',
 };
 
+// Stop flag: when true, the scan loop will break at the next iteration
+let stopRequested = false;
+
 export async function POST(request: Request) {
   try {
     // 初始化 scanProgress（立即设为运行状态，让前端开始轮询）
@@ -93,6 +96,13 @@ export async function POST(request: Request) {
     let totalFlagged = 0;
 
     for (let i = 0; i < postsToScan.length; i++) {
+      // Check if stop was requested
+      if (stopRequested) {
+        console.log(`[Scan] Stop requested by user at ${i}/${postsToScan.length}`);
+        scanProgress.message = `扫描已停止（已完成 ${i}/${postsToScan.length}）`;
+        break;
+      }
+
       const post = postsToScan[i];
       scanProgress.current = i + 1;
       scanProgress.postTitle = post.title || post.redditUrl;
@@ -279,6 +289,18 @@ export async function POST(request: Request) {
     });
     console.log(`[Scan] Daily report saved for ${today}`);
 
+    const wasStopped = stopRequested;
+    stopRequested = false;
+
+    if (wasStopped) {
+      return NextResponse.json({
+        success: true,
+        message: `扫描已停止，已处理 ${results.length}/${postsToScan.length} 个帖子`,
+        results,
+        stopped: true,
+      });
+    }
+
     return NextResponse.json({
       success: true,
       message,
@@ -297,4 +319,14 @@ export async function POST(request: Request) {
 
 export async function GET() {
   return NextResponse.json(scanProgress);
+}
+
+// Stop the running scan
+export async function DELETE() {
+  if (!scanProgress.isRunning) {
+    return NextResponse.json({ success: false, message: '没有正在运行的扫描' });
+  }
+  stopRequested = true;
+  console.log('[Scan] Stop requested');
+  return NextResponse.json({ success: true, message: '已发送停止信号' });
 }
