@@ -25,15 +25,17 @@ export function isApifyConfigured(): boolean {
 }
 
 // ─── Web Scraper pageFunction ────────────────────────────────
-// 在浏览器上下文中执行，通过 fetch 访问 Reddit .json 端点获取结构化数据
+// 使用 data: URL 作为起始页（避免 Reddit 403 封禁爬虫导航）
+// 在浏览器上下文中通过 fetch 访问 Reddit .json 端点获取结构化数据
 // 支持两种场景：帖子详情页（含评论）和板块列表页
 
 const PAGE_FUNCTION = `async function pageFunction(context) {
-  const requestUrl = context.request.url;
-  const isPostPage = /\\/comments\\//.test(requestUrl);
+  // 从 context.request.userData 中获取目标 URL 和类型
+  const targetUrl = context.request.userData.targetUrl;
+  const isPostPage = /\\/comments\\//.test(targetUrl);
 
   if (isPostPage) {
-    const jsonUrl = requestUrl.split('?')[0].replace(/\\/$/, '') + '/.json';
+    const jsonUrl = targetUrl.split('?')[0].replace(/\\/$/, '') + '/.json';
     const resp = await context.page.evaluate(async (url) => {
       const r = await fetch(url, {
         headers: { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36' }
@@ -42,8 +44,8 @@ const PAGE_FUNCTION = `async function pageFunction(context) {
       return { data: await r.json() };
     }, jsonUrl);
 
-    if (resp.error) return { url: requestUrl, error: resp.error, type: 'error' };
-    if (!resp.data) return { url: requestUrl, error: 'No data', type: 'error' };
+    if (resp.error) return { url: targetUrl, error: resp.error, type: 'error' };
+    if (!resp.data) return { url: targetUrl, error: 'No data', type: 'error' };
 
     const arr = Array.isArray(resp.data) ? resp.data : [resp.data];
     const postData = arr[0]?.data?.children?.[0]?.data || {};
@@ -76,7 +78,7 @@ const PAGE_FUNCTION = `async function pageFunction(context) {
     }
 
     return {
-      type: 'post', url: requestUrl,
+      type: 'post', url: targetUrl,
       id: postData.id, title: postData.title, author: postData.author,
       score: postData.score, num_comments: postData.num_comments,
       created_utc: postData.created_utc, subreddit: postData.subreddit,
@@ -85,7 +87,7 @@ const PAGE_FUNCTION = `async function pageFunction(context) {
       comments
     };
   } else {
-    const jsonUrl = requestUrl.split('?')[0].replace(/\\/$/, '') + '.json';
+    const jsonUrl = targetUrl.split('?')[0].replace(/\\/$/, '') + '.json';
     const resp = await context.page.evaluate(async (url) => {
       const r = await fetch(url, {
         headers: { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36' }
@@ -94,9 +96,9 @@ const PAGE_FUNCTION = `async function pageFunction(context) {
       return { data: await r.json() };
     }, jsonUrl);
 
-    if (resp.error) return { url: requestUrl, error: resp.error, type: 'error' };
+    if (resp.error) return { url: targetUrl, error: resp.error, type: 'error' };
     if (!resp.data || !resp.data.data || !resp.data.data.children) {
-      return { url: requestUrl, error: 'Blocked or no data', type: 'error' };
+      return { url: targetUrl, error: 'Blocked or no data', type: 'error' };
     }
 
     const posts = resp.data.data.children
@@ -199,8 +201,10 @@ export async function fetchPostViaApify(
     const client = getClient();
 
     // 使用 apify/web-scraper（完整浏览器，原生支持 proxyConfiguration）
+    // 使用 data: URL 作为起始页，避免 Reddit 403 封禁爬虫直接导航
+    // 目标 URL 通过 userData 传递给 pageFunction
     const run = await client.actor('apify/web-scraper').call({
-      startUrls: [{ url: resolvedUrl }],
+      startUrls: [{ url: 'data:text/html,<html><body>ok</body></html>', userData: { targetUrl: resolvedUrl } }],
       pageFunction: PAGE_FUNCTION,
       // 强制 DATACENTER 代理（$0.25/GB，最便宜）
       proxyConfiguration: { useApifyProxy: true, apifyProxyGroups: ['BUYPROXIES94952'] },
@@ -302,7 +306,7 @@ export async function fetchSubredditViaApify(
     const client = getClient();
 
     const run = await client.actor('apify/web-scraper').call({
-      startUrls: [{ url: searchUrl }],
+      startUrls: [{ url: 'data:text/html,<html><body>ok</body></html>', userData: { targetUrl: searchUrl } }],
       pageFunction: PAGE_FUNCTION,
       // 强制 DATACENTER 代理（$0.25/GB，最便宜）
       proxyConfiguration: { useApifyProxy: true, apifyProxyGroups: ['BUYPROXIES94952'] },
