@@ -9,35 +9,40 @@ jobs:
   deploy:
     runs-on: ubuntu-latest
     steps:
-      - name: Deploy to EC2
+      - name: Deploy to EC2 via SSH
         uses: appleboy/ssh-action@v1.0.3
         with:
           host: 63.178.68.46
           username: ec2-user
           key: ${{ secrets.DEPLOY_KEY }}
           script: |
-            set -e  # 任何命令失败都立即退出
-            
-            echo "拉取最新代码和数据..."
-            cd /home/ec2-user/reddit && git pull origin main
+            set -e
 
-            echo "重新构建镜像..."
+            echo "=== 拉取最新代码 ==="
             cd /home/ec2-user/reddit
+            git pull origin main
+
+            echo "=== 重新构建镜像 ==="
             sudo docker build -t reddit-monitor -f Dockerfile .
 
-            echo "重启容器（使用 Git 中的数据，不保留 Docker volume）..."
+            echo "=== 停止并删除旧容器 ==="
             sudo docker stop reddit-monitor || true
             sudo docker rm reddit-monitor || true
+
+            echo "=== 启动新容器 ==="
             sudo docker run -d \
               --name reddit-monitor \
               --restart unless-stopped \
               -p 3000:3000 \
+              --env-file /home/ec2-user/reddit/.env \
               -e NODE_ENV=production \
               -e FEISHU_REDIRECT_URI='http://63.178.68.46:3000/api/feishu-auth/callback' \
-              -e HTTP_PROXY='http://spo7492epm:8bLtd42alncz%7ETV0gK@gate.decodo.com:10001' \
-              -e HTTPS_PROXY='http://spo7492epm:8bLtd42alncz%7ETV0gK@gate.decodo.com:10001' \
               reddit-monitor
 
-            echo "部署完成！"
+            echo "=== 清理悬空镜像 ==="
+            sudo docker image prune -f
+
+            echo "=== 部署完成 ==="
             sudo docker ps
+            echo "--- 最近日志 ---"
             sudo docker logs reddit-monitor --tail 20
