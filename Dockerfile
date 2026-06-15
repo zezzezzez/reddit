@@ -24,6 +24,10 @@ FROM node:22-alpine AS runner
 
 WORKDIR /app
 
+# 安装时区数据（确保 TZ 环境变量生效）
+RUN apk add --no-cache tzdata
+ENV TZ=Asia/Shanghai
+
 # 只复制生产运行所需文件
 COPY --from=builder /app/public ./public
 COPY --from=builder /app/.next/standalone ./

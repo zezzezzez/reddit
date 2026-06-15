@@ -36,6 +36,7 @@ jobs:
               -p 3000:3000 \
               --env-file /home/ec2-user/reddit/.env \
               -e NODE_ENV=production \
+              -e TZ=Asia/Shanghai \
               -e FEISHU_REDIRECT_URI='http://63.178.68.46:3000/api/feishu-auth/callback' \
               reddit-monitor
 
