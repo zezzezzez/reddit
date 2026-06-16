@@ -34,6 +34,7 @@ jobs:
               --name reddit-monitor \
               --restart unless-stopped \
               -p 3000:3000 \
+              -v /home/ec2-user/reddit/data:/app/data \
               --env-file /home/ec2-user/reddit/.env \
               -e NODE_ENV=production \
               -e TZ=Asia/Shanghai \
