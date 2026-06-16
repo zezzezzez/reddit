@@ -35,7 +35,7 @@
     "maxTokens": 1024,
     "temperature": 0.1
   },
-  "tunnelUrl": "https://monster-tooth-carol-temporarily.trycloudflare.com",
+  "tunnelUrl": "http://63.178.68.46:3000",
   "feishuNotify": {
     "enabled": true,
     "mode": "webhook",
