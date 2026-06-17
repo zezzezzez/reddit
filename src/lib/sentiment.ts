@@ -19,6 +19,8 @@ export const KEYWORD_CATEGORIES = {
     'hisense thief', 'hisense thieves',
     'hisense deceptive', 'hisense misleading',
     'hisense unethical', 'hisense corrupt', 'hisense dishonest',
+    'fuck hisense', 'fucking hisense', 'damn hisense', 'shit hisense',
+    'hisense sucks', 'hisense suck', 'hisense is shit', 'hisense is crap',
   ],
   product_hate: [
     'worst tv', 'terrible tv', 'horrible tv', 'awful tv', 'pathetic tv', 'garbage tv', 'trash tv',
@@ -26,12 +28,19 @@ export const KEYWORD_CATEGORIES = {
     'hisense pos', 'hisense piece of crap', 'hisense piece of shit',
     'lemon tv', 'nightmare tv', 'complete disaster', 'total fail', 'total failure',
     'regret buying this tv', 'waste of money', 'returning this', 'sent it back',
+    'went dark', 'screen went black', 'backlight failed', 'backlight failure',
+    'died after', 'dead after', 'broke after', 'failed after', 'stopped working after',
+    'flickering', 'flickers', 'lines on screen', 'color bleed', 'banding',
+    'less than a year', 'within a year', 'after a few months',
   ],
   negative_sentiment: [
     'hate this tv', 'hate hisense', 'disgusting quality', 'outrageous', 'unacceptable quality',
     'fed up with hisense', 'sick of hisense', 'tired of hisense',
     'never again hisense', 'never buying hisense',
     'overpriced junk', 'not worth the money', 'total waste', 'deeply disappointed',
+    'fuck', 'fucking', 'damn', 'shit', 'sucks', 'suck', 'crap',
+    'hisense is bad', 'hisense is terrible', 'hisense is awful',
+    'pissed off', 'so angry', 'so mad', 'furious',
   ],
   call_to_action_negative: [
     "don't buy hisense", 'avoid hisense', 'stay away from hisense',
@@ -97,6 +106,10 @@ const NEGATIVE_EMOTION_WORDS = [
   'never again', 'won\'t buy', 'will not buy', 'wouldn\'t buy',
   'doesn\'t work', 'didn\'t work', 'not working', 'stopped working',
   'died', 'dead', 'bricked', 'broken',
+  'fuck', 'fucking', 'damn', 'shit', 'sucks', 'suck',
+  'dark', 'flickering', 'flickers', 'lines on screen',
+  'pissed', 'angry', 'mad', 'furious',
+  'less than a year', 'within a year', 'after a few months',
 ];
 
 // ─── 基础正面正则模式（额外加分用）───────────────────────────────
@@ -374,6 +387,9 @@ export function analyzeCommentSentiment(
       finalScore = Math.min(patternPositiveScore + genPos + 0.15, 1.0);
     } else if (genNeg > genPos) {
       finalScore = -Math.min(genNeg + 0.15, 1.0);
+    } else if (patternPositiveScore > 0 && genNeg === 0) {
+      // 无品牌情感上下文，但有基础正面模式且无负面信号 → 弱正面
+      finalScore = Math.min(patternPositiveScore, 0.15);
     } else {
       finalScore = 0;
     }
@@ -391,6 +407,9 @@ export function analyzeCommentSentiment(
       finalScore = -Math.min(patternPositiveScore + genPos + 0.15, 1.0);
     } else if (genNeg > genPos) {
       finalScore = Math.min(genNeg + 0.15, 1.0);
+    } else if (patternPositiveScore > 0 && genNeg === 0) {
+      // 无竞品情感上下文，但有基础正面模式且无负面信号 → 弱正面（偏负面）
+      finalScore = -Math.min(patternPositiveScore, 0.1);
     } else {
       finalScore = 0;
     }
