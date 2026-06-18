@@ -245,6 +245,14 @@ export async function fetchSearchViaApify(
           return item.title || item.id || item.postId;
         });
         const allScrapePosts = scrapePostItems.map(item => normalizeApifyItem(item, subreddit));
+        
+        // 调试：输出 scrape 模式前 3 个帖子的 score/commentCount
+        if (_debugCount < 6) {
+          for (const p of allScrapePosts.slice(0, 3)) {
+            console.log(`[Apify] Scrape debug: title="${p.title.slice(0, 50)}", score=${p.score}, commentCount=${p.commentCount}`);
+            _debugCount++;
+          }
+        }
 
         // 过滤：排除已锁定（locked）或已归档（archived）的帖子
         const activePosts = allScrapePosts.filter(p => !p.locked && !p.archived);
