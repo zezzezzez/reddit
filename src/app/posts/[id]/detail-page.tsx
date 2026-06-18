@@ -86,8 +86,9 @@ export default function PostDetailPage() {
   }));
 
   const filteredComments = comments.filter((c: any) => {
-    if (commentFilter === 'flagged') return c.isFlagged;
-    if (commentFilter === 'safe') return !c.isFlagged;
+    const isNegative = (c.sentimentScore ?? 0) < 0;
+    if (commentFilter === 'flagged') return isNegative;
+    if (commentFilter === 'safe') return !isNegative;
     return true;
   });
 
@@ -245,11 +246,13 @@ export default function PostDetailPage() {
         </div>
 
         <div className="space-y-3">
-          {filteredComments.map((comment: any) => (
+          {filteredComments.map((comment: any) => {
+            const isNegative = (comment.sentimentScore ?? 0) < 0;
+            return (
             <div
               key={comment.id}
               className={`p-4 rounded-lg border ${
-                comment.isFlagged
+                isNegative
                   ? 'bg-red-50 border-red-200'
                   : 'bg-white border-gray-100'
               } shadow-sm hover:shadow-md transition-shadow`}
@@ -279,13 +282,13 @@ export default function PostDetailPage() {
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3 text-xs text-gray-600">
                   <span>👍 {comment.score}</span>
-                  {comment.isFlagged && comment.flagReasons.map((r: string) => (
+                  {isNegative && comment.flagReasons && comment.flagReasons.map((r: string) => (
                     <span key={r} className="px-1.5 py-0.5 bg-red-100 text-red-700 rounded">
                       {CATEGORY_LABELS[r] || r}
                     </span>
                   ))}
                   {/* 影响力得分 */}
-                  {comment.isFlagged && comment.influenceScore !== undefined && (
+                  {isNegative && comment.influenceScore !== undefined && (
                     <span
                       className={`px-2 py-0.5 rounded font-semibold ${
                         comment.influenceScore >= 20
@@ -310,7 +313,8 @@ export default function PostDetailPage() {
                 </a>
               </div>
             </div>
-          ))}
+            );
+          })}
         </div>
       </div>
     </div>
