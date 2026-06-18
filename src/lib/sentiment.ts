@@ -233,6 +233,10 @@ const POSITIVE_EMOTION_WORDS = [
   // ── 服务/人际友好表达 ──
   'helpful', 'really helpful', 'super helpful', 'incredibly helpful',
   'extremely helpful', 'very helpful', 'so helpful',
+  'helps a lot', 'really helps', 'helps me a lot',
+  'works great', 'works well', 'works perfectly', 'works fine', 'works flawlessly',
+  'great option', 'great feature', 'good option', 'good feature',
+  'love this option', 'love this feature', 'awesome feature',
   'kind', 'friendly', 'professional', 'attentive', 'knowledgeable',
   'patient', 'responsive', 'courteous', 'polite',
   'efficient', 'quick response', 'fast response', 'prompt response',
@@ -275,7 +279,9 @@ const NEGATIVE_EMOTION_WORDS = [
   'pissed', 'pissed off', 'so angry', 'so mad', 'furious', 'enraged',
   'irritated', 'annoyed', 'frustrated', 'aggravated',
   'fuck', 'fucking', 'fucked', 'damn', 'shit', 'shitty', 'sucks', 'suck', 'sucked',
-  'crap', 'crappy', 'craptastic', 'bullshit', 'bull shit', 'bs',
+  // 注：单独的 'crap' 多义（"remove the crap"、"holy crap"惊叹、"no crap"=“真的”），该字易误判；
+  // 仅保留单义负面的 crappy/craptastic，'piece of crap' 由 product_hate 硬关键词接管
+  'crappy', 'craptastic', 'bullshit', 'bull shit', 'bs',
   'ass', 'asshole', 'dick', 'douche', 'moron', 'idiot', 'stupid',
   'garbage', 'trash', 'junk', 'rubbish', 'sewage',
   // ── 产品质量 ──

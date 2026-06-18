@@ -12,6 +12,12 @@
 - [data/config.json](file://data/config.json)
 </cite>
 
+## 更新摘要
+**变更内容**
+- 更新智能延迟机制说明，明确单帖子扫描不应用nextScanTime过滤
+- 新增扫描范围和过滤逻辑的详细说明
+- 更新性能优化相关内容，反映响应速度提升
+
 ## 目录
 1. [简介](#简介)
 2. [项目结构](#项目结构)
@@ -28,6 +34,8 @@
 扫描控制 API 是 Reddit 监控系统的核心组件，负责管理手动扫描任务和自动扫描调度。该 API 提供了完整的社交媒体内容监控解决方案，包括实时扫描、智能调度、情感分析和告警通知等功能。
 
 系统基于 Next.js API Routes 构建，采用模块化设计，支持本地开发和云端部署。通过集成 Apify 爬虫引擎，能够高效地从 Reddit 平台抓取帖子和评论数据，并进行深度分析。
+
+**更新** 扫描系统优化了智能延迟机制，在单帖子扫描时不应用nextScanTime过滤，显著提高响应速度。
 
 ## 项目结构
 
@@ -96,6 +104,26 @@ Scheduler --> Feishu
 | scanAll | boolean | 否 | false | 是否扫描所有帖子 |
 | quickScan | boolean | 否 | false | 快速扫描模式（限制5个帖子） |
 | skipRecentHours | number | 否 | 0 | 跳过最近N小时内的帖子 |
+
+**扫描范围和过滤逻辑：**
+
+```mermaid
+flowchart TD
+Start([开始扫描]) --> CheckMode{"检查扫描模式"}
+CheckMode --> |scanAll=true| GetAllPosts["获取所有帖子"]
+CheckMode --> |scanAll=false| GetSpecificPosts["获取指定帖子"]
+GetAllPosts --> AgeFilter["年龄过滤：仅扫描近3个月内发布的帖子"]
+AgeFilter --> DelayFilter["智能延迟过滤：检查nextScanTime"]
+DelayFilter --> SkipFilter["跳过近期已扫描的帖子"]
+SkipFilter --> QuickScan["快速扫描限制：最多5个帖子"]
+GetSpecificPosts --> QuickScan
+QuickScan --> ExecuteScan["执行扫描"]
+ExecuteScan --> End([完成])
+```
+
+**重要更新** 智能延迟机制的差异化处理：
+- **全量扫描（scanAll=true）**：应用完整的智能延迟过滤，跳过nextScanTime未到期的帖子
+- **单帖子扫描（scanAll=false）**：跳过nextScanTime过滤，直接扫描指定帖子，提高响应速度
 
 **响应格式：**
 
@@ -488,6 +516,11 @@ Continue --> End([结束])
 - 错误率统计
 - 响应时间分布
 
+**更新** 智能延迟机制的性能优化：
+- **全量扫描**：应用完整的智能延迟过滤，减少不必要的请求
+- **单帖子扫描**：跳过nextScanTime过滤，直接响应用户请求，提高响应速度
+- **差异化处理**：根据扫描模式选择最优的过滤策略
+
 **章节来源**
 - [src/lib/apify.ts:37-50](file://src/lib/apify.ts#L37-L50)
 - [src/app/api/scan/route.ts:291-294](file://src/app/api/scan/route.ts#L291-L294)
@@ -547,11 +580,14 @@ Continue --> End([结束])
 3. **性能优化**：多层缓存和限流机制确保系统稳定
 4. **错误处理**：完善的异常捕获和降级策略
 5. **监控诊断**：全面的性能监控和调试工具
+6. **响应优化**：智能延迟机制的差异化处理，提升用户体验
 
 **适用场景：**
 - 社交媒体品牌监控
 - 竞品分析和情报收集
 - 危机预警和舆情监控
 - 市场趋势分析和研究
+
+**更新总结** 本次优化通过智能延迟机制的差异化处理，在保证全量扫描效率的同时，显著提升了单帖子扫描的响应速度，为用户提供了更好的交互体验。
 
 通过合理的配置和使用，扫描控制 API 能够满足各种规模和复杂度的监控需求，为用户提供准确、及时的社交媒体洞察。
