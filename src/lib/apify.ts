@@ -189,6 +189,7 @@ export async function fetchSearchViaApify(
     // 过滤 + 转换
     const postItems = (items || []).filter((item: any) => {
       if (item.depth !== undefined || item.parent_id) return false;
+      if (item.archived || item.locked) return false; // 排除归档/锁定帖子
       return item.title || item.id || item.postId;
     });
     const searchPosts = postItems.slice(0, limit).map(item => normalizeApifyItem(item, subreddit));
