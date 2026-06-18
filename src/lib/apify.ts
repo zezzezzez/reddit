@@ -192,9 +192,12 @@ export async function fetchSearchViaApify(
       if (item.archived || item.locked) return false; // 排除归档/锁定帖子
       return item.title || item.id || item.postId;
     });
-    const searchPosts = postItems.slice(0, limit).map(item => normalizeApifyItem(item, subreddit));
+    const searchPostsRaw = postItems.map(item => normalizeApifyItem(item, subreddit));
 
-    console.log(`[Apify] Search mode: ${searchPosts.length} posts (raw ${items?.length || 0})`);
+    // 关键词过滤：只保留标题包含关键词的帖子
+    const searchPosts = searchPostsRaw.filter(p => postMatchesKeywords(p, kwLower)).slice(0, limit);
+
+    console.log(`[Apify] Search mode: ${searchPosts.length} posts after keyword filter (raw ${items?.length || 0})`);
 
     // ── 第二步：结果不够 + 有 subreddit → scrape 兜底 ──
     if (searchPosts.length < limit && subreddit) {
