@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { getPosts, getComments, getDailyReports } from '@/lib/store';
 import { mockPosts, mockComments, mockDailyReports } from '@/lib/mock-data';
+import { assignAlertLevelByPercentile, calcPostFlaggedRatio } from '@/lib/sentiment';
 
 function getDataSources() {
   const storePosts = getPosts();
@@ -12,7 +13,17 @@ function getDataSources() {
 
 export async function GET() {
   try {
-    const { posts, reports, useMock } = getDataSources();
+    const { posts: rawPosts, reports, useMock } = getDataSources();
+    // 全局分位分级：按所有帖子恶意评论比例重算 alertLevel（临时覆写，不污染 store）
+    const posts = rawPosts.map(p => ({ ...p }));
+    {
+      const ratios = new Map<string, number>();
+      for (const p of posts) {
+        const cs = useMock ? (mockComments[p.id] || []) : getComments(p.id);
+        ratios.set(p.id, calcPostFlaggedRatio(cs));
+      }
+      assignAlertLevelByPercentile(posts, ratios);
+    }
 
     // Calculate stats
     const totalPosts = posts.length;

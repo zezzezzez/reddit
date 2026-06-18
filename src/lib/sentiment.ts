@@ -894,6 +894,42 @@ export function calculatePostAlertLevel(
   return { level, reasons, flaggedCount, totalInfluenceScore: parseFloat(totalInfluenceScore.toFixed(2)) };
 }
 
+// 基于“恶意评论比例”全局分位的帖子分级
+// 规则：所有帖子按 (恶意评论数 / 总评论数) 降序排列，
+//   排名前 15%   → critical（高危）
+//   排名 15%~30% → medium  （中等）
+//   其余及恶意比例为 0     → safe    （正常）
+export function assignAlertLevelByPercentile<T extends { id: string; alertLevel?: AlertLevel }>(
+  posts: T[],
+  ratios: Map<string, number>,
+): void {
+  const N = posts.length;
+  if (N === 0) return;
+  const sorted = posts
+    .map((p, i) => ({ p, ratio: ratios.get(p.id) ?? 0, i }))
+    .sort((a, b) => {
+      if (b.ratio !== a.ratio) return b.ratio - a.ratio;
+      return a.i - b.i;
+    });
+  const hasAnyNeg = sorted[0].ratio > 0;
+  const criticalCount = hasAnyNeg ? Math.max(1, Math.ceil(N * 0.15)) : 0;
+  const top30 = Math.max(criticalCount, Math.ceil(N * 0.30));
+  sorted.forEach((item, idx) => {
+    if (item.ratio === 0) item.p.alertLevel = 'safe';
+    else if (idx < criticalCount) item.p.alertLevel = 'critical';
+    else if (idx < top30) item.p.alertLevel = 'medium';
+    else item.p.alertLevel = 'safe';
+  });
+}
+
+// 计算单个帖子的恶意比例（恶意评论数 / 总评论数）
+// 恶意判定：命中硬性关键词 或 sentimentScore < 0
+export function calcPostFlaggedRatio(comments: RedditComment[]): number {
+  if (!comments || comments.length === 0) return 0;
+  const flagged = comments.filter(c => c.isFlagged || (c.sentimentScore ?? 0) < 0).length;
+  return flagged / comments.length;
+}
+
 // ─── 标签/颜色工具函数 ─────────────────────────────────────────
 export function getAlertLevelLabel(level: AlertLevel): string {
   switch (level) {

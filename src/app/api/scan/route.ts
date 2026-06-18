@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { getPosts, savePosts, getComments, saveComments, saveScanResult, getConfig, getDailyReports, saveDailyReport } from '@/lib/store';
 import { fetchRedditPost } from '@/lib/reddit';
-import { analyzeCommentSentiment, calculatePostAlertLevel } from '@/lib/sentiment';
+import { analyzeCommentSentiment, calculatePostAlertLevel, assignAlertLevelByPercentile, calcPostFlaggedRatio } from '@/lib/sentiment';
 import { generateDetailedSummary } from '@/lib/summary';
 import { analyzeSentimentWithLLM } from '@/lib/llm';
 import { RedditComment } from '@/lib/types';
@@ -306,6 +306,20 @@ export async function POST(request: Request) {
     }
 
     console.log(`[Scan] Complete: ${results.length} posts, ${totalNewComments} comments, ${totalFlagged} flagged`);
+
+    scanProgress.message = '扫描完成，正在汇总分级...';
+
+    // 全局分位分级：扫描完成后依据所有帖子的恶意评论比例重算 alertLevel并持久化
+    {
+      const allPostsForRank = getPosts();
+      const ratios = new Map<string, number>();
+      for (const p of allPostsForRank) {
+        ratios.set(p.id, calcPostFlaggedRatio(getComments(p.id)));
+      }
+      assignAlertLevelByPercentile(allPostsForRank, ratios);
+      savePosts(allPostsForRank);
+      console.log('[Scan] AlertLevel re-ranked by global percentile (top15%=critical, 15-30%=medium, rest=safe)');
+    }
 
     scanProgress.message = '扫描完成，正在保存报告...';
 

@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { getPosts, getComments, savePosts, deletePost, deleteComments, deleteScanResults, clearAllData } from '@/lib/store';
 import { mockPosts, mockComments } from '@/lib/mock-data';
-import { calcCommentInfluenceScore } from '@/lib/sentiment';
+import { calcCommentInfluenceScore, assignAlertLevelByPercentile, calcPostFlaggedRatio } from '@/lib/sentiment';
 
 function getDataSources() {
   const storePosts = getPosts();
@@ -21,7 +21,16 @@ export async function GET(request: Request) {
     const subreddit = searchParams.get('subreddit');
 
     const { posts: allPosts, useMock } = getDataSources();
-    let posts = [...allPosts];
+    // 浅拷贝每个 post，避免覆写 alertLevel 时污染 store 内存对象
+    let posts = allPosts.map(p => ({ ...p }));
+
+    // 全局分位分级：基于所有帖子的恶意评论比例重算 alertLevel（返回临时覆写）
+    const ratios = new Map<string, number>();
+    posts.forEach(post => {
+      const cs = useMock ? mockComments[post.id] || [] : getComments(post.id);
+      ratios.set(post.id, calcPostFlaggedRatio(cs));
+    });
+    assignAlertLevelByPercentile(posts, ratios);
 
     // Pre-calculate influence score for sorting (attach temporarily)
     posts.forEach(post => {
@@ -31,7 +40,7 @@ export async function GET(request: Request) {
       } else {
         comments = getComments(post.id);
       }
-      const allFlagged = comments.filter(c => c.isFlagged);
+      const allFlagged = comments.filter(c => c.isFlagged || (c.sentimentScore ?? 0) < 0);
       (post as any)._totalInfluenceScore = allFlagged.reduce(
         (sum, c) => sum + calcCommentInfluenceScore(c.score, c.sentimentScore), 0
       );
