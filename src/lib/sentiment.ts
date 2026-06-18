@@ -230,6 +230,23 @@ const POSITIVE_EMOTION_WORDS = [
   'going strong', 'running strong', 'holding strong',
   'years later', 'after years', 'after all this time',
   'long lasting', 'long-lasting', 'durable', 'sturdy', 'robust',
+  // ── 服务/人际友好表达 ──
+  'helpful', 'really helpful', 'super helpful', 'incredibly helpful',
+  'extremely helpful', 'very helpful', 'so helpful',
+  'kind', 'friendly', 'professional', 'attentive', 'knowledgeable',
+  'patient', 'responsive', 'courteous', 'polite',
+  'efficient', 'quick response', 'fast response', 'prompt response',
+  'thank you', 'thanks', 'appreciate', 'appreciated', 'grateful',
+  // ── 反例/转折正面表达 ──
+  'opposite experience', 'positive experience', 'great experience',
+  'good experience', 'wonderful experience', 'pleasant experience',
+  'no issue', 'mine works', 'mine has been', 'mine is fine',
+  'smooth process', 'hassle free experience', 'hassle-free experience',
+  // ── 售后服务正面 ──
+  'great support', 'good support', 'amazing support', 'excellent support',
+  'great customer service', 'good customer service', 'amazing customer service',
+  'great warranty', 'honored warranty', 'replaced under warranty',
+  'refunded', 'full refund', 'quick refund',
 ];
 
 // ─── 通用负面情感词（兜底用，每个词 0.1 分）───────────────────────
@@ -802,7 +819,8 @@ export function analyzeCommentSentiment(
 
   finalScore = Math.max(-1, Math.min(1, finalScore));
 
-  const isFlagged = matchedKeywords.length > 0;
+  // 恶意判定与 UI 标红一致：命中硬性关键词 或 最终得分 < 0 均视为恶意
+  const isFlagged = matchedKeywords.length > 0 || finalScore < 0;
   const flagReasons = [...new Set(matchedKeywords.map(m => m.category))];
 
   return {

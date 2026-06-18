@@ -85,12 +85,22 @@ export default function PostDetailPage() {
     count: value,
   }));
 
-  const filteredComments = comments.filter((c: any) => {
-    const isNegative = (c.sentimentScore ?? 0) < 0;
-    if (commentFilter === 'flagged') return isNegative;
-    if (commentFilter === 'safe') return !isNegative;
-    return true;
-  });
+  const filteredComments = comments
+    .filter((c: any) => {
+      const isNegative = (c.sentimentScore ?? 0) < 0;
+      if (commentFilter === 'flagged') return isNegative;
+      if (commentFilter === 'safe') return !isNegative;
+      return true;
+    })
+    .slice()
+    .sort((a: any, b: any) => {
+      // 恶意（score < 0）置顶；同类内按得分从低到高（越负越靠前），其余按点赞数从高到低
+      const aNeg = (a.sentimentScore ?? 0) < 0 ? 1 : 0;
+      const bNeg = (b.sentimentScore ?? 0) < 0 ? 1 : 0;
+      if (aNeg !== bNeg) return bNeg - aNeg;
+      if (aNeg === 1) return (a.sentimentScore ?? 0) - (b.sentimentScore ?? 0);
+      return (b.score ?? 0) - (a.score ?? 0);
+    });
 
   const getSentimentIcon = (score: number) => {
     if (score > 0) return <ThumbsUp className="w-4 h-4 text-green-400" />;

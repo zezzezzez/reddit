@@ -110,7 +110,7 @@ export async function GET(request: Request) {
       } else {
         comments = getComments(post.id);
       }
-      const flagged = comments.filter(c => c.isFlagged).length;
+      const flagged = comments.filter(c => c.isFlagged || (c.sentimentScore ?? 0) < 0).length;
       return {
         ...post,
         totalCommentsFetched: comments.length,

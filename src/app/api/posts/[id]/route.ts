@@ -55,12 +55,14 @@ export async function GET(
 
     // Flatten all comments including replies for accurate counts
     const allComments = flattenAllComments(comments);
-    const flaggedComments = allComments.filter(c => c.isFlagged);
+    // 恶意判定与 UI 标红一致：命中硬性关键词 或 情感得分 < 0 均视为恶意
+    const isCommentNegative = (c: any) => c.isFlagged || (c.sentimentScore ?? 0) < 0;
+    const flaggedComments = allComments.filter(isCommentNegative);
 
-    // Sentiment summary (using ALL comments including replies)
-    const positive = allComments.filter(c => c.sentimentScore > 0.1).length;
-    const neutral = allComments.filter(c => c.sentimentScore >= -0.1 && c.sentimentScore <= 0.1).length;
-    const negative = allComments.filter(c => c.sentimentScore < -0.1).length;
+    // Sentiment summary (using ALL comments including replies) — 严格按零分界
+    const positive = allComments.filter(c => c.sentimentScore > 0).length;
+    const neutral = allComments.filter(c => c.sentimentScore === 0).length;
+    const negative = allComments.filter(c => c.sentimentScore < 0).length;
 
     // Category breakdown
     const categoryCount: Record<string, number> = {};
@@ -73,7 +75,11 @@ export async function GET(
     return NextResponse.json({
       post,
       comments: injectInfluenceScore(comments).sort((a, b) => {
-        if (a.isFlagged !== b.isFlagged) return a.isFlagged ? -1 : 1;
+        // 恶意（score < 0）置顶；同类内越负越靠前，其余按点赞高的靠前
+        const aNeg = isCommentNegative(a) ? 1 : 0;
+        const bNeg = isCommentNegative(b) ? 1 : 0;
+        if (aNeg !== bNeg) return bNeg - aNeg;
+        if (aNeg === 1) return (a.sentimentScore ?? 0) - (b.sentimentScore ?? 0);
         return b.score - a.score;
       }),
       summary: {
