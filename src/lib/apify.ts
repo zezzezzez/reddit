@@ -150,24 +150,49 @@ export async function fetchSearchViaApify(
       return { posts: [], error: `未找到匹配 "${keywordQuery}" 的帖子` };
     }
 
-    const posts: ApifySubredditPost[] = items
-      .filter((item: any) => item.permalink || item.id || item.title)
+    // 调试：输出第一条原始数据结构，便于定位字段名
+    if (items.length > 0) {
+      console.log(`[Apify] First raw item keys:`, Object.keys(items[0] as any));
+      console.log(`[Apify] First raw item sample:`, JSON.stringify(items[0]).slice(0, 500));
+    }
+
+    // 宽松 filter：search 模式返回的帖子可能没有 permalink 但有 url / id / title
+    // 同时排除明显是评论的项（有 depth / parent_id 字段）
+    const postItems = items.filter((item: any) => {
+      // 排除评论（评论有 depth 或 parent_id）
+      if (item.depth !== undefined || item.parent_id) return false;
+      // 必须有 title 或 id 才认为是帖子
+      return item.title || item.id || item.postId;
+    });
+
+    console.log(`[Apify] After filter: ${postItems.length} posts (raw ${items.length})`);
+
+    const posts: ApifySubredditPost[] = postItems
       .slice(0, limit)
-      .map((item: any) => ({
-        id: item.id || '',
-        title: item.title || '',
-        author: item.author || '[deleted]',
-        score: item.score || 0,
-        commentCount: item.num_comments || 0,
-        subreddit: item.subreddit || subreddit || '',
-        createdAt: item.created_utc_iso || (item.created_utc
-          ? new Date(item.created_utc * 1000).toISOString()
-          : new Date().toISOString()),
-        permalink: item.permalink
-          ? (item.permalink.startsWith('http') ? item.permalink : `https://www.reddit.com${item.permalink}`)
-          : '',
-        selftext: item.text || item.selftext || '',
-      }));
+      .map((item: any) => {
+        // 从 url 或 permalink 构造 Reddit 链接
+        let permalink = item.permalink || item.postPermalink || '';
+        if (!permalink && item.url && typeof item.url === 'string' && item.url.includes('reddit.com')) {
+          permalink = item.url;
+        }
+        const fullPermalink = permalink
+          ? (permalink.startsWith('http') ? permalink : `https://www.reddit.com${permalink}`)
+          : '';
+
+        return {
+          id: item.id || item.postId || '',
+          title: item.title || '',
+          author: item.author || '[deleted]',
+          score: Number(item.score) || 0,
+          commentCount: Number(item.num_comments ?? item.numComments ?? item.commentsCount ?? 0),
+          subreddit: item.subreddit || subreddit || '',
+          createdAt: item.created_utc_iso || (item.created_utc
+            ? new Date(Number(item.created_utc) * 1000).toISOString()
+            : new Date().toISOString()),
+          permalink: fullPermalink,
+          selftext: item.text || item.selftext || item.body || '',
+        };
+      });
 
     console.log(`[Apify] Got ${posts.length} posts for query "${keywordQuery}"`);
 

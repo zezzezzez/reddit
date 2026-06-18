@@ -15,7 +15,6 @@ interface SearchPost {
   selftext: string;
 }
 
-const LIMIT_OPTIONS = [10, 25, 50, 100];
 const TIMEFRAME_OPTIONS: { value: 'hour' | 'day' | 'week' | 'month' | 'year' | 'all'; label: string }[] = [
   { value: 'hour', label: '最近 1 小时' },
   { value: 'day', label: '最近 1 天' },
@@ -227,22 +226,20 @@ export default function SearchPage() {
             <label className="flex items-center gap-2 text-sm font-semibold text-gray-900 mb-2">
               <Download className="w-4 h-4 text-primary" />
               爬取帖子数量
+              <span className="text-xs text-gray-500 font-normal">（1 ~ 100）</span>
             </label>
-            <div className="flex flex-wrap gap-2">
-              {LIMIT_OPTIONS.map(n => (
-                <button
-                  key={n}
-                  onClick={() => setLimit(n)}
-                  className={`px-4 py-1.5 rounded-lg text-sm font-medium transition-colors border ${
-                    limit === n
-                      ? 'bg-primary text-white border-primary'
-                      : 'bg-white text-gray-700 border-gray-300 hover:border-primary hover:text-primary'
-                  }`}
-                >
-                  {n}
-                </button>
-              ))}
-            </div>
+            <input
+              type="number"
+              min={1}
+              max={100}
+              value={limit}
+              onChange={e => {
+                const v = parseInt(e.target.value, 10);
+                if (!isNaN(v) && v >= 1 && v <= 100) setLimit(v);
+              }}
+              className="w-full px-3 py-2 rounded-lg border border-gray-300 focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none text-sm"
+              placeholder="输入数量（默认 25）"
+            />
           </div>
 
           <div>
