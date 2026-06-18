@@ -89,6 +89,8 @@ export interface ApifySubredditPost {
   createdAt: string;
   permalink: string;
   selftext: string;
+  locked?: boolean;
+  archived?: boolean;
 }
 
 // ─── 代理配置（版块抓取用）──────────────────────────────────
@@ -119,6 +121,8 @@ function normalizeApifyItem(item: any, fallbackSubreddit: string): ApifySubreddi
       ? (permalink.startsWith('http') ? permalink : `https://www.reddit.com${permalink}`)
       : '',
     selftext: item.text || item.selftext || item.body || '',
+    locked: Boolean(item.locked),
+    archived: Boolean(item.archived),
   };
 }
 
@@ -198,11 +202,12 @@ export async function fetchSearchViaApify(
       await throttle();
 
       // 抓 3 倍数量，给关键词过滤留余量
+      // 用 hot 排序优先抓热度高/评论多的帖子
       const scrapeLimit = Math.min(limit * 3, 100);
       const scrapeActorInput = {
         mode: 'scrape',
         listings: [{ subreddit, maxPosts: scrapeLimit }],
-        sort: 'new' as const,
+        sort: 'hot' as const,
         timeframe: 'all' as const,
         includeCommentsMode: 'none' as const,
         proxyConfiguration: PROXY_CONFIG,
@@ -227,8 +232,20 @@ export async function fetchSearchViaApify(
         });
         const allScrapePosts = scrapePostItems.map(item => normalizeApifyItem(item, subreddit));
 
+        // 过滤：排除已锁定（locked）或已归档（archived）的帖子
+        const activePosts = allScrapePosts.filter(p => !p.locked && !p.archived);
+        console.log(`[Apify] Scrape: ${activePosts.length} active posts (excluded ${allScrapePosts.length - activePosts.length} locked/archived)`);
+
+        // 按热度排序：优先评论数多、score 高的帖子
+        activePosts.sort((a, b) => {
+          // 综合评分 = commentCount * 2 + score（评论权重更高）
+          const scoreA = a.commentCount * 2 + a.score;
+          const scoreB = b.commentCount * 2 + b.score;
+          return scoreB - scoreA;
+        });
+
         // 按关键词过滤（标题 + 正文匹配任一关键词）
-        const matchedPosts = allScrapePosts.filter(p => postMatchesKeywords(p, kwLower));
+        const matchedPosts = activePosts.filter(p => postMatchesKeywords(p, kwLower));
 
         console.log(`[Apify] Scrape fallback: ${matchedPosts.length} matched (from ${allScrapePosts.length} posts, ${scrapeItems.length} raw)`);
 
