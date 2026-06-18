@@ -102,6 +102,7 @@ const PROXY_CONFIG = {
 // ─── 按关键词搜索帖子（subreddit + keywords）─────────────────────
 
 /** 将 Apify 原始 item 转换为统一帖子格式 */
+let _debugCount = 0;
 function normalizeApifyItem(item: any, fallbackSubreddit: string): ApifySubredditPost {
   let permalink = item.permalink || item.postPermalink || '';
   if (!permalink && item.url && typeof item.url === 'string' && item.url.includes('reddit.com')) {
@@ -111,10 +112,9 @@ function normalizeApifyItem(item: any, fallbackSubreddit: string): ApifySubreddi
   const commentCount = Number(item.num_comments ?? item.numComments ?? item.commentsCount ?? item.comment_count ?? 0);
   
   // 调试：输出前 3 个帖子的原始 score/num_comments 值
-  if (normalizeApifyItem._debugCount === undefined) normalizeApifyItem._debugCount = 0;
-  if (normalizeApifyItem._debugCount < 3) {
+  if (_debugCount < 3) {
     console.log(`[Apify] Debug item: title="${item.title?.slice(0, 50)}", score=${item.score}, num_comments=${item.num_comments}, upvotes=${item.upvotes}, estimated_upvotes=${item.estimated_upvotes}`);
-    normalizeApifyItem._debugCount++;
+    _debugCount++;
   }
   
   return {
