@@ -1,0 +1,14 @@
+# 知识卡导出索引文件
+schema_version: 1
+locale: zh-CN
+branch: main
+exported_at: "2026-06-18T00:44:36Z"
+modules:
+    "":
+        dir_name: Reddit 品牌舆情监控与预警平台
+        title: Reddit 品牌舆情监控与预警平台
+        scope: []
+        source_files: []
+        children: []
+        depends_on: []
+        related_to: []

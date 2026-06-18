@@ -92,14 +92,14 @@ export default function PostDetailPage() {
   });
 
   const getSentimentIcon = (score: number) => {
-    if (score > 0.1) return <ThumbsUp className="w-4 h-4 text-green-400" />;
-    if (score < -0.1) return <ThumbsDown className="w-4 h-4 text-red-400" />;
+    if (score > 0) return <ThumbsUp className="w-4 h-4 text-green-400" />;
+    if (score < 0) return <ThumbsDown className="w-4 h-4 text-red-400" />;
     return <Minus className="w-4 h-4 text-gray-400" />;
   };
 
   const getSentimentBar = (score: number) => {
     const width = Math.abs(score) * 100;
-    const color = score > 0.1 ? 'bg-green-500' : score < -0.1 ? 'bg-red-500' : 'bg-gray-500';
+    const color = score > 0 ? 'bg-green-500' : score < 0 ? 'bg-red-500' : 'bg-gray-500';
     return (
       <div className="w-20 h-1.5 bg-gray-200 rounded-full overflow-hidden">
         <div className={`h-full ${color} rounded-full`} style={{ width: `${width}%` }} />
@@ -108,8 +108,8 @@ export default function PostDetailPage() {
   };
 
   const getSentimentScoreColor = (score: number) => {
-    if (score > 0.1) return 'text-green-600';
-    if (score < -0.1) return 'text-red-600';
+    if (score > 0) return 'text-green-600';
+    if (score < 0) return 'text-red-600';
     return 'text-gray-600';
   };
 
@@ -231,15 +231,15 @@ export default function PostDetailPage() {
           <span className="font-medium text-gray-900">情感分数图例：</span>
           <span className="flex items-center gap-1">
             <ThumbsUp className="w-3.5 h-3.5 text-green-600" />
-            <span className="text-green-600">&gt; 0.1 正面</span>
+            <span className="text-green-600">&gt; 0 正面</span>
           </span>
           <span className="flex items-center gap-1">
             <Minus className="w-3.5 h-3.5 text-gray-500" />
-            <span className="text-gray-500">-0.1 ~ 0.1 中性</span>
+            <span className="text-gray-500">= 0 中性</span>
           </span>
           <span className="flex items-center gap-1">
             <ThumbsDown className="w-3.5 h-3.5 text-red-600" />
-            <span className="text-red-600">&lt; -0.1 负面</span>
+            <span className="text-red-600">&lt; 0 负面</span>
           </span>
           <span className="text-gray-500 ml-2">| 👍 为 Reddit 点赞数</span>
         </div>

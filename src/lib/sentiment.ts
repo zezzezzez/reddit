@@ -75,36 +75,17 @@ export const KEYWORD_CATEGORIES = {
     'sound is crap', 'audio is terrible', 'sound cuts out', 'audio dropout',
   ],
   negative_sentiment: [
-    // ── 直接情感表达 ──
+    // ── 直接指向海信的负面表达 ──
     'hate this tv', 'hate hisense', 'hate the hisense',
-    'disgusting quality', 'outrageous', 'unacceptable quality',
     'fed up with hisense', 'sick of hisense', 'tired of hisense',
-    'never again hisense', 'never buying hisense', 'never again',
-    'overpriced junk', 'not worth the money', 'total waste', 'deeply disappointed',
-    'so disappointed', 'very disappointed', 'extremely disappointed',
-    // ── 脏话（通用） ──
-    'fuck', 'fucking', 'fucked', 'damn', 'shit', 'shitty', 'sucks', 'suck', 'sucked',
-    'crap', 'crappy', 'craptastic',
-    'bullshit', 'bull shit', 'bs',
-    'ass', 'asshole', 'dick', 'douche',
+    'never again hisense', 'never buying hisense',
     'hisense is bad', 'hisense is terrible', 'hisense is awful',
     'hisense is horrible', 'hisense is pathetic', 'hisense is disgusting',
-    // ── 愤怒表达 ──
-    'pissed off', 'so angry', 'so mad', 'furious', 'enraged',
-    'irritated', 'annoyed', 'frustrated', 'aggravated',
-    'can\'t stand', 'can\'t bear', 'can\'t tolerate',
-    'sick and tired', 'had enough', 'fed up',
-    // ── 失望/不满 ──
-    'underwhelming', 'underwhelmed', 'mediocre', 'subpar',
-    'lacking', 'missing', 'absent', 'nonexistent',
-    'joke', 'laughable', 'ridiculous', 'absurd',
-    'pathetic', 'pitiful', 'sad', 'sorry excuse',
-    'what a waste', 'such a waste', 'complete waste',
-    // ── 质疑/嘲讽 ──
-    'who buys hisense', 'who would buy', 'why would anyone',
-    'how is this legal', 'how do they get away',
-    'save your money', 'don\'t waste your time', 'don\'t bother',
-    'should have known', 'knew better', 'told you so',
+    // ── 质疑/嘲讽（明确指向海信） ──
+    'who buys hisense', 'who would buy hisense',
+    // ── 强表达（明确购买后悔） ──
+    'overpriced junk', 'not worth the money', 'deeply disappointed',
+    'so disappointed', 'very disappointed', 'extremely disappointed',
   ],
   call_to_action_negative: [
     // ── 直接劝阻 ──
@@ -667,25 +648,45 @@ export function analyzeCommentSentiment(
     competitor_push: true,
   };
 
+  // ── 0. 品牌实体存在性检测（前置，用于负面命中守卫）────────────
+  const hasHisense = textHasAnyKeyword(text, HISENSE_KEYWORDS);
+  const hasCompetitor = textHasAnyKeyword(text, COMPETITOR_KEYWORDS);
+  // 仅出现竞品（如 "Fuck Samsung"）→ 不属于海信负面，跳过所有硬性负面命中
+  const skipHardNegative = hasCompetitor && !hasHisense;
+
   // ── 1. 硬性负面关键词检测（最高优先级）────────────────────────
-  for (const [category, keywords] of Object.entries(KEYWORD_CATEGORIES)) {
-    if (!activeRules[category as keyof DetectionRules]) continue;
-    for (const keyword of keywords) {
-      const keywordLower = keyword.toLowerCase().trim();
-      if (keywordLower.length <= 3) {
-        const regex = new RegExp(`\\b${escapeRegex(keywordLower)}\\b`, 'i');
-        if (regex.test(text)) {
-          matchedKeywords.push({ category, keyword: keyword.trim() });
-          negativityScore += getCategoryWeight(category);
-        }
-      } else {
-        if (text.includes(keywordLower)) {
-          const keywordIndex = text.indexOf(keywordLower);
-          const beforeText = text.substring(Math.max(0, keywordIndex - 20), keywordIndex);
-          const hasNegation = NEGATION_WORDS.some(neg => beforeText.includes(neg));
-          if (!hasNegation) {
+  if (!skipHardNegative) {
+    for (const [category, keywords] of Object.entries(KEYWORD_CATEGORIES)) {
+      if (!activeRules[category as keyof DetectionRules]) continue;
+      for (const keyword of keywords) {
+        const keywordLower = keyword.toLowerCase().trim();
+        if (keywordLower.length <= 3) {
+          const regex = new RegExp(`\\b${escapeRegex(keywordLower)}\\b`, 'i');
+          if (regex.test(text)) {
             matchedKeywords.push({ category, keyword: keyword.trim() });
             negativityScore += getCategoryWeight(category);
+          }
+        } else {
+          // 短词（≤5）使用词边界，避免如 'crap' 误命中 'craps out'
+          if (keywordLower.length <= 5 && !keywordLower.includes(' ')) {
+            const regex = new RegExp(`\\b${escapeRegex(keywordLower)}\\b`, 'i');
+            if (regex.test(text)) {
+              const keywordIndex = text.search(regex);
+              const beforeText = text.substring(Math.max(0, keywordIndex - 20), keywordIndex);
+              const hasNegation = NEGATION_WORDS.some(neg => beforeText.includes(neg));
+              if (!hasNegation) {
+                matchedKeywords.push({ category, keyword: keyword.trim() });
+                negativityScore += getCategoryWeight(category);
+              }
+            }
+          } else if (text.includes(keywordLower)) {
+            const keywordIndex = text.indexOf(keywordLower);
+            const beforeText = text.substring(Math.max(0, keywordIndex - 20), keywordIndex);
+            const hasNegation = NEGATION_WORDS.some(neg => beforeText.includes(neg));
+            if (!hasNegation) {
+              matchedKeywords.push({ category, keyword: keyword.trim() });
+              negativityScore += getCategoryWeight(category);
+            }
           }
         }
       }
@@ -717,11 +718,7 @@ export function analyzeCommentSentiment(
   // ── 4. 品牌附近情感检测（精准上下文）────────────────────────
   const brandContext = detectBrandContextSentiment(text);
 
-  // ── 5. 品牌实体存在性检测 ───────────────────────────────────
-  const hasHisense = textHasAnyKeyword(text, HISENSE_KEYWORDS);
-  const hasCompetitor = textHasAnyKeyword(text, COMPETITOR_KEYWORDS);
-
-  // ── 6. 综合计算最终情感得分 ─────────────────────────────────
+  // ── 5. 综合计算最终情感得分 ─────────────────────────────────
   let finalScore: number;
 
   // 硬性负面命中 → 直接负面（最高优先级）
