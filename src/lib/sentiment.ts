@@ -246,6 +246,8 @@ const POSITIVE_EMOTION_WORDS = [
   'monster', 'a monster', 'killer',
   'congrats', 'congratulations', 'congratz',
   'banger', 'fire', 'goated', 'top tier', 'top-tier', 's tier', 's-tier',
+  // ── 售后/保修类正面表达（长保修 = 厂商对产品有信心）──
+  'extended warranty', 'lifetime warranty', 'free replacement', 'free repair',
   // ── 强烈购买意愿/偏好表达 ──
   'checks all my boxes', 'checks the boxes', 'ticks all the boxes',
   "i'm buying", 'im buying', 'going to buy', 'gonna buy', 'about to buy',
@@ -509,6 +511,11 @@ const POSITIVE_PATTERNS = [
   { pattern: /remote (?:is|was|works|feels) (?:good|great|nice|decent|responsive)/i, weight: 0.2 },
   { pattern: /voice control/i, weight: 0.15 },
   { pattern: /built.in (?:chromecast|airplay|alexa)/i, weight: 0.2 },
+  // ── 售后/保修正面信号（长保修 = 厂商对产品有信心）──
+  { pattern: /\bextended warranty\b/i, weight: 0.3 },
+  { pattern: /\b(?:\d+\s*(?:-|\s)?\s*year(?:s)?)(?:\s*extended)?\s*warranty\b/i, weight: 0.35 },
+  { pattern: /\blifetime (?:warranty|coverage|support|guarantee)\b/i, weight: 0.4 },
+  { pattern: /\bfree (?:replacement|repair|service|warranty)\b/i, weight: 0.3 },
 
   // ═══════════════════════════════════════════════════════════════
   // === 满意度/体验 ===
@@ -697,11 +704,11 @@ function detectBrandContextSentiment(text: string): { hisensePositive: boolean; 
     competitorPositive: false, competitorNegative: false,
   };
 
-  // 检测海信附近情感
+  // 检测海信附近情感（窗口 ±80 字符，覆盖长句中的保修/售后等正面信号）
   for (const kw of HISENSE_KEYWORDS) {
     const idx = lowerText.indexOf(kw.toLowerCase());
     if (idx === -1) continue;
-    const window = lowerText.substring(Math.max(0, idx - 60), Math.min(lowerText.length, idx + kw.length + 60));
+    const window = lowerText.substring(Math.max(0, idx - 80), Math.min(lowerText.length, idx + kw.length + 80));
 
     const hasPos = POSITIVE_EMOTION_WORDS.some(w => window.includes(w.toLowerCase()));
     // 负面词需去除被否定的命中（如 "don't get the hate"）+ 反讽翻转
