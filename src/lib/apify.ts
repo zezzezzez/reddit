@@ -97,7 +97,83 @@ const PROXY_CONFIG = {
   apifyProxyGroups: ['RESIDENTIAL'],
 };
 
-// ─── 抓取板块帖子列表 ──────────────────────────────────────
+// ─── 按关键词搜索帖子（subreddit + keywords）─────────────────────
+
+/**
+ * 通过 spry_wholemeal/reddit-scraper 按关键词搜索帖子
+ * 支持 subreddit + 多关键词 + 数量 + 时间范围
+ */
+export async function fetchSearchViaApify(
+  subreddit: string,
+  keywords: string[],
+  limit: number = 25,
+  timeframe: 'hour' | 'day' | 'week' | 'month' | 'year' | 'all' = 'month'
+): Promise<ApifySubredditPost[]> {
+  try {
+    const keywordQuery = keywords.join(' ');
+    const query = subreddit ? `${keywordQuery} subreddit:${subreddit}` : keywordQuery;
+
+    const cacheKey = `search:${subreddit}:${keywords.join(',')}:${timeframe}:${limit}`;
+    const cached = getCachedResult(subredditCache, cacheKey, SUBREDDIT_CACHE_TTL);
+    if (cached) return cached;
+
+    await throttle();
+
+    console.log(`[Apify] Searching "${query}" via reddit-scraper (limit: ${limit}, timeframe: ${timeframe})`);
+
+    const client = getClient();
+
+    const actorInput = {
+      mode: 'search',
+      searchQuery: query,
+      sort: 'relevance',
+      timeframe,
+      maxPosts: Math.min(limit, 100),
+      includeCommentsMode: 'none' as const,
+      proxyConfiguration: PROXY_CONFIG,
+    };
+
+    console.log(`[Apify] Search actor input:`, JSON.stringify(actorInput));
+
+    const run = await client.actor('spry_wholemeal/reddit-scraper').call(actorInput);
+    const { items } = await client.dataset(run.defaultDatasetId).listItems();
+
+    console.log(`[Apify] Search raw items returned: ${items?.length || 0}`);
+
+    if (!items || items.length === 0) {
+      console.warn(`[Apify] No posts found for query: ${query}`);
+      return [];
+    }
+
+    const posts: ApifySubredditPost[] = items
+      .filter((item: any) => item.permalink || item.id || item.title)
+      .slice(0, limit)
+      .map((item: any) => ({
+        id: item.id || '',
+        title: item.title || '',
+        author: item.author || '[deleted]',
+        score: item.score || 0,
+        commentCount: item.num_comments || 0,
+        subreddit: item.subreddit || subreddit || '',
+        createdAt: item.created_utc_iso || (item.created_utc
+          ? new Date(item.created_utc * 1000).toISOString()
+          : new Date().toISOString()),
+        permalink: item.permalink
+          ? (item.permalink.startsWith('http') ? item.permalink : `https://www.reddit.com${item.permalink}`)
+          : '',
+        selftext: item.text || item.selftext || '',
+      }));
+
+    console.log(`[Apify] Got ${posts.length} posts for query "${query}"`);
+
+    setCacheResult(subredditCache, cacheKey, posts);
+    return posts;
+  } catch (error: any) {
+    console.error(`[Apify] Error searching "${keywords.join(' ')}":`, error.message);
+    return [];
+  }
+}
+
 
 /**
  * 通过 spry_wholemeal/reddit-scraper 抓取指定板块的帖子列表

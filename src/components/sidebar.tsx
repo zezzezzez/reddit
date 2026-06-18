@@ -15,6 +15,7 @@ import {
   Hash,
   BarChart3,
   Tv,
+  Globe,
 } from 'lucide-react';
 
 const navItems = [
@@ -24,6 +25,7 @@ const navItems = [
   { href: '/influencers', label: '恶意评论追踪', icon: Users },
   { href: '/keywords', label: '关键词热度', icon: Hash },
   { href: '/compare', label: '板块对比', icon: BarChart3 },
+  { href: '/search', label: '话题搜索', icon: Globe },
   { href: '/settings', label: '系统设置', icon: Settings },
 ];
 
