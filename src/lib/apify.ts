@@ -107,12 +107,22 @@ function normalizeApifyItem(item: any, fallbackSubreddit: string): ApifySubreddi
   if (!permalink && item.url && typeof item.url === 'string' && item.url.includes('reddit.com')) {
     permalink = item.url;
   }
+  const score = Number(item.score ?? item.upvotes ?? item.estimated_upvotes ?? 0);
+  const commentCount = Number(item.num_comments ?? item.numComments ?? item.commentsCount ?? item.comment_count ?? 0);
+  
+  // 调试：输出前 3 个帖子的原始 score/num_comments 值
+  if (normalizeApifyItem._debugCount === undefined) normalizeApifyItem._debugCount = 0;
+  if (normalizeApifyItem._debugCount < 3) {
+    console.log(`[Apify] Debug item: title="${item.title?.slice(0, 50)}", score=${item.score}, num_comments=${item.num_comments}, upvotes=${item.upvotes}, estimated_upvotes=${item.estimated_upvotes}`);
+    normalizeApifyItem._debugCount++;
+  }
+  
   return {
     id: item.id || item.postId || '',
     title: item.title || '',
     author: item.author || '[deleted]',
-    score: Number(item.score) || 0,
-    commentCount: Number(item.num_comments ?? item.numComments ?? item.commentsCount ?? 0),
+    score,
+    commentCount,
     subreddit: item.subreddit || fallbackSubreddit || '',
     createdAt: item.created_utc_iso || (item.created_utc
       ? new Date(Number(item.created_utc) * 1000).toISOString()
