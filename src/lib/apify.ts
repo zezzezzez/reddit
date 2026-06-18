@@ -99,18 +99,50 @@ const PROXY_CONFIG = {
 
 // ─── 按关键词搜索帖子（subreddit + keywords）─────────────────────
 
+/** 将 Apify 原始 item 转换为统一帖子格式 */
+function normalizeApifyItem(item: any, fallbackSubreddit: string): ApifySubredditPost {
+  let permalink = item.permalink || item.postPermalink || '';
+  if (!permalink && item.url && typeof item.url === 'string' && item.url.includes('reddit.com')) {
+    permalink = item.url;
+  }
+  return {
+    id: item.id || item.postId || '',
+    title: item.title || '',
+    author: item.author || '[deleted]',
+    score: Number(item.score) || 0,
+    commentCount: Number(item.num_comments ?? item.numComments ?? item.commentsCount ?? 0),
+    subreddit: item.subreddit || fallbackSubreddit || '',
+    createdAt: item.created_utc_iso || (item.created_utc
+      ? new Date(Number(item.created_utc) * 1000).toISOString()
+      : new Date().toISOString()),
+    permalink: permalink
+      ? (permalink.startsWith('http') ? permalink : `https://www.reddit.com${permalink}`)
+      : '',
+    selftext: item.text || item.selftext || item.body || '',
+  };
+}
+
+/** 判断帖子是否包含任一关键词（标题 + 正文） */
+function postMatchesKeywords(post: ApifySubredditPost, keywords: string[]): boolean {
+  const haystack = `${post.title} ${post.selftext}`.toLowerCase();
+  return keywords.some(kw => haystack.includes(kw.toLowerCase()));
+}
+
 /**
  * 通过 spry_wholemeal/reddit-scraper 按关键词搜索帖子
- * 支持 subreddit + 多关键词 + 数量 + 时间范围
+ * 混合策略：search 模式 + scrape 兜底
+ * 1. 先用 search 模式（Reddit 原生搜索）
+ * 2. 如果结果不够且有 subreddit，用 scrape 模式抓最新帖子再按关键词过滤
  */
 export async function fetchSearchViaApify(
   subreddit: string,
   keywords: string[],
   limit: number = 25,
   timeframe: 'hour' | 'day' | 'week' | 'month' | 'year' | 'all' = 'month'
-): Promise<{ posts: ApifySubredditPost[]; error?: string; rawItemCount: number; filteredPostCount: number; firstItemKeys?: string[]; firstItemSample?: string }> {
+): Promise<{ posts: ApifySubredditPost[]; error?: string; rawItemCount: number; filteredPostCount: number; firstItemKeys?: string[]; firstItemSample?: string; usedFallback?: boolean }> {
   try {
     const keywordQuery = keywords.join(' ');
+    const kwLower = keywords.map(k => k.toLowerCase());
 
     const cacheKey = `search:${subreddit}:${keywords.join(',')}:${timeframe}:${limit}`;
     const cached = getCachedResult(subredditCache, cacheKey, SUBREDDIT_CACHE_TTL);
@@ -122,11 +154,7 @@ export async function fetchSearchViaApify(
 
     const client = getClient();
 
-    // search 模式正确输入格式（参考 Actor README）：
-    // searchTargets: [{ query, maxResults }]
-    // searchSort: 'relevance' | 'hot' | 'new' | 'top' | 'comments'
-    // restrictToSubreddit: 限定版块
-    // timeframe: 'hour' | 'day' | 'week' | 'month' | 'year' | 'all'
+    // ── 第一步：search 模式（Reddit 原生搜索）──
     const actorInput: Record<string, any> = {
       mode: 'search',
       searchTargets: [{ query: keywordQuery, maxResults: Math.min(limit, 100) }],
@@ -141,7 +169,6 @@ export async function fetchSearchViaApify(
 
     console.log(`[Apify] Search actor input:`, JSON.stringify(actorInput));
 
-    // 服务端超时控制：2 分钟（Apify Actor 可能运行缓慢或卡住）
     const runPromise = client.actor('spry_wholemeal/reddit-scraper').call(actorInput);
     const timeoutPromise = new Promise<never>((_, reject) =>
       setTimeout(() => reject(new Error('Apify Actor 运行超时（2 分钟），请稍后重试')), 2 * 60 * 1000)
@@ -151,63 +178,111 @@ export async function fetchSearchViaApify(
 
     console.log(`[Apify] Search raw items returned: ${items?.length || 0}`);
 
-    if (!items || items.length === 0) {
-      return { posts: [], error: `未找到匹配 "${keywordQuery}" 的帖子`, rawItemCount: 0, filteredPostCount: 0 };
-    }
-
-    // 调试：输出第一条原始数据结构，便于定位字段名
-    if (items.length > 0) {
+    if (items && items.length > 0) {
       console.log(`[Apify] First raw item keys:`, Object.keys(items[0] as any));
-      console.log(`[Apify] First raw item sample:`, JSON.stringify(items[0]).slice(0, 500));
     }
 
-    // 宽松 filter：search 模式返回的帖子可能没有 permalink 但有 url / id / title
-    // 同时排除明显是评论的项（有 depth / parent_id 字段）
-    const postItems = items.filter((item: any) => {
-      // 排除评论（评论有 depth 或 parent_id）
+    // 过滤 + 转换
+    const postItems = (items || []).filter((item: any) => {
       if (item.depth !== undefined || item.parent_id) return false;
-      // 必须有 title 或 id 才认为是帖子
       return item.title || item.id || item.postId;
     });
+    const searchPosts = postItems.slice(0, limit).map(item => normalizeApifyItem(item, subreddit));
 
-    console.log(`[Apify] After filter: ${postItems.length} posts (raw ${items.length})`);
+    console.log(`[Apify] Search mode: ${searchPosts.length} posts (raw ${items?.length || 0})`);
 
-    const posts: ApifySubredditPost[] = postItems
-      .slice(0, limit)
-      .map((item: any) => {
-        // 从 url 或 permalink 构造 Reddit 链接
-        let permalink = item.permalink || item.postPermalink || '';
-        if (!permalink && item.url && typeof item.url === 'string' && item.url.includes('reddit.com')) {
-          permalink = item.url;
+    // ── 第二步：结果不够 + 有 subreddit → scrape 兜底 ──
+    if (searchPosts.length < limit && subreddit) {
+      console.log(`[Apify] Search returned ${searchPosts.length}/${limit}, falling back to scrape mode for r/${subreddit}`);
+
+      await throttle();
+
+      // 抓 3 倍数量，给关键词过滤留余量
+      const scrapeLimit = Math.min(limit * 3, 100);
+      const scrapeActorInput = {
+        mode: 'scrape',
+        listings: [{ subreddit, maxPosts: scrapeLimit }],
+        sort: 'new' as const,
+        timeframe: 'all' as const,
+        includeCommentsMode: 'none' as const,
+        proxyConfiguration: PROXY_CONFIG,
+      };
+
+      console.log(`[Apify] Scrape fallback input:`, JSON.stringify(scrapeActorInput));
+
+      const scrapeRunPromise = client.actor('spry_wholemeal/reddit-scraper').call(scrapeActorInput);
+      const scrapeTimeoutPromise = new Promise<never>((_, reject) =>
+        setTimeout(() => reject(new Error('Apify scrape 超时（2 分钟）')), 2 * 60 * 1000)
+      );
+      const scrapeRun = await Promise.race([scrapeRunPromise, scrapeTimeoutPromise]);
+      const { items: scrapeItems } = await client.dataset(scrapeRun.defaultDatasetId).listItems();
+
+      console.log(`[Apify] Scrape raw items: ${scrapeItems?.length || 0}`);
+
+      if (scrapeItems && scrapeItems.length > 0) {
+        // 过滤评论 + 转换
+        const scrapePostItems = scrapeItems.filter((item: any) => {
+          if (item.depth !== undefined || item.parent_id) return false;
+          return item.title || item.id || item.postId;
+        });
+        const allScrapePosts = scrapePostItems.map(item => normalizeApifyItem(item, subreddit));
+
+        // 按关键词过滤（标题 + 正文匹配任一关键词）
+        const matchedPosts = allScrapePosts.filter(p => postMatchesKeywords(p, kwLower));
+
+        console.log(`[Apify] Scrape fallback: ${matchedPosts.length} matched (from ${allScrapePosts.length} posts, ${scrapeItems.length} raw)`);
+
+        // 合并：search 结果 + scrape 结果，按 id 去重
+        const seenIds = new Set(searchPosts.map(p => p.id).filter(Boolean));
+        const combined = [...searchPosts];
+        for (const p of matchedPosts) {
+          if (p.id && !seenIds.has(p.id)) {
+            combined.push(p);
+            seenIds.add(p.id);
+          }
+          if (combined.length >= limit) break;
         }
-        const fullPermalink = permalink
-          ? (permalink.startsWith('http') ? permalink : `https://www.reddit.com${permalink}`)
-          : '';
 
+        console.log(`[Apify] Combined: ${combined.length} posts (search ${searchPosts.length} + scrape ${combined.length - searchPosts.length})`);
+
+        if (combined.length === 0) {
+          return {
+            posts: [],
+            error: `在 r/${subreddit} 最新 ${scrapeLimit} 条帖子中未找到包含 "${keywordQuery}" 的内容`,
+            rawItemCount: (items?.length || 0) + (scrapeItems?.length || 0),
+            filteredPostCount: 0,
+            usedFallback: true,
+          };
+        }
+
+        const finalPosts = combined.slice(0, limit);
+        setCacheResult(subredditCache, cacheKey, finalPosts);
         return {
-          id: item.id || item.postId || '',
-          title: item.title || '',
-          author: item.author || '[deleted]',
-          score: Number(item.score) || 0,
-          commentCount: Number(item.num_comments ?? item.numComments ?? item.commentsCount ?? 0),
-          subreddit: item.subreddit || subreddit || '',
-          createdAt: item.created_utc_iso || (item.created_utc
-            ? new Date(Number(item.created_utc) * 1000).toISOString()
-            : new Date().toISOString()),
-          permalink: fullPermalink,
-          selftext: item.text || item.selftext || item.body || '',
+          posts: finalPosts,
+          rawItemCount: (items?.length || 0) + (scrapeItems?.length || 0),
+          filteredPostCount: finalPosts.length,
+          usedFallback: true,
         };
-      });
+      }
+    }
 
-    console.log(`[Apify] Got ${posts.length} posts for query "${keywordQuery}"`);
+    // search 模式结果够用，或没有 subreddit 无法 fallback
+    if (searchPosts.length === 0) {
+      return {
+        posts: [],
+        error: `未找到匹配 "${keywordQuery}" 的帖子`,
+        rawItemCount: items?.length || 0,
+        filteredPostCount: 0,
+      };
+    }
 
-    setCacheResult(subredditCache, cacheKey, posts);
+    setCacheResult(subredditCache, cacheKey, searchPosts);
     return {
-      posts,
-      rawItemCount: items.length,
+      posts: searchPosts,
+      rawItemCount: items?.length || 0,
       filteredPostCount: postItems.length,
-      firstItemKeys: items.length > 0 ? Object.keys(items[0] as any) : undefined,
-      firstItemSample: items.length > 0 ? JSON.stringify(items[0]).slice(0, 500) : undefined,
+      firstItemKeys: items && items.length > 0 ? Object.keys(items[0] as any) : undefined,
+      firstItemSample: items && items.length > 0 ? JSON.stringify(items[0]).slice(0, 500) : undefined,
     };
   } catch (error: any) {
     console.error(`[Apify] Error searching "${keywords.join(' ')}":`, error.message);
