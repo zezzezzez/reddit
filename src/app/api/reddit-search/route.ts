@@ -3,6 +3,30 @@ import { fetchSearchViaApify } from '@/lib/apify';
 import { getPosts, savePosts } from '@/lib/store';
 import { RedditPost } from '@/lib/types';
 
+/** 用 Reddit JSON API 补充获取帖子的 score 和 num_comments */
+async function enrichPostFromReddit(post: { id: string; permalink: string; score: number; commentCount: number }): Promise<void> {
+  if (!post.permalink) return;
+  try {
+    // Reddit 帖子 URL 加 .json 后缀获取完整数据
+    const jsonUrl = post.permalink.endsWith('.json') ? post.permalink : `${post.permalink}.json`;
+    const res = await fetch(jsonUrl, {
+      headers: { 'User-Agent': 'Reddit-Monitor/1.0' },
+      signal: AbortSignal.timeout(5000), // 5 秒超时
+    });
+    if (!res.ok) return;
+    const data = await res.json();
+    // Reddit JSON API 返回格式：[{ kind: 'Listing', data: { children: [...] } }]
+    const children = data?.[0]?.data?.children;
+    if (children && children.length > 0) {
+      const postData = children[0].data;
+      if (typeof postData.score === 'number') post.score = postData.score;
+      if (typeof postData.num_comments === 'number') post.commentCount = postData.num_comments;
+    }
+  } catch {
+    // 忽略错误，保留原值（0）
+  }
+}
+
 // POST /api/reddit-search  ——  按关键词搜索 Reddit 帖子
 export async function POST(request: NextRequest) {
   try {
@@ -36,6 +60,11 @@ export async function POST(request: NextRequest) {
         { status: 502 }
       );
     }
+
+    // 用 Reddit JSON API 补充获取 score 和 num_comments（并行，最多 10 个）
+    const postsToEnrich = result.posts.slice(0, 10);
+    await Promise.all(postsToEnrich.map(p => enrichPostFromReddit(p)));
+    console.log(`[RedditSearch] Enriched ${postsToEnrich.length} posts from Reddit API`);
 
     return NextResponse.json({
       success: true,
