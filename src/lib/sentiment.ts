@@ -241,6 +241,14 @@ const POSITIVE_EMOTION_WORDS = [
   'patient', 'responsive', 'courteous', 'polite',
   'efficient', 'quick response', 'fast response', 'prompt response',
   'thank you', 'thanks', 'appreciate', 'appreciated', 'grateful',
+  // ── 强烈购买意愿/偏好表达 ──
+  'checks all my boxes', 'checks the boxes', 'ticks all the boxes',
+  "i'm buying", 'im buying', 'going to buy', 'gonna buy', 'about to buy',
+  "i'll buy it", 'will buy it', 'definitely buying', 'definitely getting',
+  'sold on it', 'sold me on',
+  // ── 比较/超越竞品（中性词，正面语义）──
+  'outshines', 'outshine', 'outperforms', 'outperform', 'outclasses', 'outclass',
+  'beats', 'destroys the competition', 'leaves behind',
   // ── 反例/转折正面表达 ──
   'opposite experience', 'positive experience', 'great experience',
   'good experience', 'wonderful experience', 'pleasant experience',
@@ -550,7 +558,13 @@ const INTENSITY_MODIFIERS = [
 // ─── 否定词 ────────────────────────────────────────────────────
 const NEGATION_WORDS = [
   'not', "n't", 'never', 'no', 'neither', 'nor', 'barely', 'hardly',
+  // 反向语义/排除型表达（如 "without worrying about burn-in"、"free of dead pixels"）
+  'without', 'free of', 'free from', 'avoids', 'avoiding', 'eliminates',
+  'rid of', 'no risk of', 'no worry', 'no worries', 'unlike',
 ];
+
+// 否定窗口：取负面词前 N 个字符判断是否被否定（覆盖 "without worrying about " 这类长前缀）
+const NEGATION_LOOKBACK = 35;
 
 // ─── 辅助函数：关键词边界匹配 ────────────────────────────────────
 function textHasKeyword(text: string, keyword: string): boolean {
@@ -573,6 +587,7 @@ function textHasAnyKeyword(text: string, keywords: string[]): boolean {
 
 // ─── 辅助函数：通用情感词检测 ────────────────────────────────────
 // 返回 0~1 的得分，每个词 +0.1
+// 负面词前 NEGATION_LOOKBACK 字符内若出现否定词则不计入（避免 "without burn-in" 误判）
 function detectGenericEmotion(text: string): { positive: number; negative: number } {
   const lowerText = text.toLowerCase();
   let pos = 0;
@@ -588,8 +603,14 @@ function detectGenericEmotion(text: string): { positive: number; negative: numbe
   for (const word of NEGATIVE_EMOTION_WORDS) {
     const lowerWord = word.toLowerCase();
     const regex = new RegExp(`(^|[^a-z0-9])${escapeRegex(lowerWord)}([^a-z0-9]|$)`, 'gi');
-    const matches = lowerText.match(regex);
-    if (matches) neg += matches.length * 0.1;
+    let m: RegExpExecArray | null;
+    const findAll = new RegExp(regex.source, 'gi');
+    while ((m = findAll.exec(lowerText)) !== null) {
+      const matchStart = m.index + (m[1] ? m[1].length : 0);
+      const before = lowerText.substring(Math.max(0, matchStart - NEGATION_LOOKBACK), matchStart);
+      const hasNeg = NEGATION_WORDS.some(n => before.includes(n));
+      if (!hasNeg) neg += 0.1;
+    }
   }
 
   return {
@@ -695,7 +716,7 @@ export function analyzeCommentSentiment(
             const regex = new RegExp(`\\b${escapeRegex(keywordLower)}\\b`, 'i');
             if (regex.test(text)) {
               const keywordIndex = text.search(regex);
-              const beforeText = text.substring(Math.max(0, keywordIndex - 20), keywordIndex);
+              const beforeText = text.substring(Math.max(0, keywordIndex - NEGATION_LOOKBACK), keywordIndex);
               const hasNegation = NEGATION_WORDS.some(neg => beforeText.includes(neg));
               if (!hasNegation) {
                 matchedKeywords.push({ category, keyword: keyword.trim() });
@@ -704,7 +725,7 @@ export function analyzeCommentSentiment(
             }
           } else if (text.includes(keywordLower)) {
             const keywordIndex = text.indexOf(keywordLower);
-            const beforeText = text.substring(Math.max(0, keywordIndex - 20), keywordIndex);
+            const beforeText = text.substring(Math.max(0, keywordIndex - NEGATION_LOOKBACK), keywordIndex);
             const hasNegation = NEGATION_WORDS.some(neg => beforeText.includes(neg));
             if (!hasNegation) {
               matchedKeywords.push({ category, keyword: keyword.trim() });
