@@ -126,10 +126,10 @@ function normalizeApifyItem(item: any, fallbackSubreddit: string): ApifySubreddi
   };
 }
 
-/** 判断帖子是否包含任一关键词（标题 + 正文） */
+/** 判断帖子标题是否包含任一关键词（仅匹配标题，不匹配正文/评论） */
 function postMatchesKeywords(post: ApifySubredditPost, keywords: string[]): boolean {
-  const haystack = `${post.title} ${post.selftext}`.toLowerCase();
-  return keywords.some(kw => haystack.includes(kw.toLowerCase()));
+  const titleLower = post.title.toLowerCase();
+  return keywords.some(kw => titleLower.includes(kw.toLowerCase()));
 }
 
 /**
