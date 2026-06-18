@@ -64,9 +64,9 @@ export async function POST(request: Request) {
       }
     }
 
-    // 智能延迟：跳过 nextScanTime 未到期的帖子
+    // 智能延迟：跳过 nextScanTime 未到期的帖子（仅全量扫描生效，单帖扫描不受此限制）
     let skippedByDelay = 0;
-    {
+    if (scanAll) {
       const now = Date.now();
       const before = postsToScan.length;
       postsToScan = postsToScan.filter(p => {
