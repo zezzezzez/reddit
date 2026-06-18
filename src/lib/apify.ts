@@ -108,30 +108,36 @@ export async function fetchSearchViaApify(
   keywords: string[],
   limit: number = 25,
   timeframe: 'hour' | 'day' | 'week' | 'month' | 'year' | 'all' = 'month'
-): Promise<ApifySubredditPost[]> {
+): Promise<{ posts: ApifySubredditPost[]; error?: string }> {
   try {
     const keywordQuery = keywords.join(' ');
-    const query = subreddit ? `${keywordQuery} subreddit:${subreddit}` : keywordQuery;
 
     const cacheKey = `search:${subreddit}:${keywords.join(',')}:${timeframe}:${limit}`;
     const cached = getCachedResult(subredditCache, cacheKey, SUBREDDIT_CACHE_TTL);
-    if (cached) return cached;
+    if (cached) return { posts: cached };
 
     await throttle();
 
-    console.log(`[Apify] Searching "${query}" via reddit-scraper (limit: ${limit}, timeframe: ${timeframe})`);
+    console.log(`[Apify] Searching "${keywordQuery}" in r/${subreddit || '(global)'} (limit: ${limit}, timeframe: ${timeframe})`);
 
     const client = getClient();
 
-    const actorInput = {
+    // search 模式正确输入格式（参考 Actor README）：
+    // searchTargets: [{ query, maxResults }]
+    // searchSort: 'relevance' | 'hot' | 'new' | 'top' | 'comments'
+    // restrictToSubreddit: 限定版块
+    // timeframe: 'hour' | 'day' | 'week' | 'month' | 'year' | 'all'
+    const actorInput: Record<string, any> = {
       mode: 'search',
-      searchQuery: query,
-      sort: 'relevance',
+      searchTargets: [{ query: keywordQuery, maxResults: Math.min(limit, 100) }],
+      searchSort: 'relevance',
       timeframe,
-      maxPosts: Math.min(limit, 100),
-      includeCommentsMode: 'none' as const,
+      includeCommentsMode: 'none',
       proxyConfiguration: PROXY_CONFIG,
     };
+    if (subreddit) {
+      actorInput.restrictToSubreddit = subreddit;
+    }
 
     console.log(`[Apify] Search actor input:`, JSON.stringify(actorInput));
 
@@ -141,8 +147,7 @@ export async function fetchSearchViaApify(
     console.log(`[Apify] Search raw items returned: ${items?.length || 0}`);
 
     if (!items || items.length === 0) {
-      console.warn(`[Apify] No posts found for query: ${query}`);
-      return [];
+      return { posts: [], error: `未找到匹配 "${keywordQuery}" 的帖子` };
     }
 
     const posts: ApifySubredditPost[] = items
@@ -164,13 +169,13 @@ export async function fetchSearchViaApify(
         selftext: item.text || item.selftext || '',
       }));
 
-    console.log(`[Apify] Got ${posts.length} posts for query "${query}"`);
+    console.log(`[Apify] Got ${posts.length} posts for query "${keywordQuery}"`);
 
     setCacheResult(subredditCache, cacheKey, posts);
-    return posts;
+    return { posts };
   } catch (error: any) {
     console.error(`[Apify] Error searching "${keywords.join(' ')}":`, error.message);
-    return [];
+    return { posts: [], error: error.message || 'Apify 调用失败' };
   }
 }
 

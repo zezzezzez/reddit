@@ -28,12 +28,20 @@ export async function POST(request: NextRequest) {
 
     console.log(`[RedditSearch] keywords=${JSON.stringify(cleanKeywords)} subreddit=${cleanSubreddit || '(global)'} limit=${safeLimit} timeframe=${safeTimeframe}`);
 
-    const posts = await fetchSearchViaApify(cleanSubreddit, cleanKeywords, safeLimit, safeTimeframe);
+    const result = await fetchSearchViaApify(cleanSubreddit, cleanKeywords, safeLimit, safeTimeframe);
+
+    if (result.error && result.posts.length === 0) {
+      return NextResponse.json(
+        { success: false, message: result.error },
+        { status: 502 }
+      );
+    }
 
     return NextResponse.json({
       success: true,
-      count: posts.length,
-      posts,
+      count: result.posts.length,
+      posts: result.posts,
+      warning: result.error, // 有结果但也有提示（一般不会发生）
     });
   } catch (error: any) {
     console.error('[RedditSearch] Error:', error);
