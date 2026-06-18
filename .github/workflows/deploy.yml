@@ -15,21 +15,67 @@ jobs:
           host: 63.178.68.46
           username: ec2-user
           key: ${{ secrets.DEPLOY_KEY }}
+          command_timeout: 20m
+          script_stop: false
           script: |
-            set -e
+            set -uo pipefail
 
-            echo "=== 拉取最新代码 ==="
-            cd /home/ec2-user/reddit
-            git pull origin main
+            run() {
+              echo "::group::$1"
+              shift
+              "$@"
+              local rc=$?
+              echo "::endgroup::"
+              if [ $rc -ne 0 ]; then
+                echo ">>> FAILED (rc=$rc): $*"
+              fi
+              return $rc
+            }
 
-            echo "=== 重新构建镜像 ==="
-            sudo docker build -t reddit-monitor -f Dockerfile .
+            echo "=== 0. 前置环境诊断 ==="
+            uname -a || true
+            df -h / | tail -1 || true
+            free -m || true
+            sudo systemctl is-active docker || sudo systemctl start docker || true
+            sudo docker info --format 'ServerVersion={{.ServerVersion}} Containers={{.Containers}} Running={{.ContainersRunning}}' || true
 
-            echo "=== 停止并删除旧容器 ==="
-            sudo docker stop reddit-monitor || true
-            sudo docker rm reddit-monitor || true
+            echo "=== 1. 进入仓库 ==="
+            cd /home/ec2-user/reddit || { echo "ERROR: 仓库目录不存在"; exit 11; }
+            pwd
+            git remote -v
+            echo "--- 当前 HEAD ---"
+            git log -1 --oneline || true
+            echo "--- 工作树状态 ---"
+            git status --porcelain || true
 
-            echo "=== 启动新容器 ==="
+            echo "=== 2. 强制同步到 origin/main ==="
+            git fetch origin main || { echo "ERROR: git fetch 失败"; exit 12; }
+            # 丢弃本地修改，避免 git pull 因 dirty tree 失败
+            git reset --hard origin/main || { echo "ERROR: git reset 失败"; exit 13; }
+            git clean -fd -e data -e .env || true
+            echo "--- 同步后 HEAD ---"
+            git log -1 --oneline
+
+            echo "=== 3. 校验 .env ==="
+            if [ ! -f /home/ec2-user/reddit/.env ]; then
+              echo "ERROR: .env 不存在"; exit 14
+            fi
+            echo ".env OK ($(wc -l < /home/ec2-user/reddit/.env) lines)"
+
+            echo "=== 4. 构建镜像 ==="
+            sudo docker build -t reddit-monitor -f Dockerfile . || { echo "ERROR: docker build 失败"; sudo docker images | head; exit 20; }
+
+            echo "=== 5. 停旧容器 ==="
+            sudo docker stop reddit-monitor 2>/dev/null || true
+            sudo docker rm   reddit-monitor 2>/dev/null || true
+            # 兜底：清理任何占用 3000 端口的容器
+            occupant=$(sudo docker ps --format '{{.ID}} {{.Ports}}' | awk '/0.0.0.0:3000->/{print $1}')
+            if [ -n "$occupant" ]; then
+              echo "清理占用3000端口的容器: $occupant"
+              sudo docker rm -f $occupant || true
+            fi
+
+            echo "=== 6. 启动新容器 ==="
             sudo docker run -d \
               --name reddit-monitor \
               --restart unless-stopped \
@@ -38,12 +84,23 @@ jobs:
               -e NODE_ENV=production \
               -e TZ=Asia/Shanghai \
               -e FEISHU_REDIRECT_URI='http://63.178.68.46:3000/api/feishu-auth/callback' \
-              reddit-monitor
+              reddit-monitor || { echo "ERROR: docker run 失败"; exit 30; }
 
-            echo "=== 清理悬空镜像 ==="
-            sudo docker image prune -f
+            echo "=== 7. 健康检查（最长 60s） ==="
+            for i in $(seq 1 12); do
+              sleep 5
+              if curl -fsS -o /dev/null http://127.0.0.1:3000/; then
+                echo "健康检查通过 (i=$i)"
+                break
+              fi
+              echo "等待容器就绪... ($i/12)"
+            done
 
-            echo "=== 部署完成 ==="
+            echo "=== 8. 清理悬空镜像 ==="
+            sudo docker image prune -f || true
+
+            echo "=== 9. 部署结果 ==="
             sudo docker ps
-            echo "--- 最近日志 ---"
-            sudo docker logs reddit-monitor --tail 20
+            echo "--- 最近 30 行日志 ---"
+            sudo docker logs reddit-monitor --tail 30 2>&1 || true
+            echo "=== 部署完成 ==="
