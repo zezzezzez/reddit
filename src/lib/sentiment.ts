@@ -754,15 +754,16 @@ export function analyzeCommentSentiment(
       // 竞品 + 明确正面上下文 → 负面（夸竞品 = 对海信不利）
       finalScore = -Math.min(patternPositiveScore + genPos + 0.25, 1.0);
     } else if (brandContext.competitorNegative && !brandContext.competitorPositive) {
-      // 竞品 + 明确负面上下文 → 正面（骂竞品 = 对海信有利）
-      finalScore = Math.min(genNeg + 0.25, 1.0);
+      // 竞品 + 明确负面上下文 → 中性（骂竞品不直接等于夸海信，避免误判）
+      finalScore = 0;
     } else if (genPos > genNeg) {
       // 整体偏正面 → 负面（无海信，偏正面多半是夸竞品）
       finalScore = -Math.min(patternPositiveScore + genPos + 0.15, 1.0);
     } else if (genNeg > genPos) {
-      finalScore = Math.min(genNeg + 0.15, 1.0);
+      // 整体偏负面 → 中性（骂竞品不直接等于夸海信）
+      finalScore = 0;
     } else if (patternPositiveScore > 0 && genNeg === 0) {
-      // 无竞品情感上下文，但有基础正面模式且无负面信号 → 弱正面（偏负面）
+      // 无竞品情感上下文，但有基础正面模式且无负面信号 → 弱负面（可能是隐晦夸竞品）
       finalScore = -Math.min(patternPositiveScore, 0.1);
     } else {
       finalScore = 0;
@@ -777,7 +778,8 @@ export function analyzeCommentSentiment(
     } else if (brandContext.hisenseNegative && !brandContext.competitorNegative) {
       finalScore = -Math.min(genNeg + 0.15, 1.0);
     } else if (brandContext.competitorNegative && !brandContext.hisenseNegative) {
-      finalScore = Math.min(genNeg + 0.15, 1.0);
+      // 竞品负面 + 海信无负面 → 中性（骂竞品不直接等于夸海信）
+      finalScore = 0;
     } else if (genPos > genNeg) {
       finalScore = 0.1; // 对比场景偏正面 → 轻微正面（不确定夸谁）
     } else if (genNeg > genPos) {

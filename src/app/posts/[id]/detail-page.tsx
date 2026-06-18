@@ -92,19 +92,25 @@ export default function PostDetailPage() {
   });
 
   const getSentimentIcon = (score: number) => {
-    if (score > 0.2) return <ThumbsUp className="w-4 h-4 text-green-400" />;
-    if (score < -0.2) return <ThumbsDown className="w-4 h-4 text-red-400" />;
+    if (score > 0.1) return <ThumbsUp className="w-4 h-4 text-green-400" />;
+    if (score < -0.1) return <ThumbsDown className="w-4 h-4 text-red-400" />;
     return <Minus className="w-4 h-4 text-gray-400" />;
   };
 
   const getSentimentBar = (score: number) => {
     const width = Math.abs(score) * 100;
-    const color = score > 0.2 ? 'bg-green-500' : score < -0.2 ? 'bg-red-500' : 'bg-gray-500';
+    const color = score > 0.1 ? 'bg-green-500' : score < -0.1 ? 'bg-red-500' : 'bg-gray-500';
     return (
       <div className="w-20 h-1.5 bg-gray-200 rounded-full overflow-hidden">
         <div className={`h-full ${color} rounded-full`} style={{ width: `${width}%` }} />
       </div>
     );
+  };
+
+  const getSentimentScoreColor = (score: number) => {
+    if (score > 0.1) return 'text-green-600';
+    if (score < -0.1) return 'text-red-600';
+    return 'text-gray-600';
   };
 
   return (
@@ -262,7 +268,7 @@ export default function PostDetailPage() {
                 <div className="flex items-center gap-2">
                   {getSentimentIcon(comment.sentimentScore)}
                   {getSentimentBar(comment.sentimentScore)}
-                  <span className="text-xs text-gray-600 w-12 text-right">{comment.sentimentScore.toFixed(2)}</span>
+                  <span className={`text-xs w-12 text-right ${getSentimentScoreColor(comment.sentimentScore)}`}>{comment.sentimentScore.toFixed(2)}</span>
                 </div>
               </div>
 
