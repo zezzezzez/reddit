@@ -407,8 +407,6 @@ export default function SearchPage() {
                         r/{post.subreddit}
                       </span>
                       <span>by u/{post.author}</span>
-                      <span>⬆ {post.score} 赞</span>
-                      <span>💬 {post.commentCount} 评论</span>
                       <span>🕒 {formatTime(post.createdAt)}</span>
                     </div>
 
