@@ -57,11 +57,27 @@ export default function SearchPage() {
     setSelectedIds(new Set());
 
     try {
-      const res = await fetch('/api/reddit-search', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ keywords, subreddit, limit, timeframe }),
-      });
+      // 前端超时控制：3 分钟（Apify Actor 运行可能较慢）
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 3 * 60 * 1000);
+
+      let res: Response;
+      try {
+        res = await fetch('/api/reddit-search', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ keywords, subreddit, limit, timeframe }),
+          signal: controller.signal,
+        });
+      } catch (fetchErr: any) {
+        clearTimeout(timeoutId);
+        if (fetchErr.name === 'AbortError') {
+          throw new Error('搜索超时（3 分钟），请稍后重试或减少数量 / 缩小 subreddit 范围');
+        }
+        throw fetchErr;
+      }
+      clearTimeout(timeoutId);
+
       const json = await res.json();
 
       if (!json.success) {

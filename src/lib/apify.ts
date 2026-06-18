@@ -141,7 +141,12 @@ export async function fetchSearchViaApify(
 
     console.log(`[Apify] Search actor input:`, JSON.stringify(actorInput));
 
-    const run = await client.actor('spry_wholemeal/reddit-scraper').call(actorInput);
+    // 服务端超时控制：2 分钟（Apify Actor 可能运行缓慢或卡住）
+    const runPromise = client.actor('spry_wholemeal/reddit-scraper').call(actorInput);
+    const timeoutPromise = new Promise<never>((_, reject) =>
+      setTimeout(() => reject(new Error('Apify Actor 运行超时（2 分钟），请稍后重试')), 2 * 60 * 1000)
+    );
+    const run = await Promise.race([runPromise, timeoutPromise]);
     const { items } = await client.dataset(run.defaultDatasetId).listItems();
 
     console.log(`[Apify] Search raw items returned: ${items?.length || 0}`);
