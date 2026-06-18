@@ -42,6 +42,11 @@ export async function POST(request: NextRequest) {
       count: result.posts.length,
       posts: result.posts,
       warning: result.error, // 有结果但也有提示（一般不会发生）
+      // 诊断字段：帮助定位「Actor 返回少」还是「filter 过滤多」
+      rawItemCount: result.rawItemCount,
+      filteredPostCount: result.filteredPostCount,
+      firstItemKeys: result.firstItemKeys,
+      firstItemSample: result.firstItemSample,
     });
   } catch (error: any) {
     console.error('[RedditSearch] Error:', error);

@@ -34,6 +34,7 @@ export default function SearchPage() {
   const [searching, setSearching] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [lastQuery, setLastQuery] = useState<string | null>(null);
+  const [diagInfo, setDiagInfo] = useState<{ rawItemCount: number; filteredPostCount: number; firstItemKeys?: string[] } | null>(null);
 
   const [importing, setImporting] = useState(false);
   const [importMessage, setImportMessage] = useState<string | null>(null);
@@ -70,10 +71,16 @@ export default function SearchPage() {
       }
 
       setResults(json.posts || []);
+      setDiagInfo({
+        rawItemCount: json.rawItemCount ?? 0,
+        filteredPostCount: json.filteredPostCount ?? 0,
+        firstItemKeys: json.firstItemKeys,
+      });
       setLastQuery(`关键词：${keywords.join(' / ')}${subreddit ? ` · 话题：r/${subreddit}` : ' · 全局'} · 数量：${limit} · 时间：${TIMEFRAME_OPTIONS.find(t => t.value === timeframe)?.label}`);
     } catch (e: any) {
       setError(e.message || '搜索请求失败');
       setResults([]);
+      setDiagInfo(null);
     } finally {
       setSearching(false);
     }
@@ -273,7 +280,17 @@ export default function SearchPage() {
             )}
           </button>
           {results.length > 0 && (
-            <span className="text-xs text-gray-500">共找到 {results.length} 个帖子</span>
+            <span className="text-xs text-gray-500">
+              共找到 {results.length} 个帖子
+              {diagInfo && diagInfo.rawItemCount !== diagInfo.filteredPostCount && (
+                <span className="ml-2 text-orange-600">
+                  （原始返回 {diagInfo.rawItemCount} / 过滤后 {diagInfo.filteredPostCount}）
+                </span>
+              )}
+              {diagInfo && diagInfo.rawItemCount === diagInfo.filteredPostCount && diagInfo.rawItemCount === results.length && (
+                <span className="ml-2 text-gray-400">（Actor 共返回 {diagInfo.rawItemCount} 项）</span>
+              )}
+            </span>
           )}
         </div>
 

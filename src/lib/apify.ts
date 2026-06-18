@@ -108,13 +108,13 @@ export async function fetchSearchViaApify(
   keywords: string[],
   limit: number = 25,
   timeframe: 'hour' | 'day' | 'week' | 'month' | 'year' | 'all' = 'month'
-): Promise<{ posts: ApifySubredditPost[]; error?: string }> {
+): Promise<{ posts: ApifySubredditPost[]; error?: string; rawItemCount: number; filteredPostCount: number; firstItemKeys?: string[]; firstItemSample?: string }> {
   try {
     const keywordQuery = keywords.join(' ');
 
     const cacheKey = `search:${subreddit}:${keywords.join(',')}:${timeframe}:${limit}`;
     const cached = getCachedResult(subredditCache, cacheKey, SUBREDDIT_CACHE_TTL);
-    if (cached) return { posts: cached };
+    if (cached) return { posts: cached, rawItemCount: cached.length, filteredPostCount: cached.length };
 
     await throttle();
 
@@ -147,7 +147,7 @@ export async function fetchSearchViaApify(
     console.log(`[Apify] Search raw items returned: ${items?.length || 0}`);
 
     if (!items || items.length === 0) {
-      return { posts: [], error: `未找到匹配 "${keywordQuery}" 的帖子` };
+      return { posts: [], error: `未找到匹配 "${keywordQuery}" 的帖子`, rawItemCount: 0, filteredPostCount: 0 };
     }
 
     // 调试：输出第一条原始数据结构，便于定位字段名
@@ -197,10 +197,16 @@ export async function fetchSearchViaApify(
     console.log(`[Apify] Got ${posts.length} posts for query "${keywordQuery}"`);
 
     setCacheResult(subredditCache, cacheKey, posts);
-    return { posts };
+    return {
+      posts,
+      rawItemCount: items.length,
+      filteredPostCount: postItems.length,
+      firstItemKeys: items.length > 0 ? Object.keys(items[0] as any) : undefined,
+      firstItemSample: items.length > 0 ? JSON.stringify(items[0]).slice(0, 500) : undefined,
+    };
   } catch (error: any) {
     console.error(`[Apify] Error searching "${keywords.join(' ')}":`, error.message);
-    return { posts: [], error: error.message || 'Apify 调用失败' };
+    return { posts: [], error: error.message || 'Apify 调用失败', rawItemCount: 0, filteredPostCount: 0 };
   }
 }
 
