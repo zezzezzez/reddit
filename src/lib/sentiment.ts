@@ -583,6 +583,36 @@ const NEGATION_WORDS = [
 // 否定窗口：取负面词前 N 个字符判断是否被否定（覆盖 "without worrying about " 这类长前缀）
 const NEGATION_LOOKBACK = 35;
 
+// ─── 反讽反转模式（负面词被转折/引用/对比语境包裹，实际是正面）────────
+// 命中任一模式 ⇒ 该负面词不计入，且额外加正面分（反讽 = 明贬暗褒）
+const IRONY_REVERSAL_PATTERNS: { pattern: RegExp; weight: number }[] = [
+  // 1. 转折反转："they say X but Y" / "X is bad but actually great"
+  { pattern: /\b(bad|terrible|awful|worst|trash|garbage|junk|crap|horrible|useless|broken)\b[^.!?]{0,40}\b(but|yet|however|though|actually|in fact|in reality)\b[^.!?]{0,50}\b(great|amazing|love|excellent|fantastic|best|perfect|solid|reliable|good|wonderful|superb|incredible|awesome|brilliant|outstanding)\b/i, weight: 0.6 },
+  // 2. 对比反转："not bad at all" / "not terrible, actually good"
+  { pattern: /\bnot\b[^.!?]{0,15}\b(bad|terrible|awful|horrible|crap|shitty|useless|junk)\b(?:[^.!?]{0,20}\b(at all|honestly|really|that bad)\b)?[^.!?]{0,30}(?:,|\bbut\b|\bthough\b|\bactually\b|\bin fact\b)/i, weight: 0.45 },
+  // 3. 夸张转正面："so bad I love it" / "terrible but I love it"
+  { pattern: /\b(?:so|that|really)\s+(?:bad|terrible|awful)\b[^.!?]{0,30}\b(?:love|loving|amazing|great|good|perfect|enjoy|enjoying|best|favorite|obsessed)\b/i, weight: 0.5 },
+  // 4. 引用+否定："they say it's bad" / "supposed to be trash"
+  { pattern: /\b(?:they say|everyone says|people say|supposed to|they claim|rumor has it|word is)\b[^.!?]{0,30}\b(?:bad|terrible|awful|trash|garbage|junk|crap|worst|horrible|useless)\b/i, weight: 0.4 },
+  // 5. 反讽肯定："yeah right, it's trash" / "sure, Hisense is bad (NOT)"
+  { pattern: /\b(?:yeah|yea|yep|sure|right|of course|oh please|sure thing)\b[^.!?]{0,10}(?:right|sure)\b[^.!?]{0,30}\b(?:trash|garbage|bad|terrible|awful|worst|crap|shit|useless|junk)\b/i, weight: 0.5 },
+];
+
+// 反讽检测：给定负面词命中位置，返回 0~1 的反讽强度
+// 0 = 无反讽；>=0.4 = 明显反讽信号，应翻转/削弱负面
+function detectIrony(text: string, negWordStart: number, negWordEnd: number): number {
+  const windowStart = Math.max(0, negWordStart - 100);
+  const windowEnd = Math.min(text.length, negWordEnd + 100);
+  const window = text.substring(windowStart, windowEnd);
+  let maxWeight = 0;
+  for (const p of IRONY_REVERSAL_PATTERNS) {
+    if (p.pattern.test(window)) {
+      maxWeight = Math.max(maxWeight, p.weight);
+    }
+  }
+  return maxWeight;
+}
+
 // ─── 辅助函数：关键词边界匹配 ────────────────────────────────────
 function textHasKeyword(text: string, keyword: string): boolean {
   const lowerText = text.toLowerCase();
@@ -624,9 +654,18 @@ function detectGenericEmotion(text: string): { positive: number; negative: numbe
     const findAll = new RegExp(regex.source, 'gi');
     while ((m = findAll.exec(lowerText)) !== null) {
       const matchStart = m.index + (m[1] ? m[1].length : 0);
+      const matchEnd = matchStart + lowerWord.length;
       const before = lowerText.substring(Math.max(0, matchStart - NEGATION_LOOKBACK), matchStart);
       const hasNeg = NEGATION_WORDS.some(n => before.includes(n));
-      if (!hasNeg) neg += 0.1;
+      if (hasNeg) continue;
+      // 反讽检测：负面词被转折/引用/对比语境包裹 ⇒ 明贬暗褒
+      const irony = detectIrony(lowerText, matchStart, matchEnd);
+      if (irony >= 0.4) {
+        // 负面词不计入，反讽权重加到正面
+        pos += irony * 0.5;
+        continue;
+      }
+      neg += 0.1;
     }
   }
 
@@ -665,19 +704,36 @@ function detectBrandContextSentiment(text: string): { hisensePositive: boolean; 
     const window = lowerText.substring(Math.max(0, idx - 60), Math.min(lowerText.length, idx + kw.length + 60));
 
     const hasPos = POSITIVE_EMOTION_WORDS.some(w => window.includes(w.toLowerCase()));
-    // 负面词需去除被否定的命中（如 "don't get the hate"）
-    const hasNeg = NEGATIVE_EMOTION_WORDS.some(w => hasUnnegatedSubstring(window, w.toLowerCase()));
+    // 负面词需去除被否定的命中（如 "don't get the hate"）+ 反讽翻转
+    let hasNeg = false;
+    for (const w of NEGATIVE_EMOTION_WORDS) {
+      const lowerW = w.toLowerCase();
+      let from = 0;
+      while (true) {
+        const idx2 = window.indexOf(lowerW, from);
+        if (idx2 === -1) break;
+        const before = window.substring(Math.max(0, idx2 - NEGATION_LOOKBACK), idx2);
+        if (!NEGATION_WORDS.some(n => before.includes(n))) {
+          const irony = detectIrony(window, idx2, idx2 + lowerW.length);
+          if (irony < 0.4) { hasNeg = true; break; }
+        }
+        from = idx2 + lowerW.length;
+      }
+      if (hasNeg) break;
+    }
 
     // 额外正面信号（强表达）
     const strongPos = /\b(love|amazing|excellent|fantastic|best|perfect|recommend)\b/i.test(window);
-    // 额外负面信号（强表达）— 同样需去除被否定
+    // 额外负面信号（强表达）— 同样需去除被否定 + 反讽翻转
     let strongNeg = false;
     const strongNegPattern = /(?:^|[^a-z0-9])(hate|terrible|awful|worst|broken|defective|avoid|scam)(?:[^a-z0-9]|$)/gi;
     let sm: RegExpExecArray | null;
     while ((sm = strongNegPattern.exec(window)) !== null) {
       const wordStart = sm.index + (sm[0].length - sm[1].length - (sm.index + sm[0].length < window.length ? 1 : 0));
       const before = window.substring(Math.max(0, wordStart - NEGATION_LOOKBACK), wordStart);
-      if (!NEGATION_WORDS.some(n => before.includes(n))) { strongNeg = true; break; }
+      if (NEGATION_WORDS.some(n => before.includes(n))) continue;
+      const irony = detectIrony(window, wordStart, wordStart + sm[1].length);
+      if (irony < 0.4) { strongNeg = true; break; }
     }
 
     if (hasPos || strongPos) result.hisensePositive = true;
