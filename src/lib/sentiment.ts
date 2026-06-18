@@ -241,6 +241,11 @@ const POSITIVE_EMOTION_WORDS = [
   'patient', 'responsive', 'courteous', 'polite',
   'efficient', 'quick response', 'fast response', 'prompt response',
   'thank you', 'thanks', 'appreciate', 'appreciated', 'grateful',
+  // ── 俚语/强调型正面表达（“fucking” 作为强调副词 + 正面词）──
+  'beast', 'absolute beast', 'a beast', 'an absolute beast',
+  'monster', 'a monster', 'killer',
+  'congrats', 'congratulations', 'congratz',
+  'banger', 'fire', 'goated', 'top tier', 'top-tier', 's tier', 's-tier',
   // ── 强烈购买意愿/偏好表达 ──
   'checks all my boxes', 'checks the boxes', 'ticks all the boxes',
   "i'm buying", 'im buying', 'going to buy', 'gonna buy', 'about to buy',
@@ -365,6 +370,18 @@ const POSITIVE_PATTERNS = [
   // === 品牌直接提及与推荐 ===
   // ═══════════════════════════════════════════════════════════════
   { pattern: /\bhisense\b/i, weight: 0.1 },
+  // 俚语强调型正面（fucking BEAST / absolute beast）
+  { pattern: /\bfuckin[g'’]? (?:beast|monster|amazing|awesome|great|good|incredible|fantastic|perfect|love|best|legend|killer|fire|sick|dope|insane|brilliant|smart)\b/i, weight: 0.5 },
+  { pattern: /\b(?:absolute|total|complete) (?:beast|monster|legend|gem|banger|tank|workhorse)\b/i, weight: 0.5 },
+  { pattern: /\bbeen (?:a |an )?(?:beast|monster|legend|champ|tank|workhorse|dream)\b/i, weight: 0.45 },
+  { pattern: /\bhell yeah\b/i, weight: 0.4 },
+  { pattern: /\bgoated\b/i, weight: 0.4 },
+  // 反讽/反驳底下黑（don't get the hate / ignore the haters）
+  { pattern: /(?:don['’]?t|do not|dont) (?:get|believe|buy|listen to|fall for) (?:the |all |into )?(?:hisense )?hate/i, weight: 0.5 },
+  { pattern: /ignore (?:the |all )?(?:hisense )?hate(?:rs)?/i, weight: 0.4 },
+  // 祝贺
+  { pattern: /\bcongrats?\b/i, weight: 0.3 },
+  { pattern: /\bcongratulations\b/i, weight: 0.35 },
   { pattern: /love (?:my |this |the )?hisense/i, weight: 0.5 },
   { pattern: /adore (?:my |this |the )?hisense/i, weight: 0.5 },
   { pattern: /hisense (?:is|has been|are|were) (?:great|amazing|excellent|awesome|fantastic|wonderful|incredible|outstanding|good|solid|reliable|worth it|superb|phenomenal|terrific)/i, weight: 0.5 },
@@ -621,6 +638,19 @@ function detectGenericEmotion(text: string): { positive: number; negative: numbe
 
 // ─── 辅助函数：品牌附近情感检测 ──────────────────────────────────
 // 检测品牌词附近（±60字符）是否有明显的正面/负面表达
+// 负面词需考虑否定语境（如 "don't get the hate"）
+function hasUnnegatedSubstring(window: string, needle: string): boolean {
+  let from = 0;
+  while (true) {
+    const idx = window.indexOf(needle, from);
+    if (idx === -1) return false;
+    const before = window.substring(Math.max(0, idx - NEGATION_LOOKBACK), idx);
+    const negated = NEGATION_WORDS.some(n => before.includes(n));
+    if (!negated) return true;
+    from = idx + needle.length;
+  }
+}
+
 function detectBrandContextSentiment(text: string): { hisensePositive: boolean; hisenseNegative: boolean; competitorPositive: boolean; competitorNegative: boolean } {
   const lowerText = text.toLowerCase();
   const result = {
@@ -635,12 +665,20 @@ function detectBrandContextSentiment(text: string): { hisensePositive: boolean; 
     const window = lowerText.substring(Math.max(0, idx - 60), Math.min(lowerText.length, idx + kw.length + 60));
 
     const hasPos = POSITIVE_EMOTION_WORDS.some(w => window.includes(w.toLowerCase()));
-    const hasNeg = NEGATIVE_EMOTION_WORDS.some(w => window.includes(w.toLowerCase()));
+    // 负面词需去除被否定的命中（如 "don't get the hate"）
+    const hasNeg = NEGATIVE_EMOTION_WORDS.some(w => hasUnnegatedSubstring(window, w.toLowerCase()));
 
     // 额外正面信号（强表达）
     const strongPos = /\b(love|amazing|excellent|fantastic|best|perfect|recommend)\b/i.test(window);
-    // 额外负面信号（强表达）
-    const strongNeg = /\b(hate|terrible|awful|worst|broken|defective|avoid|don\'t buy|scam)\b/i.test(window);
+    // 额外负面信号（强表达）— 同样需去除被否定
+    let strongNeg = false;
+    const strongNegPattern = /(?:^|[^a-z0-9])(hate|terrible|awful|worst|broken|defective|avoid|scam)(?:[^a-z0-9]|$)/gi;
+    let sm: RegExpExecArray | null;
+    while ((sm = strongNegPattern.exec(window)) !== null) {
+      const wordStart = sm.index + (sm[0].length - sm[1].length - (sm.index + sm[0].length < window.length ? 1 : 0));
+      const before = window.substring(Math.max(0, wordStart - NEGATION_LOOKBACK), wordStart);
+      if (!NEGATION_WORDS.some(n => before.includes(n))) { strongNeg = true; break; }
+    }
 
     if (hasPos || strongPos) result.hisensePositive = true;
     if (hasNeg || strongNeg) result.hisenseNegative = true;
