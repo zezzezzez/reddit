@@ -1,1 +1,49 @@
-﻿fix: URL-encode proxy password tilde and target us-east-1 EC2
+﻿feat: add "Topic Search" module for keyword-based Reddit crawling
+
+New section below "板块对比" in sidebar:
+- keyword input (supports multiple keywords separated by space/comma/newline)
+- subreddit input (optional, global search if empty)
+- post count selector (10/25/50/100)
+- time range filter (hour/day/week/month/year/all)
+- search results list with:
+  - per-post checkbox + select all
+  - "Import Selected" / "Import All" buttons to push into post management
+  - direct Reddit link per post
+
+Backend:
+- src/lib/apify.ts: add fetchSearchViaApify() using spry_wholemeal/reddit-scraper search mode
+- src/app/api/reddit-search/route.ts:
+  - POST: search (keywords + subreddit + limit + timeframe)
+  - PUT: import posts into store (dedup by id)
+
+Frontend:
+- src/app/search/search-page.tsx: full UI with form, results, import flow
+- src/app/search/page.tsx: route wrapper
+- src/components/sidebar.tsx: add nav item "话题搜索" (Globe icon) at /search
+feat(sentiment): recognize "extended warranty" / "X-year warranty" as positive signal
+
+- POSITIVE_PATTERNS: add extended warranty (0.3), N-year warranty (0.35), lifetime warranty (0.4), free replacement/repair/warranty (0.3)
+- POSITIVE_EMOTION_WORDS: add extended warranty, lifetime warranty, free replacement, free repair (so brand-context window picks them up)
+- detectBrandContextSentiment(Hisense): widen context window from ±60 to ±80 chars to capture warranty phrases in longer sentences
+
+Fixes: "5 years extended warranty after device registration on hisense website." was scored negative in old scan data; with new code it now scores ~+0.45 (hisense + extended warranty in context → hisensePositive branch)
+feat(sentiment): systematic irony detection for negative-word-as-praise cases
+
+Add 5-class IRONY_REVERSAL_PATTERNS + detectIrony() helper:
+1. contrast-reversal: "X is bad but actually great"
+2. comparison-reversal: "not bad at all, actually good"
+3. hyperbole-to-positive: "so bad I love it"
+4. quote-and-negate: "they say it's bad" / "supposed to be trash"
+5. ironic-affirmation: "yeah right, it's trash"
+
+Wire into detectGenericEmotion and detectBrandContextSentiment(Hisense):
+- when a negative word passes negation guard, run detectIrony on +/-100 char window
+- if irony weight >= 0.4: skip negative, add irony*0.5 to positive
+- hard KEYWORD_CATEGORIES remain strict (no irony exemption) per user decision
+fix(sentiment): handle slang 'fucking BEAST' and irony 'dont get the hate' as positive
+
+- add hasUnnegatedSubstring helper for negation-aware substring matching
+- detectBrandContextSentiment(Hisense): negation guard for hasNeg/strongNeg
+- POSITIVE_PATTERNS: add fucking <positive>, absolute/total/complete beast, been a beast, hell yeah, goated, dont get the hate, ignore the haters, congrats(ulations)
+- POSITIVE_EMOTION_WORDS: add beast/monster/killer/congrats/banger/fire/goated/top tier
+fix: URL-encode proxy password tilde and target us-east-1 EC2

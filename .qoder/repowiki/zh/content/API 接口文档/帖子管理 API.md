@@ -13,9 +13,10 @@
 
 ## 更新摘要
 **变更内容**
-- 更新评论过滤和排序逻辑：从使用 `isFlagged` 属性改为使用情感得分 `sentimentScore < 0`
-- 调整评论计数逻辑：恶意评论统计现在基于情感得分阈值而非标记属性
-- 更新统计计算：影响力得分计算和恶意评论排序均基于情感分析结果
+- 新增全局百分位告警排名系统，基于恶意评论比例对帖子进行重新分级
+- 更新恶意评论识别逻辑：从 `isFlagged` 属性改为使用情感得分 `sentimentScore < 0`
+- 调整影响力得分计算：在恶意评论识别和统计中统一考虑情感分析结果
+- 更新负面占比排序逻辑：基于情感分析的恶意评论比例进行排序
 
 ## 目录
 1. [简介](#简介)
@@ -35,6 +36,8 @@
 - 查看帖子详情及评论分析（GET /api/posts/[id]）
 
 系统采用本地文件存储与内存存储相结合的方式，在开发环境使用 JSON 文件持久化，在 Vercel 环境使用内存存储，并提供缓存机制提升性能。
+
+**更新** 系统现已集成了全局百分位告警排名系统，能够基于恶意评论比例对帖子进行智能重新分级，提供更准确的风险评估。
 
 ## 项目结构
 帖子管理 API 位于 Next.js App Router 的 API 路由中，主要文件组织如下：
@@ -56,6 +59,7 @@ end
 subgraph "业务逻辑层"
 PostsController["PostsController<br/>查询与过滤"]
 PostDetailController["PostDetailController<br/>详情与统计"]
+GlobalRanking["Global Ranking System<br/>百分位告警排名"]
 end
 subgraph "数据访问层"
 Store["Store<br/>文件/内存存储"]
@@ -69,6 +73,7 @@ end
 PostsList --> PostsController
 PostsDelete --> PostsController
 PostDetail --> PostDetailController
+PostsController --> GlobalRanking
 PostsController --> Store
 PostDetailController --> Store
 Store --> Cache
@@ -81,10 +86,11 @@ Store --> Sentiment
 - [src/app/api/posts/route.ts:13-156](file://src/app/api/posts/route.ts#L13-L156)
 - [src/app/api/posts/[id]/route.ts](file://src/app/api/posts/[id]/route.ts#L30-L97)
 - [src/lib/store.ts:89-173](file://src/lib/store.ts#L89-L173)
+- [src/lib/sentiment.ts:903-937](file://src/lib/sentiment.ts#L903-L937)
 
 **章节来源**
-- [src/app/api/posts/route.ts:1-157](file://src/app/api/posts/route.ts#L1-L157)
-- [src/app/api/posts/[id]/route.ts](file://src/app/api/posts/[id]/route.ts#L1-L98)
+- [src/app/api/posts/route.ts:1-166](file://src/app/api/posts/route.ts#L1-L166)
+- [src/app/api/posts/[id]/route.ts](file://src/app/api/posts/[id]/route.ts#L1-L104)
 - [src/lib/store.ts:1-285](file://src/lib/store.ts#L1-L285)
 
 ## 核心组件
@@ -161,6 +167,7 @@ sequenceDiagram
 participant Client as "客户端"
 participant API as "Posts API"
 participant Controller as "控制器"
+participant GlobalRanking as "全局排名系统"
 participant Store as "存储层"
 participant Cache as "缓存"
 participant File as "文件系统"
@@ -175,18 +182,22 @@ Store->>File : 读取 posts.json
 File-->>Store : 返回原始数据
 Store->>Cache : 写入缓存
 end
+Controller->>GlobalRanking : 计算恶意评论比例
+GlobalRanking->>GlobalRanking : 百分位分组
+GlobalRanking-->>Controller : 重新分级结果
 Controller->>Controller : 过滤/排序/统计
 Controller-->>API : 返回结果
 API-->>Client : JSON 响应
-Note over Client,Cache : 查询流程带缓存
+Note over Client,Cache : 查询流程带缓存和全局排名
 ```
 
 **图表来源**
-- [src/app/api/posts/route.ts:13-127](file://src/app/api/posts/route.ts#L13-L127)
+- [src/app/api/posts/route.ts:13-136](file://src/app/api/posts/route.ts#L13-L136)
 - [src/lib/store.ts:73-93](file://src/lib/store.ts#L73-L93)
+- [src/lib/sentiment.ts:903-937](file://src/lib/sentiment.ts#L903-L937)
 
 **章节来源**
-- [src/app/api/posts/route.ts:13-127](file://src/app/api/posts/route.ts#L13-L127)
+- [src/app/api/posts/route.ts:13-136](file://src/app/api/posts/route.ts#L13-L136)
 - [src/lib/store.ts:73-93](file://src/lib/store.ts#L73-L93)
 
 ## 详细组件分析
@@ -244,7 +255,9 @@ Note over Client,Cache : 查询流程带缓存
 flowchart TD
 Start([请求进入]) --> ParseParams["解析查询参数"]
 ParseParams --> GetData["获取帖子数据"]
-GetData --> CalcInfluence["计算影响力得分"]
+GetData --> CalcRatios["计算恶意评论比例"]
+CalcRatios --> GlobalRanking["全局百分位排名"]
+GlobalRanking --> CalcInfluence["计算影响力得分"]
 CalcInfluence --> FilterByLevel["按告警级别过滤"]
 FilterByLevel --> FilterByDate["按日期范围过滤"]
 FilterByDate --> FilterBySubreddit["按子版块过滤"]
@@ -254,11 +267,20 @@ Sort --> Stats["计算统计信息"]
 Stats --> Return([返回响应])
 ```
 
+**更新** 新增了全局百分位告警排名系统，该系统会：
+1. 计算每个帖子的恶意评论比例（恶意评论数 / 总评论数）
+2. 基于恶意评论比例对所有帖子进行降序排序
+3. 将前 15% 的帖子标记为 critical（高危）
+4. 将 15%-30% 的帖子标记为 medium（中等）
+5. 其余及恶意比例为 0 的帖子标记为 safe（正常）
+
 **图表来源**
-- [src/app/api/posts/route.ts:13-127](file://src/app/api/posts/route.ts#L13-L127)
+- [src/app/api/posts/route.ts:13-136](file://src/app/api/posts/route.ts#L13-L136)
+- [src/lib/sentiment.ts:903-937](file://src/lib/sentiment.ts#L903-L937)
 
 **章节来源**
-- [src/app/api/posts/route.ts:13-127](file://src/app/api/posts/route.ts#L13-L127)
+- [src/app/api/posts/route.ts:13-136](file://src/app/api/posts/route.ts#L13-L136)
+- [src/lib/sentiment.ts:903-937](file://src/lib/sentiment.ts#L903-L937)
 
 ### DELETE /api/posts - 删除帖子
 
@@ -317,11 +339,11 @@ end
 ```
 
 **图表来源**
-- [src/app/api/posts/route.ts:129-156](file://src/app/api/posts/route.ts#L129-L156)
+- [src/app/api/posts/route.ts:138-166](file://src/app/api/posts/route.ts#L138-L166)
 - [src/lib/store.ts:116-173](file://src/lib/store.ts#L116-L173)
 
 **章节来源**
-- [src/app/api/posts/route.ts:129-156](file://src/app/api/posts/route.ts#L129-L156)
+- [src/app/api/posts/route.ts:138-166](file://src/app/api/posts/route.ts#L138-L166)
 - [src/lib/store.ts:116-173](file://src/lib/store.ts#L116-L173)
 
 ### GET /api/posts/[id] - 帖子详情
@@ -388,7 +410,7 @@ end
 **更新** 评论恶意判定逻辑已从 `isFlagged` 属性更新为基于情感得分的条件：`sentimentScore < 0`。这使得恶意评论的识别更加精确，基于情感分析结果而非简单的标记属性。
 
 **章节来源**
-- [src/app/api/posts/[id]/route.ts](file://src/app/api/posts/[id]/route.ts#L30-L97)
+- [src/app/api/posts/[id]/route.ts](file://src/app/api/posts/[id]/route.ts#L30-L104)
 
 ## 依赖关系分析
 
@@ -399,6 +421,8 @@ class PostsController {
 +deletePost(request) Response
 -getDataSources() Object
 -calculateInfluence(post, comments) Number
+-assignAlertLevelByPercentile(posts, ratios) void
+-calcPostFlaggedRatio(comments) Number
 }
 class PostDetailController {
 +getPostDetail(request, params) Response
@@ -432,6 +456,8 @@ class SentimentEngine {
 +analyzeCommentSentiment(comment) Object
 +calcCommentInfluenceScore(score, sentiment) Number
 +calculatePostAlertLevel(comments) Object
++assignAlertLevelByPercentile(posts, ratios) void
++calcPostFlaggedRatio(comments) Number
 }
 PostsController --> Store : "使用"
 PostDetailController --> Store : "使用"
@@ -444,16 +470,16 @@ PostDetailController --> SentimentEngine : "使用"
 ```
 
 **图表来源**
-- [src/app/api/posts/route.ts:1-157](file://src/app/api/posts/route.ts#L1-L157)
-- [src/app/api/posts/[id]/route.ts](file://src/app/api/posts/[id]/route.ts#L1-L98)
+- [src/app/api/posts/route.ts:1-166](file://src/app/api/posts/route.ts#L1-L166)
+- [src/app/api/posts/[id]/route.ts](file://src/app/api/posts/[id]/route.ts#L1-L104)
 - [src/lib/store.ts:1-285](file://src/lib/store.ts#L1-L285)
 - [src/lib/types.ts:1-194](file://src/lib/types.ts#L1-L194)
 - [src/lib/mock-data.ts:1-245](file://src/lib/mock-data.ts#L1-L245)
-- [src/lib/sentiment.ts:1-398](file://src/lib/sentiment.ts#L1-L398)
+- [src/lib/sentiment.ts:1-1018](file://src/lib/sentiment.ts#L1-L1018)
 
 **章节来源**
-- [src/app/api/posts/route.ts:1-157](file://src/app/api/posts/route.ts#L1-L157)
-- [src/app/api/posts/[id]/route.ts](file://src/app/api/posts/[id]/route.ts#L1-L98)
+- [src/app/api/posts/route.ts:1-166](file://src/app/api/posts/route.ts#L1-L166)
+- [src/app/api/posts/[id]/route.ts](file://src/app/api/posts/[id]/route.ts#L1-L104)
 - [src/lib/store.ts:1-285](file://src/lib/store.ts#L1-L285)
 
 ## 性能考虑
@@ -472,6 +498,7 @@ PostDetailController --> SentimentEngine : "使用"
 - 前端过滤：在内存中进行过滤和排序，避免数据库查询
 - 情感分析：使用关键词匹配和规则引擎，避免昂贵的 NLP 计算
 - 影响力计算：预先计算并缓存影响力得分
+- **新增** 全局百分位排名：一次性计算所有帖子的比例，避免重复计算
 
 ### 建议的改进措施
 1. 添加分页支持（limit/offset 或游标分页）
@@ -479,6 +506,7 @@ PostDetailController --> SentimentEngine : "使用"
 3. 添加索引字段（subreddit、createdAt、alertLevel）
 4. 实现异步批处理删除操作
 5. 添加查询超时和错误重试机制
+6. **新增** 优化全局排名算法，考虑缓存机制
 
 **章节来源**
 - [src/lib/store.ts:71-87](file://src/lib/store.ts#L71-L87)
@@ -493,11 +521,13 @@ PostDetailController --> SentimentEngine : "使用"
 - 文件系统权限问题（Vercel 环境只读文件系统）
 - JSON 解析错误
 - 内存存储初始化失败
+- **新增** 全局百分位排名计算异常
 
 解决方法：
 - 检查环境变量配置
 - 验证数据文件格式
 - 确认内存存储可用性
+- **新增** 检查恶意评论比例计算逻辑
 
 #### 404 Not Found
 可能原因：
@@ -525,9 +555,10 @@ PostDetailController --> SentimentEngine : "使用"
 2. 添加请求 ID 追踪
 3. 实现健康检查端点
 4. 设置监控和告警
+5. **新增** 监控全局排名系统的性能指标
 
 **章节来源**
-- [src/app/api/posts/route.ts:124-126](file://src/app/api/posts/route.ts#L124-L126)
+- [src/app/api/posts/route.ts:133-135](file://src/app/api/posts/route.ts#L133-L135)
 - [src/app/api/posts/[id]/route.ts](file://src/app/api/posts/[id]/route.ts#L52-L54)
 
 ## 结论
@@ -540,12 +571,21 @@ PostDetailController --> SentimentEngine : "使用"
 - **实时统计**：动态计算影响力得分和情感分析
 - **双存储策略**：适应不同部署环境的需求
 - **性能优化**：缓存机制和内存存储提升响应速度
+- **智能告警系统**：基于全局百分位的动态风险评估
 
 ### 改进后的恶意评论识别机制
 **更新** 系统现已采用基于情感分析的恶意评论识别机制：
 - **情感阈值判定**：使用 `sentimentScore < 0` 作为恶意评论的判断标准
 - **精确性提升**：相比简单的标记属性，情感得分提供了更精确的恶意程度评估
 - **一致性改进**：所有统计和排序逻辑都统一基于情感分析结果
+- **全局排名集成**：恶意评论比例直接影响帖子的告警级别
+
+### 全局百分位告警排名系统
+**新增** 系统集成了全局百分位告警排名系统，提供：
+- **动态重新分级**：基于恶意评论比例对帖子进行智能重新评估
+- **风险分层**：将帖子分为 critical、medium、safe 三个风险层级
+- **实时监控**：根据最新数据动态调整告警级别
+- **阈值优化**：前 15% 的高风险帖子标记为 critical，15%-30% 标记为 medium
 
 ### 改进建议
 1. **增强安全性**：添加身份验证和授权机制
@@ -553,5 +593,6 @@ PostDetailController --> SentimentEngine : "使用"
 3. **完善错误处理**：提供更详细的错误信息和恢复机制
 4. **监控集成**：添加性能监控和日志记录
 5. **API 版本控制**：为未来功能扩展预留空间
+6. **排名算法优化**：考虑缓存机制和增量更新策略
 
-该 API 为品牌监控系统提供了坚实的基础，能够有效支持对 Reddit 平台上的品牌相关内容进行实时监控和分析。
+该 API 为品牌监控系统提供了坚实的基础，能够有效支持对 Reddit 平台上的品牌相关内容进行实时监控和分析。新的全局百分位告警排名系统显著提升了风险评估的准确性和时效性，为品牌管理决策提供了更可靠的数据支持。

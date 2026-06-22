@@ -183,7 +183,7 @@ const POSITIVE_EMOTION_WORDS = [
   'very satisfied', 'so satisfied', 'really satisfied',
   'couldn\'t be happier', 'couldnt be happier', 'could not be happier',
   // ── 惊喜/超预期 ──
-  'impressed', 'blown away', 'mind blown', 'speechless',
+  'impressed', 'blown away', 'mind blown', 'mindblowing', 'mind-blowing', 'speechless',
   'exceeded expectations', 'beyond expectations', 'above expectations',
   'better than expected', 'better than anticipated',
   'pleasantly surprised', 'nicely surprised', 'happily surprised',
@@ -609,6 +609,8 @@ const IRONY_REVERSAL_PATTERNS: { pattern: RegExp; weight: number }[] = [
   // 6. 俚语购买意愿："want/need ... so bad" = "非常想要"（正面）
   { pattern: /\b(?:want|need|wanted|needed)\b[^.!?]{0,20}\b(?:so|really|badly)\b[^.!?]{0,5}\b(?:bad|much)\b/i, weight: 0.5 },
   { pattern: /\b(?:so|really|badly)\b[^.!?]{0,5}\b(?:bad|much)\b[^.!?]{0,20}\b(?:want|need|wanted|needed)\b/i, weight: 0.5 },
+  // 7. 转变结构："from [负面] to [正面]" = 从差变好（正面评价）
+  { pattern: /\bfrom\b[^.!?]{0,10}\b(?:underwhelming|bad|terrible|awful|mediocre|disappointing|bleak|dull|dark|muddy|washed out|grainy|noisy|blurry|soft|dim|lifeless|flat|lifeless)\b[^.!?]{0,20}\bto\b[^.!?]{0,10}\b(?:amazing|incredible|stunning|mindblowing|mind-blowing|mind blown|spectacular|phenomenal|gorgeous|beautiful|vivid|sharp|crisp|bright|lifelike|cinematic|immersive|breathtaking|fantastic|excellent|superb|perfect|brilliant|outstanding|remarkable|extraordinary|epic|legendary|unreal|insane|sick|dope|fire|goated)\b/i, weight: 0.6 },
 ];
 
 // 反讽检测：给定负面词命中位置，返回 0~1 的反讽强度

@@ -9,14 +9,18 @@
 - [src/lib/store.ts](file://src/lib/store.ts)
 - [src/lib/scheduler.ts](file://src/lib/scheduler.ts)
 - [src/lib/types.ts](file://src/lib/types.ts)
+- [src/lib/sentiment.ts](file://src/lib/sentiment.ts)
+- [src/app/api/dashboard/route.ts](file://src/app/api/dashboard/route.ts)
+- [src/app/dashboard-page.tsx](file://src/app/dashboard-page.tsx)
 - [data/config.json](file://data/config.json)
 </cite>
 
 ## 更新摘要
 **变更内容**
-- 更新智能延迟机制说明，明确单帖子扫描不应用nextScanTime过滤
-- 新增扫描范围和过滤逻辑的详细说明
-- 更新性能优化相关内容，反映响应速度提升
+- 新增扫描完成后执行全局百分位排名的功能
+- 添加恶意评论比率计算和告警级别更新机制
+- 更新扫描完成后的数据处理流程
+- 新增全局分位分级算法说明
 
 ## 目录
 1. [简介](#简介)
@@ -35,7 +39,7 @@
 
 系统基于 Next.js API Routes 构建，采用模块化设计，支持本地开发和云端部署。通过集成 Apify 爬虫引擎，能够高效地从 Reddit 平台抓取帖子和评论数据，并进行深度分析。
 
-**更新** 扫描系统优化了智能延迟机制，在单帖子扫描时不应用nextScanTime过滤，显著提高响应速度。
+**更新** 扫描系统新增了全局百分位排名功能，在扫描完成后自动计算所有帖子的恶意评论比率并更新告警级别，提供更准确的全局风险评估。
 
 ## 项目结构
 
@@ -46,11 +50,14 @@ graph TB
 subgraph "API 层"
 ScanRoute[POST /api/scan<br/>手动扫描控制器]
 ScheduleRoute[GET/POST /api/scan-schedule<br/>扫描调度管理]
+DashboardRoute[GET /api/dashboard<br/>仪表板数据]
 end
 subgraph "业务逻辑层"
 ScanEngine[扫描引擎<br/>数据处理]
 Scheduler[调度器<br/>定时任务管理]
 ApifyIntegration[Apify 集成<br/>爬虫引擎]
+SentimentAnalyzer[情感分析器<br/>恶意评论检测]
+PercentileRanker[百分位排名器<br/>全局分级算法]
 end
 subgraph "数据存储层"
 Store[数据存储<br/>文件系统/内存]
@@ -64,8 +71,11 @@ Feishu[飞书通知<br/>告警推送]
 end
 ScanRoute --> ScanEngine
 ScheduleRoute --> Scheduler
+DashboardRoute --> PercentileRanker
 ScanEngine --> ApifyIntegration
 ScanEngine --> Store
+ScanEngine --> SentimentAnalyzer
+SentimentAnalyzer --> PercentileRanker
 Scheduler --> Store
 ApifyIntegration --> Reddit
 ApifyIntegration --> Apify
@@ -78,6 +88,7 @@ Scheduler --> Feishu
 - [src/app/api/scan/route.ts:21-393](file://src/app/api/scan/route.ts#L21-L393)
 - [src/app/api/scan-schedule/route.ts:1-52](file://src/app/api/scan-schedule/route.ts#L1-L52)
 - [src/lib/scheduler.ts:63-100](file://src/lib/scheduler.ts#L63-L100)
+- [src/lib/sentiment.ts:903-937](file://src/lib/sentiment.ts#L903-L937)
 
 **章节来源**
 - [src/app/api/scan/route.ts:1-394](file://src/app/api/scan/route.ts#L1-L394)
@@ -95,6 +106,7 @@ Scheduler --> Feishu
 - 实时进度跟踪和中断控制
 - 多级告警状态管理
 - 情感分析和关键词检测
+- **新增** 全局百分位排名和恶意评论比率计算
 
 **请求参数规范：**
 
@@ -118,12 +130,38 @@ DelayFilter --> SkipFilter["跳过近期已扫描的帖子"]
 SkipFilter --> QuickScan["快速扫描限制：最多5个帖子"]
 GetSpecificPosts --> QuickScan
 QuickScan --> ExecuteScan["执行扫描"]
-ExecuteScan --> End([完成])
+ExecuteScan --> CalcPercentile["计算恶意评论比率"]
+CalcPercentile --> UpdateAlertLevels["更新告警级别"]
+UpdateAlertLevels --> GenerateReport["生成日报表"]
+GenerateReport --> End([完成])
 ```
 
-**重要更新** 智能延迟机制的差异化处理：
-- **全量扫描（scanAll=true）**：应用完整的智能延迟过滤，跳过nextScanTime未到期的帖子
-- **单帖子扫描（scanAll=false）**：跳过nextScanTime过滤，直接扫描指定帖子，提高响应速度
+**扫描完成后的全局处理流程：**
+
+```mermaid
+sequenceDiagram
+participant API as 扫描API
+participant Store as 数据存储
+participant Analyzer as 情感分析器
+participant Ranker as 百分位排名器
+API->>Store : 获取所有帖子
+API->>Analyzer : 计算每个帖子的恶意评论比率
+Analyzer->>Store : 获取帖子评论数据
+Analyzer-->>API : 返回比率映射
+API->>Ranker : 执行全局百分位排名
+Ranker->>Ranker : 按比率降序排序
+Ranker->>Ranker : 计算前15%和15-30%阈值
+Ranker->>Store : 更新帖子告警级别
+API->>Store : 保存更新后的帖子数据
+```
+
+**恶意评论比率计算规则：**
+- **恶意判定**：命中硬性关键词 或 sentimentScore < 0
+- **计算公式**：恶意评论数 / 总评论数
+- **全局分位算法**：
+  - 排名前 15% → critical（高危）
+  - 排名 15%~30% → medium（中等）
+  - 其余及恶意比例为 0 → safe（正常）
 
 **响应格式：**
 
@@ -140,7 +178,10 @@ AnalyzeComments --> UpdatePost["更新帖子状态"]
 UpdatePost --> SaveData["保存扫描结果"]
 SaveData --> NextPost{"还有帖子吗？"}
 NextPost --> |是| ProcessLoop
-NextPost --> |否| GenerateReport["生成日报表"]
+NextPost --> |否| GlobalRanking["执行全局百分位排名"]
+GlobalRanking --> CalcRatios["计算恶意评论比率"]
+CalcRatios --> UpdateLevels["更新告警级别"]
+UpdateLevels --> GenerateReport["生成日报表"]
 GenerateReport --> ReturnSuccess["返回成功响应"]
 ReturnEmpty --> End([结束])
 ReturnSuccess --> End
@@ -148,6 +189,7 @@ ReturnSuccess --> End
 
 **图表来源**
 - [src/app/api/scan/route.ts:31-306](file://src/app/api/scan/route.ts#L31-L306)
+- [src/app/api/scan/route.ts:312-322](file://src/app/api/scan/route.ts#L312-L322)
 
 ### 扫描进度查询 (GET /api/scan)
 
@@ -214,12 +256,14 @@ subgraph "应用层"
 ScanController[扫描控制器<br/>HTTP 请求处理]
 ScheduleController[调度控制器<br/>定时任务管理]
 ProgressTracker[进度跟踪器<br/>实时状态监控]
+DashboardController[仪表板控制器<br/>全局数据分析]
 end
 subgraph "业务逻辑层"
 ScanEngine[扫描引擎<br/>数据处理核心]
 SentimentAnalyzer[情感分析器<br/>评论分析]
 AlertManager[告警管理器<br/>状态评估]
 ReportGenerator[报告生成器<br/>数据统计]
+PercentileRanker[百分位排名器<br/>全局分级算法]
 end
 subgraph "数据访问层"
 DataStore[数据存储<br/>文件系统/内存]
@@ -234,8 +278,10 @@ end
 Frontend --> API
 API --> ScanController
 API --> ScheduleController
+API --> DashboardController
 ScanController --> ScanEngine
 ScheduleController --> ProgressTracker
+DashboardController --> PercentileRanker
 ScanEngine --> SentimentAnalyzer
 ScanEngine --> AlertManager
 ScanEngine --> ReportGenerator
@@ -243,6 +289,8 @@ ScanEngine --> DataStore
 ScanEngine --> CacheManager
 ScanEngine --> ConfigManager
 ScanEngine --> ApifyClient
+SentimentAnalyzer --> PercentileRanker
+PercentileRanker --> DataStore
 ApifyClient --> RedditAPI
 AlertManager --> FeishuAPI
 ```
@@ -251,6 +299,7 @@ AlertManager --> FeishuAPI
 - [src/lib/apify.ts:1-280](file://src/lib/apify.ts#L1-L280)
 - [src/lib/reddit.ts:1-94](file://src/lib/reddit.ts#L1-L94)
 - [src/lib/store.ts:1-285](file://src/lib/store.ts#L1-L285)
+- [src/lib/sentiment.ts:903-937](file://src/lib/sentiment.ts#L903-L937)
 
 ## 详细组件分析
 
@@ -333,6 +382,57 @@ KeywordResult --> End
 - [src/app/api/scan/route.ts:175-225](file://src/app/api/scan/route.ts#L175-L225)
 - [src/lib/types.ts:117-125](file://src/lib/types.ts#L117-L125)
 
+### 全局百分位排名系统
+
+**新增功能** 系统在扫描完成后执行全局百分位排名，提供更准确的全局风险评估。
+
+```mermaid
+flowchart TD
+Start([扫描完成]) --> LoadPosts["加载所有帖子"]
+LoadPosts --> CalcRatios["计算恶意评论比率"]
+CalcRatios --> CreateMap["创建比率映射"]
+CreateMap --> SortPosts["按比率降序排序"]
+SortPosts --> CalcThresholds["计算分位阈值"]
+CalcThresholds --> AssignLevels["分配告警级别"]
+AssignLevels --> UpdateStore["更新存储"]
+UpdateStore --> LogResult["记录日志"]
+LogResult --> End([完成])
+CalcRatios --> GetComments["获取帖子评论"]
+GetComments --> CountFlagged["统计恶意评论数"]
+CountFlagged --> CalcRatio["计算比率"]
+CalcRatio --> ReturnRatio["返回比率"]
+CalcThresholds --> CalcCritical["计算前15%阈值"]
+CalcThresholds --> CalcMedium["计算15-30%阈值"]
+CalcCritical --> AssignLevels
+CalcMedium --> AssignLevels
+AssignLevels --> LevelSafe["比率=0: safe"]
+AssignLevels --> LevelCritical["前15%: critical"]
+AssignLevels --> LevelMedium["15%-30%: medium"]
+AssignLevels --> LevelSafe2["其余: safe"]
+```
+
+**图表来源**
+- [src/app/api/scan/route.ts:312-322](file://src/app/api/scan/route.ts#L312-L322)
+- [src/lib/sentiment.ts:903-937](file://src/lib/sentiment.ts#L903-L937)
+
+**百分位排名算法：**
+
+1. **数据收集**：遍历所有帖子，计算每个帖子的恶意评论比率
+2. **排序**：按恶意评论比率降序排列，相同比率按原始索引排序
+3. **阈值计算**：
+   - 前 15% 为高危（critical）
+   - 15%-30% 为中等（medium）
+   - 其余及恶意比例为 0 为安全（safe）
+4. **级别分配**：根据排名位置分配相应的告警级别
+
+**恶意评论判定标准：**
+- 命中硬性关键词规则
+- sentimentScore < 0（情感得分小于0）
+
+**章节来源**
+- [src/app/api/scan/route.ts:312-322](file://src/app/api/scan/route.ts#L312-L322)
+- [src/lib/sentiment.ts:903-937](file://src/lib/sentiment.ts#L903-L937)
+
 ### 扫描进度管理系统
 
 系统实现了完整的进度跟踪机制，支持实时状态查询和中断控制。
@@ -382,11 +482,14 @@ class Store {
 +saveScanResult(result) void
 +getConfig() MonitorConfig
 +saveConfig(config) void
++getDailyReports() DailyScanReport[]
++saveDailyReport(report) void
 }
 class MemoryStore {
 +posts : RedditPost[]
 +comments : RedditComment[]
 +scans : ScanResult[]
++reports : DailyScanReport[]
 +config : MonitorConfig
 }
 class FileSystemStore {
@@ -433,10 +536,12 @@ end
 subgraph "内部模块"
 ScanRoute[扫描路由]
 ScheduleRoute[调度路由]
+DashboardRoute[仪表板路由]
 ApifyLib[Apify 集成]
 StoreLib[数据存储]
 SchedulerLib[调度器]
 TypesLib[类型定义]
+SentimentLib[情感分析]
 end
 subgraph "外部服务"
 RedditAPI[Reddit API]
@@ -445,20 +550,24 @@ Cloudflare[Cloudflare Tunnel]
 end
 NextJS --> ScanRoute
 NextJS --> ScheduleRoute
+NextJS --> DashboardRoute
 ScanRoute --> ApifyLib
 ScanRoute --> StoreLib
 ScheduleRoute --> SchedulerLib
+DashboardRoute --> SentimentLib
 SchedulerLib --> StoreLib
 ApifyLib --> ApifyClient
 ApifyLib --> RedditAPI
 SchedulerLib --> FeishuAPI
 StoreLib --> TypesLib
 StoreLib --> Cloudflare
+SentimentLib --> StoreLib
 ```
 
 **图表来源**
 - [src/app/api/scan/route.ts:1-8](file://src/app/api/scan/route.ts#L1-L8)
 - [src/lib/scheduler.ts:5-12](file://src/lib/scheduler.ts#L5-L12)
+- [src/lib/sentiment.ts:903-937](file://src/lib/sentiment.ts#L903-L937)
 
 **关键依赖特性：**
 
@@ -491,6 +600,7 @@ StoreLib --> Cloudflare
 - 智能跳过：跳过超过 3 个月的帖子
 - 延迟扫描：2 周无新评论的帖子延后 1 个月
 - 快速扫描：限制同时处理的帖子数量
+- **新增** 全局百分位排名：批量计算和更新告警级别
 
 ### 性能监控机制
 
@@ -516,14 +626,16 @@ Continue --> End([结束])
 - 错误率统计
 - 响应时间分布
 
-**更新** 智能延迟机制的性能优化：
-- **全量扫描**：应用完整的智能延迟过滤，减少不必要的请求
-- **单帖子扫描**：跳过nextScanTime过滤，直接响应用户请求，提高响应速度
-- **差异化处理**：根据扫描模式选择最优的过滤策略
+**更新** 全局百分位排名的性能优化：
+- **批量处理**：扫描完成后一次性计算所有帖子的比率
+- **内存映射**：使用 Map 存储比率，避免重复计算
+- **排序优化**：按比率降序排序，确保算法效率
+- **阈值计算**：动态计算分位阈值，适应不同数据规模
 
 **章节来源**
 - [src/lib/apify.ts:37-50](file://src/lib/apify.ts#L37-L50)
 - [src/app/api/scan/route.ts:291-294](file://src/app/api/scan/route.ts#L291-L294)
+- [src/app/api/scan/route.ts:312-322](file://src/app/api/scan/route.ts#L312-L322)
 
 ## 故障排除指南
 
@@ -549,22 +661,30 @@ Continue --> End([结束])
 - **原因**：文件系统权限或 Vercel 环境限制
 - **解决方案**：检查文件系统权限或使用内存存储
 
+**5. 全局百分位排名异常**
+- **症状**：扫描完成后告警级别未更新
+- **原因**：数据存储问题或算法错误
+- **解决方案**：检查数据完整性，验证比率计算逻辑
+
 ### 调试工具和方法
 
 **1. 日志分析**
 - 查看控制台输出的详细日志信息
 - 关注扫描进度和错误信息
 - 监控外部 API 调用状态
+- **新增** 监控全局百分位排名过程
 
 **2. 状态检查**
 - 使用 GET /api/scan 查询当前扫描状态
 - 检查扫描进度和剩余时间估计
 - 验证配置参数的有效性
+- **新增** 检查全局排名算法执行情况
 
 **3. 性能诊断**
 - 监控内存使用情况
 - 分析 API 调用耗时
 - 检查缓存命中率
+- **新增** 分析全局排名算法性能
 
 **章节来源**
 - [src/lib/apify.ts:56-58](file://src/lib/apify.ts#L56-L58)
@@ -581,6 +701,7 @@ Continue --> End([结束])
 4. **错误处理**：完善的异常捕获和降级策略
 5. **监控诊断**：全面的性能监控和调试工具
 6. **响应优化**：智能延迟机制的差异化处理，提升用户体验
+7. **** 新增** 全局百分位排名**：提供更准确的全局风险评估和告警级别更新
 
 **适用场景：**
 - 社交媒体品牌监控
@@ -588,6 +709,6 @@ Continue --> End([结束])
 - 危机预警和舆情监控
 - 市场趋势分析和研究
 
-**更新总结** 本次优化通过智能延迟机制的差异化处理，在保证全量扫描效率的同时，显著提升了单帖子扫描的响应速度，为用户提供了更好的交互体验。
+**更新总结** 本次优化通过新增全局百分位排名功能，系统能够在扫描完成后自动计算所有帖子的恶意评论比率并更新告警级别。这一功能提供了更准确的全局风险评估，通过前15%和15-30%的分位阈值算法，为用户提供更可靠的风险分级和决策支持。
 
 通过合理的配置和使用，扫描控制 API 能够满足各种规模和复杂度的监控需求，为用户提供准确、及时的社交媒体洞察。
