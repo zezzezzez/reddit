@@ -570,6 +570,9 @@ const POSITIVE_PATTERNS = [
   { pattern: /buying (?:another|a second)/i, weight: 0.4 },
   { pattern: /getting (?:another|a second)/i, weight: 0.4 },
   { pattern: /(?:my |our )next (?:tv|television|one)/i, weight: 0.25 },
+  // 语："want/need ... so bad" = "非常想要"（正面购买意愿）
+  { pattern: /(?:want|need|wanted|needed) (?:it|one|this|that|the )?(?:so|really|badly) (?:bad|much)/i, weight: 0.4 },
+  { pattern: /(?:so|really|badly) (?:bad|much) (?:want|need)/i, weight: 0.4 },
 ];
 
 // ─── 强度修饰词 ────────────────────────────────────────────────
@@ -579,7 +582,7 @@ const INTENSITY_MODIFIERS = [
   'fucking', 'damn', 'hell', 'super',
 ];
 
-// ─── 否定词 ────────────────────────────────────────────────────
+// ── 否定词 ────────────────────────────────────────────────────
 const NEGATION_WORDS = [
   'not', "n't", 'never', 'no', 'neither', 'nor', 'barely', 'hardly',
   // 反向语义/排除型表达（如 "without worrying about burn-in"、"free of dead pixels"）
@@ -599,10 +602,13 @@ const IRONY_REVERSAL_PATTERNS: { pattern: RegExp; weight: number }[] = [
   { pattern: /\bnot\b[^.!?]{0,15}\b(bad|terrible|awful|horrible|crap|shitty|useless|junk)\b(?:[^.!?]{0,20}\b(at all|honestly|really|that bad)\b)?[^.!?]{0,30}(?:,|\bbut\b|\bthough\b|\bactually\b|\bin fact\b)/i, weight: 0.45 },
   // 3. 夸张转正面："so bad I love it" / "terrible but I love it"
   { pattern: /\b(?:so|that|really)\s+(?:bad|terrible|awful)\b[^.!?]{0,30}\b(?:love|loving|amazing|great|good|perfect|enjoy|enjoying|best|favorite|obsessed)\b/i, weight: 0.5 },
-  // 4. 引用+否定："they say it's bad" / "supposed to be trash"
+  // 4. 引用 + 否定："they say it's bad" / "supposed to be trash"
   { pattern: /\b(?:they say|everyone says|people say|supposed to|they claim|rumor has it|word is)\b[^.!?]{0,30}\b(?:bad|terrible|awful|trash|garbage|junk|crap|worst|horrible|useless)\b/i, weight: 0.4 },
   // 5. 反讽肯定："yeah right, it's trash" / "sure, Hisense is bad (NOT)"
   { pattern: /\b(?:yeah|yea|yep|sure|right|of course|oh please|sure thing)\b[^.!?]{0,10}(?:right|sure)\b[^.!?]{0,30}\b(?:trash|garbage|bad|terrible|awful|worst|crap|shit|useless|junk)\b/i, weight: 0.5 },
+  // 6. 俚语购买意愿："want/need ... so bad" = "非常想要"（正面）
+  { pattern: /\b(?:want|need|wanted|needed)\b[^.!?]{0,20}\b(?:so|really|badly)\b[^.!?]{0,5}\b(?:bad|much)\b/i, weight: 0.5 },
+  { pattern: /\b(?:so|really|badly)\b[^.!?]{0,5}\b(?:bad|much)\b[^.!?]{0,20}\b(?:want|need|wanted|needed)\b/i, weight: 0.5 },
 ];
 
 // 反讽检测：给定负面词命中位置，返回 0~1 的反讽强度
